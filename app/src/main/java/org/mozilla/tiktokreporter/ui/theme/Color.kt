@@ -2,10 +2,17 @@ package org.mozilla.tiktokreporter.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-val Purple80 = Color(0xFFD0BCFF)
-val PurpleGrey80 = Color(0xFFCCC2DC)
-val Pink80 = Color(0xFFEFB8C8)
-
-val Purple40 = Color(0xFF6650a4)
-val PurpleGrey40 = Color(0xFF625b71)
-val Pink40 = Color(0xFF7D5260)
+object MozillaColor {
+    val Background = Color.White
+    val Blue = Color(0xFF595CF3)
+    val BlueDisabled = Color(0x4D595CF3)
+    val WarmRed = Color(0xFFFF4F5E)
+    val WarmRedDisabled = Color(0x4DFF4F5E)
+    val Outline = Color(0xFF666666)
+    val OutlineDisabled = Color(0x4D666666)
+    val TextColor = Color(0xFF000000)
+    val TextColor50 = Color(0x80000000)
+    val TextColorDisabled = Color(0x4D000000)
+    val DividerColor = Color(0xFFE9E9EA)
+    val Error = Color(0xFFCC0011)
+}

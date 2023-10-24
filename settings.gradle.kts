@@ -3,6 +3,7 @@ pluginManagement {
         google()
         mavenCentral()
         gradlePluginPortal()
+        maven(url = "https://maven.mozilla.org/maven2")
     }
 }
 dependencyResolutionManagement {

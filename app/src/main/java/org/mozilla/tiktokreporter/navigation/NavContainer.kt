@@ -1,12 +1,18 @@
 package org.mozilla.tiktokreporter.navigation
 
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.BottomAppBar
+import androidx.compose.material3.Button
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -35,13 +41,6 @@ fun NavContainer() {
     }
     Scaffold(
         modifier = Modifier.fillMaxSize(),
-        bottomBar = {
-            if (isFullScreen) {
-                BottomAppBar {
-
-                }
-            }
-        }
     ) { innerPadding ->
         NavHost(
             modifier = Modifier
