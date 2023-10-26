@@ -1,32 +1,34 @@
 package org.mozilla.tiktokreporter.navigation
 
+import android.annotation.SuppressLint
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material3.BottomAppBar
-import androidx.compose.material3.Button
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navigation
+import kotlinx.coroutines.delay
 import org.mozilla.tiktokreporter.onboarding.termsconditions.TermsAndConditionsScreen
 
+@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun NavContainer() {
 
@@ -37,13 +39,11 @@ fun NavContainer() {
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
-    ) { innerPadding ->
+    ) { _ ->
         NavHost(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding),
+            modifier = Modifier.fillMaxSize(),
             navController = navController,
-            startDestination = Destination.Onboarding.route
+            startDestination = Destination.SplashScreen.route
         ) {
             addSplashScreen(navController)
             addOnBoarding(navController)
@@ -60,18 +60,51 @@ fun NavContainer() {
 private fun NavGraphBuilder.addSplashScreen(
     navController: NavController
 ) {
-    val destination = NestedDestination.SplashScreenNested.createRoute(Destination.SplashScreen)
+    val startDestination = NestedDestination.SplashScreenNested.createRoute(Destination.SplashScreen)
     navigation(
         route = Destination.SplashScreen.route,
-        startDestination = destination
+        startDestination = startDestination
     ) {
         composable(
-            route = destination
+            route = startDestination
         ) {
-            Box(
+            LaunchedEffect(
+                key1 = Unit,
+                block = {
+                    delay(2000L)
+                    val destination = NestedDestination.TermsAndConditions.createRoute(Destination.Onboarding)
+                    navController.navigate(destination) {
+                        launchSingleTop = true
+                        popUpTo(startDestination) {
+                            inclusive = true
+                        }
+                    }
+                }
+            )
+            BoxWithConstraints(
                 modifier = Modifier.fillMaxSize()
             ) {
-                Text(text = "Splash screen")
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(
+                            brush = Brush.linearGradient(
+                                colors = listOf(
+                                    Color(0xFFFD7279),
+                                    Color(0xFFEC101A)
+                                ),
+                                start = Offset(0f, 0f),
+                                end = Offset(maxWidth.value, 0f),
+                            )
+                        )
+                )
+                Icon(
+                    imageVector = Icons.Default.LocationOn,
+                    contentDescription = "",
+                    tint = Color.White,
+                    modifier = Modifier.size(124.dp)
+                        .align(Alignment.Center),
+                )
             }
         }
     }

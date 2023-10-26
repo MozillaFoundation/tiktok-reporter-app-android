@@ -85,7 +85,7 @@ fun MozillaDropdown(
                     Divider(
                         modifier = Modifier.fillMaxWidth().padding(ExposedDropdownMenuDefaults.ItemContentPadding),
                         thickness = 2.dp,
-                        color = MozillaColor.OutlineDisabled
+                        color = MozillaColor.DividerColor
                     )
                 }
             }

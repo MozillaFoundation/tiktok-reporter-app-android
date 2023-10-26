@@ -6,8 +6,6 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import org.mozilla.tiktokreporter.ui.components.PrimaryButton
-import org.mozilla.tiktokreporter.ui.components.SecondaryButton
 
 @Composable
 fun DialogContainer(
@@ -27,24 +25,10 @@ fun DialogContainer(
                 },
                 title = dialogData.title,
                 message = dialogData.message,
-                confirmButton = {
-                    PrimaryButton(
-                        text = dialogData.positiveButtonText,
-                        onClick = {
-                            dialogData.onPositive()
-                        }
-                    )
-                },
-                cancelButton = dialogData.negativeButtonText?.let { text ->
-                    {
-                        SecondaryButton(
-                            text = text,
-                            onClick = {
-                                dialogData.onNegative?.invoke()
-                            }
-                        )
-                    }
-                }
+                confirmButtonText = dialogData.positiveButtonText,
+                onConfirm = dialogData.onPositive,
+                cancelButtonText = dialogData.negativeButtonText,
+                onCancel = dialogData.onNegative
             )
         }
 
@@ -63,8 +47,8 @@ sealed class DialogState {
     data class Message(
         val title: String,
         val message: String = "",
-        val positiveButtonText: String,
-        val onPositive: () -> Unit,
+        val positiveButtonText: String? = null,
+        val onPositive: (() -> Unit)? = null,
         val negativeButtonText: String? = null,
         val onNegative: (() -> Unit)? = null,
         val onDismissRequest: () -> Unit = { },

@@ -2,7 +2,6 @@ package org.mozilla.tiktokreporter.data.remote.response
 
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
-import org.json.JSONObject
 import java.time.LocalDateTime
 
 @JsonClass(generateAdapter = true)
