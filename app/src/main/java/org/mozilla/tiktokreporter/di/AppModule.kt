@@ -38,6 +38,12 @@ object AppModule {
                     addInterceptor(loggingInterceptor)
                 }
             }
+            .addInterceptor { chain ->
+                val request = chain.request().newBuilder().addHeader(
+                    "X-API-KEY", "b0ea74e0-35f0-4a6b-a162-4f936a85ff6d"
+                ).build()
+                return@addInterceptor chain.proceed(request)
+            }
             .build()
 
         val moshi = Moshi.Builder()
