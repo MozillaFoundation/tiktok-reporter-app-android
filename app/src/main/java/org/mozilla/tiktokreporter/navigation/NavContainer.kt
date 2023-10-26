@@ -1,5 +1,6 @@
 package org.mozilla.tiktokreporter.navigation
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -10,6 +11,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -23,22 +25,16 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navigation
+import org.mozilla.tiktokreporter.onboarding.termsconditions.TermsAndConditionsScreen
 
 @Composable
 fun NavContainer() {
 
     val navController = rememberNavController()
-    var isFullScreen by remember {
-        mutableStateOf(false)
-    }
     navController.addOnDestinationChangedListener { navController, destination, bundle ->
         println("New Destination: $destination")
-        isFullScreen = destination.route?.contains(Destination.FULL_SCREEN) ?: false
     }
 
-    val startDestination by remember {
-        mutableStateOf(Destination.Onboarding.route)
-    }
     Scaffold(
         modifier = Modifier.fillMaxSize(),
     ) { innerPadding ->
@@ -47,15 +43,40 @@ fun NavContainer() {
                 .fillMaxSize()
                 .padding(innerPadding),
             navController = navController,
-            startDestination = startDestination
+            startDestination = Destination.Onboarding.route
         ) {
+            addSplashScreen(navController)
             addOnBoarding(navController)
-            addReportLink(navController)
-            addRecordSession(navController)
+            addReportForm(navController)
             addSettings(navController)
         }
     }
 }
+
+
+/**
+ * SPLASH SCREEN
+ */
+private fun NavGraphBuilder.addSplashScreen(
+    navController: NavController
+) {
+    val destination = NestedDestination.SplashScreenNested.createRoute(Destination.SplashScreen)
+    navigation(
+        route = Destination.SplashScreen.route,
+        startDestination = destination
+    ) {
+        composable(
+            route = destination
+        ) {
+            Box(
+                modifier = Modifier.fillMaxSize()
+            ) {
+                Text(text = "Splash screen")
+            }
+        }
+    }
+}
+
 
 /**
  * ONBOARDING
@@ -78,46 +99,41 @@ private fun NavGraphBuilder.addOnBoarding(
 
 
 /**
- * REPORT LINK
+ * REPORT FORM
  */
-private fun NavGraphBuilder.addReportLink(
+private fun NavGraphBuilder.addReportForm(
     navController: NavController
 ) {
-    val destination = NestedDestination.ReportLinkNested.createRoute(Destination.ReportLink)
+    val destination = NestedDestination.ReportFormNested.createRoute(Destination.ReportForm)
     navigation(
-        route = Destination.Onboarding.route,
+        route = Destination.ReportForm.route,
         startDestination = destination
     ) {
-        addReportLinkNested()
+        addReportFormNested()
+        addReportSubmittedNested()
     }
 }
-private fun NavGraphBuilder.addReportLinkNested() {
+private fun NavGraphBuilder.addReportFormNested() {
     composable(
-        route = NestedDestination.ReportLinkNested.createRoute(Destination.ReportLink)
+        route = NestedDestination.ReportFormNested.createRoute(Destination.ReportForm)
     ) {
+        Box(
+            modifier = Modifier.fillMaxSize()
+        ) {
+            Text(text = "Report form")
+        }
 
     }
 }
-
-
-/**
- * RECORD SESSION
- */
-private fun NavGraphBuilder.addRecordSession(
-    navController: NavController
-) {
-    val destination = NestedDestination.RecordSessionNested.createRoute(Destination.RecordSession)
-    navigation(
-        route = Destination.Onboarding.route,
-        startDestination = destination
-    ) {
-        addRecordSessionNested()
-    }
-}
-private fun NavGraphBuilder.addRecordSessionNested() {
+private fun NavGraphBuilder.addReportSubmittedNested() {
     composable(
-        route = NestedDestination.RecordSessionNested.createRoute(Destination.RecordSession)
+        route = NestedDestination.ReportSubmittedNested.createRoute(Destination.ReportForm)
     ) {
+        Box(
+            modifier = Modifier.fillMaxSize()
+        ) {
+            Text(text = "Report submitted")
+        }
 
     }
 }
@@ -131,7 +147,7 @@ private fun NavGraphBuilder.addSettings(
 ) {
     val destination = NestedDestination.SettingsNested.createRoute(Destination.Settings)
     navigation(
-        route = Destination.Onboarding.route,
+        route = Destination.Settings.route,
         startDestination = destination
     ) {
         addSettingsNested(navController)
@@ -149,6 +165,11 @@ private fun NavGraphBuilder.addSettingsNested(
     composable(
         route = NestedDestination.SettingsNested.createRoute(Destination.Settings)
     ) {
+        Box(
+            modifier = Modifier.fillMaxSize()
+        ) {
+            Text(text = "Settings home")
+        }
 
     }
 }
@@ -164,10 +185,20 @@ private fun NavGraphBuilder.addTermsAndConditions(
         when (root) {
             is Destination.Onboarding -> {
                 // terms and conditions onboarding screen
+                TermsAndConditionsScreen(
+                    onNextScreen = {
+
+                    }
+                )
             }
 
             is Destination.Settings -> {
                 // terms and conditions settings screen
+                Box(
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    Text(text = "Settings terms and conditions")
+                }
             }
 
             else -> Unit
@@ -184,10 +215,20 @@ private fun NavGraphBuilder.addStudies(
         when (root) {
             is Destination.Onboarding -> {
                 // studies onboarding screen
+                Box(
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    Text(text = "Onboarding studies")
+                }
             }
 
             is Destination.Settings -> {
                 // studies settings screen
+                Box(
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    Text(text = "Settings studies")
+                }
             }
 
             else -> Unit
@@ -204,10 +245,20 @@ private fun NavGraphBuilder.addEmail(
         when (root) {
             is Destination.Onboarding -> {
                 // email onboarding screen
+                Box(
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    Text(text = "Onboarding email")
+                }
             }
 
             is Destination.Settings -> {
                 // email settings screen
+                Box(
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    Text(text = "Settings email")
+                }
             }
 
             else -> Unit
@@ -221,6 +272,11 @@ private fun NavGraphBuilder.addLinkOnboarding(
     composable(
         route = NestedDestination.Studies.createRoute(root)
     ) {
+        Box(
+            modifier = Modifier.fillMaxSize()
+        ) {
+            Text(text = "Link onboarding")
+        }
 
     }
 }
@@ -231,6 +287,11 @@ private fun NavGraphBuilder.addRecordingOnboarding(
     composable(
         route = NestedDestination.Studies.createRoute(root)
     ) {
+        Box(
+            modifier = Modifier.fillMaxSize()
+        ) {
+            Text(text = "Recording onboarding")
+        }
 
     }
 }

@@ -26,11 +26,21 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+            isDebuggable = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+
+            buildConfigField("String", "BASE_URL", "\"https://tiktok-reporter-app-be-jbrlktowcq-ew.a.run.app/\"")
+        }
+
+        debug {
+            isMinifyEnabled = false
+            isDebuggable = true
+
+            buildConfigField("String", "BASE_URL", "\"https://tiktok-reporter-app-be-jbrlktowcq-ew.a.run.app/\"")
         }
     }
     compileOptions {
@@ -41,6 +51,7 @@ android {
         jvmTarget = libs.versions.jvm.target.get()
     }
     buildFeatures {
+        buildConfig = true
         compose = true
     }
     composeOptions {
@@ -82,6 +93,8 @@ dependencies {
 
     implementation(libs.hilt.android)
     kapt(libs.hilt.android.compiler)
+    implementation(libs.hilt.navigation.compose)
+
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.test.ext.junit)
