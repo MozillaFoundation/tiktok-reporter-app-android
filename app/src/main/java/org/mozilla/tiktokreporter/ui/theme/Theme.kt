@@ -1,13 +1,8 @@
 package org.mozilla.tiktokreporter.ui.theme
 
-import android.app.Activity
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.SideEffect
-import androidx.compose.ui.graphics.toArgb
-import androidx.compose.ui.platform.LocalView
-import androidx.core.view.WindowCompat
 
 @Composable
 fun TikTokReporterTheme(
@@ -16,7 +11,7 @@ fun TikTokReporterTheme(
     dynamicColor: Boolean = true,
     content: @Composable () -> Unit
 ) {
-//    val colorScheme = MozillaColorScheme
+    val colorScheme = MozillaColorScheme
 //    when {
 //        dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
 //            val context = LocalContext.current
@@ -36,7 +31,7 @@ fun TikTokReporterTheme(
 //    }
 
     MaterialTheme(
-//        colorScheme = colorScheme,
+        colorScheme = colorScheme,
 //        typography = Typography,
 //        shapes = Shapes,
         content = content

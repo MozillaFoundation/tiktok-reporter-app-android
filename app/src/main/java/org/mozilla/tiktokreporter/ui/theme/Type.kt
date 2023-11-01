@@ -55,19 +55,13 @@ object MozillaTypography {
         lineHeight = 15.6.sp
     )
     val Body1 = TextStyle(
-        fontFamily = ZillaSlab,
-        fontWeight = FontWeight.W400,
-        fontSize = 18.sp,
-        lineHeight = 27.sp
-    )
-    val Body1Nunito = TextStyle(
         fontFamily = NunitoSans,
         fontWeight = FontWeight.W400,
         fontSize = 18.sp,
         lineHeight = 27.sp
     )
     val Body2 = TextStyle(
-        fontFamily = ZillaSlab,
+        fontFamily = NunitoSans,
         fontWeight = FontWeight.W400,
         fontSize = 14.sp,
         lineHeight = 18.2.sp
@@ -91,3 +85,22 @@ object MozillaTypography {
         lineHeight = 24.sp
     )
 }
+
+// patch studies/{id}
+/**
+ *
+ * {
+ *   "name": "Mobile study",
+ *   "description": "Description",
+ *   "isActive": true,
+ *   "countryCodeIds": [
+ *     "20a5730b-a3e0-43eb-8f9c-7be2ef201817"
+ *   ],
+ *   "policyIds": [
+ *     "2cd1f78b-5a5a-4827-b794-fd86384a908d"
+ *   ],
+ *   "onboardingId": "065d300e-ea2b-46bd-8e09-3a3cc4aaae80",
+ *   "formId": "3b939cb0-1748-467b-a90b-a3402d3f035e"
+ * }
+ *
+ **/

@@ -17,3 +17,11 @@ object MozillaColor {
     val DividerColor = Color(0xFFE9E9EA)
     val Error = Color(0xFFCC0011)
 }
+
+val MozillaColorScheme = lightColorScheme(
+    primary = MozillaColor.Blue,
+    onPrimary = Color.White,
+    background = Color.White,
+    surface = Color.White,
+    outline = MozillaColor.Outline
+)

@@ -25,6 +25,7 @@ sealed class NestedDestination(
 
     data object TermsAndConditions: NestedDestination("onboardingTermsAndConditions")
     data object Studies: NestedDestination("studies")
+    data object StudyOnboarding: NestedDestination("studyOnboarding")
     data object Email: NestedDestination("email")
     data object PrivacyPolicy: NestedDestination("privacyPolicy")
     data object DataHandling: NestedDestination("dataHandling")

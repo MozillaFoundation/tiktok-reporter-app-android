@@ -25,21 +25,30 @@ android {
     }
 
     buildTypes {
+
         release {
-            isMinifyEnabled = true
             isDebuggable = false
+            isMinifyEnabled = true
+
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-
-            buildConfigField("String", "BASE_URL", "\"https://tiktok-reporter-app-be-jbrlktowcq-ew.a.run.app/\"")
         }
 
         debug {
-            isMinifyEnabled = false
             isDebuggable = true
+            isMinifyEnabled = false
+        }
+    }
 
+    flavorDimensions += "version"
+    productFlavors {
+        create("production") {
+            buildConfigField("String", "BASE_URL", "\"https://tiktok-reporter-app-be-jbrlktowcq-ew.a.run.app/\"")
+        }
+
+        create("demo") {
             buildConfigField("String", "BASE_URL", "\"https://tiktok-reporter-app-be-jbrlktowcq-ew.a.run.app/\"")
         }
     }
@@ -68,6 +77,7 @@ dependencies {
 
     implementation(libs.core.ktx)
     implementation(libs.lifecycle.runtime.ktx)
+    implementation(libs.lifecycle.runtime.compose)
     implementation(libs.activity.compose)
 
     implementation(platform(libs.compose.bom))
@@ -78,6 +88,9 @@ dependencies {
     implementation(libs.compose.ui.tooling)
     implementation(libs.compose.ui.tooling.preview)
     implementation(libs.compose.material3)
+    implementation(libs.compose.constraintlayout)
+
+    implementation(libs.coil.compose)
 
     implementation(libs.navigation.compose)
 
@@ -85,6 +98,9 @@ dependencies {
     implementation(libs.retrofit.converter.moshi)
     implementation(libs.okhttp)
     implementation(libs.okhttp.logging.interceptor)
+
+    implementation(libs.datastore.preferences)
+    implementation(libs.datastore.preferences.core)
 
     implementation(libs.moshi)
     ksp(libs.moshi.kotlin.codegen)
@@ -94,7 +110,6 @@ dependencies {
     implementation(libs.hilt.android)
     kapt(libs.hilt.android.compiler)
     implementation(libs.hilt.navigation.compose)
-
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.test.ext.junit)

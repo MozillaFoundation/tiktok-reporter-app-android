@@ -3,36 +3,12 @@ package org.mozilla.tiktokreporter.ui.components
 import androidx.compose.foundation.layout.Column
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
-import androidx.compose.material3.RadioButton
-import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import org.mozilla.tiktokreporter.ui.theme.MozillaColor
 import org.mozilla.tiktokreporter.ui.theme.TikTokReporterTheme
-
-@Composable
-fun MozillaRadioButton(
-    selected: Boolean,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-    enabled: Boolean = true,
-) {
-    val colors = RadioButtonDefaults.colors(
-        selectedColor = MozillaColor.Blue,
-        unselectedColor = MozillaColor.Outline,
-        disabledSelectedColor = MozillaColor.BlueDisabled,
-        disabledUnselectedColor = MozillaColor.OutlineDisabled
-    )
-    RadioButton(
-        selected = selected,
-        onClick = onClick,
-        modifier = modifier,
-        enabled = enabled,
-        colors = colors
-    )
-}
 
 @Composable
 fun MozillaCheckbox(
@@ -61,26 +37,41 @@ fun MozillaCheckbox(
     showBackground = true,
 )
 @Composable
-private fun MozillaRadioButtonPreview() {
+private fun MozillaCheckboxPreview1() {
     TikTokReporterTheme {
         Column {
-            MozillaRadioButton(
-                selected = false,
+            MozillaCheckbox(
+                checked = false,
                 onClick = {},
                 enabled = true
             )
-            MozillaRadioButton(
-                selected = true,
+        }
+    }
+}
+@Preview(
+    showBackground = true,
+)
+@Composable
+private fun MozillaCheckboxPreview2() {
+    TikTokReporterTheme {
+        Column {
+            MozillaCheckbox(
+                checked = true,
                 onClick = {},
                 enabled = true
             )
-            MozillaRadioButton(
-                selected = false,
-                onClick = {},
-                enabled = false
-            )
-            MozillaRadioButton(
-                selected = true,
+        }
+    }
+}
+@Preview(
+    showBackground = true,
+)
+@Composable
+private fun MozillaCheckboxPreview3() {
+    TikTokReporterTheme {
+        Column {
+            MozillaCheckbox(
+                checked = false,
                 onClick = {},
                 enabled = false
             )
@@ -91,24 +82,9 @@ private fun MozillaRadioButtonPreview() {
     showBackground = true,
 )
 @Composable
-private fun MozillaCheckboxPreview() {
+private fun MozillaCheckboxPreview4() {
     TikTokReporterTheme {
         Column {
-            MozillaCheckbox(
-                checked = false,
-                onClick = {},
-                enabled = true
-            )
-            MozillaCheckbox(
-                checked = true,
-                onClick = {},
-                enabled = true
-            )
-            MozillaCheckbox(
-                checked = false,
-                onClick = {},
-                enabled = false
-            )
             MozillaCheckbox(
                 checked = true,
                 onClick = {},

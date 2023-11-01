@@ -96,7 +96,7 @@ fun MozillaTextField(
         },
         maxLines = maxLines,
         singleLine = singleLine,
-        textStyle = MozillaTypography.Body1Nunito,
+        textStyle = MozillaTypography.Body1,
         colors = colors,
         readOnly = readOnly,
         trailingIcon = trailingIcon

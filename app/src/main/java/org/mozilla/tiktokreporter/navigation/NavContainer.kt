@@ -1,39 +1,37 @@
 package org.mozilla.tiktokreporter.navigation
 
 import android.annotation.SuppressLint
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.size
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.LocationOn
-import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.ui.Alignment
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navigation
-import kotlinx.coroutines.delay
-import org.mozilla.tiktokreporter.onboarding.termsconditions.TermsAndConditionsScreen
+import org.mozilla.tiktokreporter.MainViewModel
+import org.mozilla.tiktokreporter.termsconditions.TermsAndConditionsScreen
+import org.mozilla.tiktokreporter.splashscreen.SplashScreen
+import org.mozilla.tiktokreporter.studieslist.StudiesListScreen
+import org.mozilla.tiktokreporter.studyonboarding.StudyOnboardingScreen
+import org.mozilla.tiktokreporter.util.emptyCallback
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun NavContainer() {
 
+    val viewModel = hiltViewModel<MainViewModel>()
+    val onboardingCompleted by viewModel.onboardingCompleted.collectAsStateWithLifecycle()
+
     val navController = rememberNavController()
-    navController.addOnDestinationChangedListener { navController, destination, bundle ->
+    navController.addOnDestinationChangedListener { _, destination, _ ->
         println("New Destination: $destination")
     }
 
@@ -45,7 +43,7 @@ fun NavContainer() {
             navController = navController,
             startDestination = Destination.SplashScreen.route
         ) {
-            addSplashScreen(navController)
+            addSplashScreen(navController, onboardingCompleted)
             addOnBoarding(navController)
             addReportForm(navController)
             addSettings(navController)
@@ -58,7 +56,8 @@ fun NavContainer() {
  * SPLASH SCREEN
  */
 private fun NavGraphBuilder.addSplashScreen(
-    navController: NavController
+    navController: NavController,
+    onboardingCompleted: Boolean
 ) {
     val startDestination = NestedDestination.SplashScreenNested.createRoute(Destination.SplashScreen)
     navigation(
@@ -68,11 +67,14 @@ private fun NavGraphBuilder.addSplashScreen(
         composable(
             route = startDestination
         ) {
-            LaunchedEffect(
-                key1 = Unit,
-                block = {
-                    delay(2000L)
-                    val destination = NestedDestination.TermsAndConditions.createRoute(Destination.Onboarding)
+            SplashScreen(
+                onNextScreen = {
+                    val destination = if (onboardingCompleted) {
+                        NestedDestination.ReportFormNested.createRoute(Destination.ReportForm)
+                    } else {
+                        NestedDestination.TermsAndConditions.createRoute(Destination.Onboarding)
+                    }
+
                     navController.navigate(destination) {
                         launchSingleTop = true
                         popUpTo(startDestination) {
@@ -81,31 +83,6 @@ private fun NavGraphBuilder.addSplashScreen(
                     }
                 }
             )
-            BoxWithConstraints(
-                modifier = Modifier.fillMaxSize()
-            ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(
-                            brush = Brush.linearGradient(
-                                colors = listOf(
-                                    Color(0xFFFD7279),
-                                    Color(0xFFEC101A)
-                                ),
-                                start = Offset(0f, 0f),
-                                end = Offset(maxWidth.value, 0f),
-                            )
-                        )
-                )
-                Icon(
-                    imageVector = Icons.Default.LocationOn,
-                    contentDescription = "",
-                    tint = Color.White,
-                    modifier = Modifier.size(124.dp)
-                        .align(Alignment.Center),
-                )
-            }
         }
     }
 }
@@ -124,8 +101,7 @@ private fun NavGraphBuilder.addOnBoarding(
     ) {
         addTermsAndConditions(navController, Destination.Onboarding)
         addStudies(navController, Destination.Onboarding)
-        addLinkOnboarding(navController, Destination.Onboarding)
-        addRecordingOnboarding(navController, Destination.Onboarding)
+        addStudyOnboarding(navController, Destination.Onboarding)
         addEmail(navController, Destination.Onboarding)
     }
 }
@@ -150,11 +126,6 @@ private fun NavGraphBuilder.addReportFormNested() {
     composable(
         route = NestedDestination.ReportFormNested.createRoute(Destination.ReportForm)
     ) {
-        Box(
-            modifier = Modifier.fillMaxSize()
-        ) {
-            Text(text = "Report form")
-        }
 
     }
 }
@@ -187,8 +158,7 @@ private fun NavGraphBuilder.addSettings(
         addTermsAndConditions(navController, Destination.Settings)
         addStudies(navController, Destination.Settings)
         addEmail(navController, Destination.Onboarding)
-        addLinkOnboarding(navController, Destination.Settings)
-        addRecordingOnboarding(navController, Destination.Settings)
+        addStudyOnboarding(navController, Destination.Settings)
     }
 }
 
@@ -212,60 +182,36 @@ private fun NavGraphBuilder.addTermsAndConditions(
     navController: NavController,
     root: Destination
 ) {
+    val isForOnboarding = root is Destination.Onboarding
+    val onNextScreen = {
+        val destination = NestedDestination.Studies.createRoute(Destination.Onboarding)
+        navController.navigate(destination)
+    }
+
     composable(
         route = NestedDestination.TermsAndConditions.createRoute(root)
     ) {
-        when (root) {
-            is Destination.Onboarding -> {
-                // terms and conditions onboarding screen
-                TermsAndConditionsScreen(
-                    onNextScreen = {
-
-                    }
-                )
-            }
-
-            is Destination.Settings -> {
-                // terms and conditions settings screen
-                Box(
-                    modifier = Modifier.fillMaxSize()
-                ) {
-                    Text(text = "Settings terms and conditions")
-                }
-            }
-
-            else -> Unit
-        }
+        TermsAndConditionsScreen(
+            onNextScreen = if (isForOnboarding) onNextScreen else emptyCallback,
+            isForOnboarding = isForOnboarding
+        )
     }
 }
 private fun NavGraphBuilder.addStudies(
     navController: NavController,
     root: Destination
 ) {
+    val onGoToStudyOnboarding = {
+        val destination = NestedDestination.StudyOnboarding.createRoute(Destination.Onboarding)
+        navController.navigate(destination)
+    }
+
     composable(
         route = NestedDestination.Studies.createRoute(root)
     ) {
-        when (root) {
-            is Destination.Onboarding -> {
-                // studies onboarding screen
-                Box(
-                    modifier = Modifier.fillMaxSize()
-                ) {
-                    Text(text = "Onboarding studies")
-                }
-            }
-
-            is Destination.Settings -> {
-                // studies settings screen
-                Box(
-                    modifier = Modifier.fillMaxSize()
-                ) {
-                    Text(text = "Settings studies")
-                }
-            }
-
-            else -> Unit
-        }
+        StudiesListScreen(
+            onNextScreen = onGoToStudyOnboarding
+        )
     }
 }
 private fun NavGraphBuilder.addEmail(
@@ -298,33 +244,24 @@ private fun NavGraphBuilder.addEmail(
         }
     }
 }
-private fun NavGraphBuilder.addLinkOnboarding(
+private fun NavGraphBuilder.addStudyOnboarding(
     navController: NavController,
     root: Destination
 ) {
-    composable(
-        route = NestedDestination.Studies.createRoute(root)
-    ) {
-        Box(
-            modifier = Modifier.fillMaxSize()
-        ) {
-            Text(text = "Link onboarding")
-        }
-
+    val onGoToEmailForm = {
+        val destination = NestedDestination.Email.createRoute(Destination.Onboarding)
+        navController.navigate(destination)
     }
-}
-private fun NavGraphBuilder.addRecordingOnboarding(
-    navController: NavController,
-    root: Destination
-) {
+    val onGoToReportForm = {
+        val destination = NestedDestination.ReportFormNested.createRoute(Destination.ReportForm)
+        navController.navigate(destination)
+    }
     composable(
-        route = NestedDestination.Studies.createRoute(root)
+        route = NestedDestination.StudyOnboarding.createRoute(root)
     ) {
-        Box(
-            modifier = Modifier.fillMaxSize()
-        ) {
-            Text(text = "Recording onboarding")
-        }
-
+        StudyOnboardingScreen(
+            onGoToEmailForm = onGoToEmailForm,
+            onGoToReportForm = onGoToReportForm
+        )
     }
 }
