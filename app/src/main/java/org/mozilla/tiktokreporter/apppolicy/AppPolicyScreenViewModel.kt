@@ -1,4 +1,4 @@
-package org.mozilla.tiktokreporter.termsconditions
+package org.mozilla.tiktokreporter.apppolicy
 
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel

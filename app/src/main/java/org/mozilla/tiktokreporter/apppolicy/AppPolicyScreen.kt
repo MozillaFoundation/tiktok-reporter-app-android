@@ -1,4 +1,4 @@
-package org.mozilla.tiktokreporter.termsconditions
+package org.mozilla.tiktokreporter.apppolicy
 
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer

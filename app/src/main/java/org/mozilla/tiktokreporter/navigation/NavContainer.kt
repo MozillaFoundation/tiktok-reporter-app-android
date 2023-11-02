@@ -20,7 +20,8 @@ import org.mozilla.tiktokreporter.MainViewModel
 import org.mozilla.tiktokreporter.aboutapp.AboutAppScreen
 import org.mozilla.tiktokreporter.reportform.ReportFormScreen
 import org.mozilla.tiktokreporter.settings.SettingsScreen
-import org.mozilla.tiktokreporter.termsconditions.AppPolicyScreen
+import org.mozilla.tiktokreporter.apppolicy.AppPolicyScreen
+import org.mozilla.tiktokreporter.datahandling.DataHandlingScreen
 import org.mozilla.tiktokreporter.splashscreen.SplashScreen
 import org.mozilla.tiktokreporter.studieslist.StudiesListScreen
 import org.mozilla.tiktokreporter.studyonboarding.StudyOnboardingScreen
@@ -177,6 +178,7 @@ private fun NavGraphBuilder.addSettings(
         addStudies(navController, Destination.Settings)
         addEmail(navController, Destination.Onboarding)
         addStudyOnboarding(navController, Destination.Settings)
+        addDataHandling(navController)
     }
 }
 
@@ -193,7 +195,10 @@ private fun NavGraphBuilder.addSettingsNested(
         val destination = NestedDestination.AppPolicy.createRouteWithArguments(Destination.Settings, type)
         navController.navigate(destination)
     }
-    val onGoToDataHandling = { }
+    val onGoToDataHandling = {
+        val destination = NestedDestination.DataHandling.createRoute(Destination.Settings)
+        navController.navigate(destination)
+    }
 
     composable(
         route = NestedDestination.SettingsNested.createRoute(Destination.Settings)
@@ -321,6 +326,20 @@ private fun NavGraphBuilder.addStudyOnboarding(
         StudyOnboardingScreen(
             onGoToEmailForm = onGoToEmailForm,
             onGoToReportForm = onGoToReportForm
+        )
+    }
+}
+
+private fun NavGraphBuilder.addDataHandling(
+    navController: NavController
+) {
+    composable(
+        route = NestedDestination.DataHandling.createRoute(Destination.Settings)
+    ) {
+        DataHandlingScreen(
+            onNavigateBack = {
+                navController.navigateUp()
+            }
         )
     }
 }
