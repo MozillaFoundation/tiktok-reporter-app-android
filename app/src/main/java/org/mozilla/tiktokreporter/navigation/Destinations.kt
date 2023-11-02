@@ -1,5 +1,9 @@
 package org.mozilla.tiktokreporter.navigation
 
+import androidx.navigation.NavBackStackEntry
+import androidx.navigation.NavType
+import androidx.navigation.navArgument
+
 sealed class Destination(
     val route: String
 ) {
@@ -23,11 +27,37 @@ sealed class NestedDestination(
     data object SplashScreenNested: NestedDestination("splashScreenNested")
 
 
-    data object TermsAndConditions: NestedDestination("onboardingTermsAndConditions")
+    data object AppPolicy: NestedDestination("appPolicy/{type}") {
+        enum class Type {
+            TermsAndConditions,
+            PrivacyPolicy
+        }
+
+        val argumentsList = listOf(
+            navArgument("type") {
+                type = NavType.StringType
+                nullable = false
+            }
+        )
+
+        data class Args(
+            val type: Type
+        )
+
+        fun createRouteWithArguments(
+            root: Destination,
+            type: Type
+        ): String = "${root.route}/appPolicy/${type.name}"
+
+        fun parseArguments(
+            backStackEntry: NavBackStackEntry
+        ): Args = Args(
+            type = Type.valueOf(backStackEntry.arguments?.getString("type").orEmpty())
+        )
+    }
     data object Studies: NestedDestination("studies")
     data object StudyOnboarding: NestedDestination("studyOnboarding")
     data object Email: NestedDestination("email")
-    data object PrivacyPolicy: NestedDestination("privacyPolicy")
     data object DataHandling: NestedDestination("dataHandling")
     data object AboutApp: NestedDestination("aboutApp")
 

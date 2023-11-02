@@ -1,5 +1,6 @@
 package org.mozilla.tiktokreporter.termsconditions
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -8,20 +9,26 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import org.mozilla.tiktokreporter.data.model.Policy
+import org.mozilla.tiktokreporter.navigation.NestedDestination
 import org.mozilla.tiktokreporter.repository.TikTokReporterRepository
 import org.mozilla.tiktokreporter.util.OneTimeEvent
 import org.mozilla.tiktokreporter.util.toOneTimeEvent
 import javax.inject.Inject
 
 @HiltViewModel
-class TermsAndConditionsScreenViewModel @Inject constructor(
-    private val tikTokReporterRepository: TikTokReporterRepository
+class AppPolicyScreenViewModel @Inject constructor(
+    private val tikTokReporterRepository: TikTokReporterRepository,
+    savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(State())
     val state = _state.asStateFlow()
 
     init {
+        val type = savedStateHandle.get<String>("type").orEmpty()
+        val policyType = NestedDestination.AppPolicy.Type.valueOf(type)
+
         viewModelScope.launch(Dispatchers.Unconfined) {
             _state.update {
                 it.copy(
@@ -29,7 +36,7 @@ class TermsAndConditionsScreenViewModel @Inject constructor(
                 )
             }
 
-            val policyResult = tikTokReporterRepository.getAppTermsAndConditions()
+            val policyResult = tikTokReporterRepository.getAppPolicies()
             if (policyResult.isFailure) {
                 // TODO: map error
                 val err = policyResult.exceptionOrNull()!!
@@ -41,7 +48,13 @@ class TermsAndConditionsScreenViewModel @Inject constructor(
                 return@launch
             }
 
-            val policy = policyResult.getOrNull() ?: kotlin.run {
+            val policies = policyResult.getOrNull()
+            val policy = policies?.firstOrNull { policy ->
+                when (policyType) {
+                    NestedDestination.AppPolicy.Type.TermsAndConditions -> policy.type == Policy.Type.TermsAndConditions
+                    NestedDestination.AppPolicy.Type.PrivacyPolicy -> policy.type == Policy.Type.Privacy
+                }
+            } ?: kotlin.run {
                 _state.update {
                     it.copy(
                         action = UiAction.ShowNoPolicyFound.toOneTimeEvent()

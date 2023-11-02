@@ -28,7 +28,7 @@ class TikTokReporterRepository @Inject constructor(
 
     private var selectedStudy: StudyDetails? = null
 
-    suspend fun getAppTermsAndConditions(): Result<Policy?> {
+    suspend fun getAppPolicies(): Result<List<Policy>> {
         val policies = try {
             withContext(Dispatchers.IO) {
                 return@withContext tikTokReporterService.getAppTermsAndConditions()
@@ -38,8 +38,7 @@ class TikTokReporterRepository @Inject constructor(
             return Result.failure(e)
         }
 
-        val policy = policies.firstOrNull { it.type == Policy.Type.TermsAndConditions }
-        return Result.success(policy)
+        return Result.success(policies)
     }
 
     suspend fun fetchStudies(): Result<List<StudyOverview>> {

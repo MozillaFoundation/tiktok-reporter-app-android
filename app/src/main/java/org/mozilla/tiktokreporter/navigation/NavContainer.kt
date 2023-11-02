@@ -20,7 +20,7 @@ import org.mozilla.tiktokreporter.MainViewModel
 import org.mozilla.tiktokreporter.aboutapp.AboutAppScreen
 import org.mozilla.tiktokreporter.reportform.ReportFormScreen
 import org.mozilla.tiktokreporter.settings.SettingsScreen
-import org.mozilla.tiktokreporter.termsconditions.TermsAndConditionsScreen
+import org.mozilla.tiktokreporter.termsconditions.AppPolicyScreen
 import org.mozilla.tiktokreporter.splashscreen.SplashScreen
 import org.mozilla.tiktokreporter.studieslist.StudiesListScreen
 import org.mozilla.tiktokreporter.studyonboarding.StudyOnboardingScreen
@@ -76,7 +76,7 @@ private fun NavGraphBuilder.addSplashScreen(
                     val destination = if (onboardingCompleted) {
                         NestedDestination.ReportFormNested.createRoute(Destination.ReportForm)
                     } else {
-                        NestedDestination.TermsAndConditions.createRoute(Destination.Onboarding)
+                        NestedDestination.AppPolicy.createRouteWithArguments(Destination.Onboarding, type = NestedDestination.AppPolicy.Type.TermsAndConditions)
                     }
 
                     navController.navigate(destination) {
@@ -98,7 +98,7 @@ private fun NavGraphBuilder.addSplashScreen(
 private fun NavGraphBuilder.addOnBoarding(
     navController: NavController
 ) {
-    val destination = NestedDestination.TermsAndConditions.createRoute(Destination.Onboarding)
+    val destination = NestedDestination.AppPolicy.createRoute(Destination.Onboarding)
     navigation(
         route = Destination.Onboarding.route,
         startDestination = destination
@@ -137,16 +137,10 @@ private fun NavGraphBuilder.addReportFormNested(
             val destination = NestedDestination.SettingsNested.createRoute(Destination.Settings)
             navController.navigate(destination)
         }
-        val onGoToTermsAndConditions = { }
-        val onGoToPrivacyPolicy = { }
-        val onGoToAppPurpose = { }
         val onGoToReportSubmittedScreen = { }
 
         ReportFormScreen(
             onGoToSettings = onGoToSettings,
-            onGoToTermsAndConditions = onGoToTermsAndConditions,
-            onGoToPrivacyPolicy = onGoToPrivacyPolicy,
-            onGoToAppPurpose = onGoToAppPurpose,
             onGoToReportSubmittedScreen = onGoToReportSubmittedScreen
         )
     }
@@ -195,8 +189,10 @@ private fun NavGraphBuilder.addSettingsNested(
     }
     val onGoToStudies = { }
     val onGoToEmail = { }
-    val onGoToTermsAndConditions = { }
-    val onGoToPrivacyPolicy = { }
+    val onGoToAppPolicy: (NestedDestination.AppPolicy.Type) -> Unit = { type ->
+        val destination = NestedDestination.AppPolicy.createRouteWithArguments(Destination.Settings, type)
+        navController.navigate(destination)
+    }
     val onGoToDataHandling = { }
 
     composable(
@@ -207,11 +203,15 @@ private fun NavGraphBuilder.addSettingsNested(
                 navController.navigateUp()
             },
             onGoToAppPurpose = onGoToAppPurpose,
-            onGoToStudies = {},
-            onGoToEmail = {},
-            onGoToTermsAndConditions = {},
-            onGoToPrivacyPolicy = {},
-            onGoToDataHandling = {},
+            onGoToStudies = onGoToStudies,
+            onGoToEmail = onGoToEmail,
+            onGoToTermsAndConditions = {
+                onGoToAppPolicy(NestedDestination.AppPolicy.Type.TermsAndConditions)
+            },
+            onGoToPrivacyPolicy = {
+                onGoToAppPolicy(NestedDestination.AppPolicy.Type.PrivacyPolicy)
+            },
+            onGoToDataHandling = onGoToDataHandling,
         )
     }
 }
@@ -241,11 +241,15 @@ private fun NavGraphBuilder.addTermsAndConditions(
     }
 
     composable(
-        route = NestedDestination.TermsAndConditions.createRoute(root)
+        route = NestedDestination.AppPolicy.createRoute(root),
+        arguments = NestedDestination.AppPolicy.argumentsList
     ) {
-        TermsAndConditionsScreen(
+        AppPolicyScreen(
+            isForOnboarding = isForOnboarding,
             onNextScreen = if (isForOnboarding) onNextScreen else emptyCallback,
-            isForOnboarding = isForOnboarding
+            onNavigateBack = {
+                navController.navigateUp()
+            }
         )
     }
 }

@@ -7,6 +7,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -15,19 +19,22 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.mozilla.tiktokreporter.ui.components.LoadingScreen
 import org.mozilla.tiktokreporter.ui.components.MozillaScaffold
+import org.mozilla.tiktokreporter.ui.components.MozillaTopAppBar
 import org.mozilla.tiktokreporter.ui.components.PrimaryButton
 import org.mozilla.tiktokreporter.ui.components.SecondaryButton
 import org.mozilla.tiktokreporter.ui.components.dialog.DialogContainer
 import org.mozilla.tiktokreporter.ui.components.dialog.DialogState
+import org.mozilla.tiktokreporter.ui.theme.MozillaColor
 import org.mozilla.tiktokreporter.ui.theme.MozillaDimension
 import org.mozilla.tiktokreporter.ui.theme.MozillaTypography
 import org.mozilla.tiktokreporter.util.emptyCallback
 
 @Composable
-fun TermsAndConditionsScreen(
-    viewModel: TermsAndConditionsScreenViewModel = hiltViewModel(),
+fun AppPolicyScreen(
+    viewModel: AppPolicyScreenViewModel = hiltViewModel(),
     isForOnboarding: Boolean = true,
-    onNextScreen: () -> Unit = { }
+    onNextScreen: () -> Unit = { },
+    onNavigateBack: () -> Unit = { },
 ) {
     DialogContainer(
         modifier = Modifier.fillMaxSize()
@@ -35,14 +42,15 @@ fun TermsAndConditionsScreen(
 
         val state by viewModel.state.collectAsStateWithLifecycle()
         val action = state.action?.get()
-        val isLoading = action is TermsAndConditionsScreenViewModel.UiAction.ShowLoading
+        val isLoading = action is AppPolicyScreenViewModel.UiAction.ShowLoading
 
         if (isLoading) {
             LoadingScreen()
         } else {
-            TermsAndConditionsScreenContent(
+            AppPolicyScreenContent(
                 state = state,
                 isForOnboarding = isForOnboarding,
+                onNavigateBack = onNavigateBack,
                 onAgree = if (isForOnboarding) onNextScreen else emptyCallback,
                 onDisagree = if (isForOnboarding) {
                     {
@@ -66,15 +74,34 @@ fun TermsAndConditionsScreen(
 }
 
 @Composable
-private fun TermsAndConditionsScreenContent(
-    state: TermsAndConditionsScreenViewModel.State,
+private fun AppPolicyScreenContent(
+    state: AppPolicyScreenViewModel.State,
     isForOnboarding: Boolean,
+    onNavigateBack: () -> Unit,
     onAgree: () -> Unit,
     onDisagree: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     MozillaScaffold(
-        modifier = modifier
+        modifier = modifier,
+        topBar = if (isForOnboarding) null else {
+            {
+                MozillaTopAppBar(
+                    modifier = Modifier.fillMaxWidth(),
+                    action = {
+                        IconButton(
+                            onClick = onNavigateBack
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Close,
+                                contentDescription = "",
+                                tint = MozillaColor.TextColor
+                            )
+                        }
+                    }
+                )
+            }
+        }
     ) { innerPadding ->
         LazyColumn(
             modifier = Modifier

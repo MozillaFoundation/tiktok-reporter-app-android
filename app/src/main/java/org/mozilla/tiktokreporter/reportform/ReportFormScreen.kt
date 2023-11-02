@@ -1,9 +1,6 @@
 package org.mozilla.tiktokreporter.reportform
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
@@ -21,12 +18,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
-import androidx.constraintlayout.compose.ConstraintLayout
-import androidx.constraintlayout.compose.Dimension
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.mozilla.tiktokreporter.data.model.FormField
@@ -43,16 +35,12 @@ import org.mozilla.tiktokreporter.ui.components.dialog.DialogContainer
 import org.mozilla.tiktokreporter.ui.theme.MozillaColor
 import org.mozilla.tiktokreporter.ui.theme.MozillaDimension
 import org.mozilla.tiktokreporter.ui.theme.MozillaTypography
-import org.mozilla.tiktokreporter.ui.theme.TikTokReporterTheme
 
 @Composable
 fun ReportFormScreen(
     viewModel: ReportFormScreenViewModel = hiltViewModel(),
     onGoToReportSubmittedScreen: () -> Unit,
     onGoToSettings: () -> Unit,
-    onGoToTermsAndConditions: () -> Unit,
-    onGoToPrivacyPolicy: () -> Unit,
-    onGoToAppPurpose: () -> Unit
 ) {
     DialogContainer { dialogState ->
 
@@ -69,9 +57,6 @@ fun ReportFormScreen(
                 onTabSelected = viewModel::onTabSelected,
                 onSubmitReport = viewModel::onSubmitReport,
                 onGoToSettings = onGoToSettings,
-                onGoToTermsAndConditions = onGoToTermsAndConditions,
-                onGoToPrivacyPolicy = onGoToPrivacyPolicy,
-                onGoToAppPurpose = onGoToAppPurpose,
                 modifier = Modifier.fillMaxSize()
             )
         }
@@ -90,9 +75,6 @@ private fun ReportFormScreenContent(
     onTabSelected: (tabIndex: Int) -> Unit,
     onSubmitReport: () -> Unit,
     onGoToSettings: () -> Unit,
-    onGoToTermsAndConditions: () -> Unit,
-    onGoToPrivacyPolicy: () -> Unit,
-    onGoToAppPurpose: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     MozillaScaffold(
@@ -112,57 +94,62 @@ private fun ReportFormScreenContent(
             )
         }
     ) { innerPadding ->
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding),
-            contentPadding = PaddingValues(
-                horizontal = MozillaDimension.M,
-                vertical = MozillaDimension.L
-            ),
-            verticalArrangement = Arrangement.spacedBy(MozillaDimension.L),
-            content = {
-                item {
-                    MozillaTabRow(
-                        modifier = modifier,
-                        tabs = state.tabs.map {
-                            when (it) {
-                                ReportFormScreenViewModel.TabModelType.ReportLink -> " Report a Link"
-                                ReportFormScreenViewModel.TabModelType.RecordSession -> "Record a session"
+        Column(
+            modifier = Modifier.fillMaxSize()
+                .padding(innerPadding)
+        ) {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f),
+                contentPadding = PaddingValues(
+                    horizontal = MozillaDimension.M,
+                    vertical = MozillaDimension.L
+                ),
+                verticalArrangement = Arrangement.spacedBy(MozillaDimension.L),
+                content = {
+                    item {
+                        MozillaTabRow(
+                            modifier = modifier,
+                            tabs = state.tabs.map {
+                                when (it) {
+                                    ReportFormScreenViewModel.TabModelType.ReportLink -> " Report a Link"
+                                    ReportFormScreenViewModel.TabModelType.RecordSession -> "Record a session"
+                                }
+                            },
+                            onTabSelected = onTabSelected,
+                            selectedTabIndex = state.selectedTabIndex
+                        )
+                    }
+
+                    if (state.selectedTabIndex == 0) {
+                        reportLinkItems(
+                            formFields = state.formFields,
+                            onFormFieldValueChanged = onFormFieldValueChanged
+                        )
+                    } else {
+                        recordSessionItems(
+                            isRecording = false,
+                            onStartRecording = {
+
                             }
-                        },
-                        onTabSelected = onTabSelected,
-                        selectedTabIndex = state.selectedTabIndex
-                    )
+                        )
+                    }
                 }
+            )
 
-                if (state.selectedTabIndex == 0) {
-                    reportLinkItems(
-                        formFields = state.formFields,
-                        onFormFieldValueChanged = onFormFieldValueChanged
-                    )
-                } else {
-                    recordSessionItems(
-                        isRecording = false,
-                        onStartRecording = {
+            FormButtons(
+                modifier = Modifier.fillMaxWidth()
+                    .padding(
+                        horizontal = MozillaDimension.M,
+                        vertical = MozillaDimension.L
+                    ),
+                onSubmitReport = onSubmitReport,
+                onCancelReport = {
 
-                        }
-                    )
                 }
-                item {
-                    FormFooter(
-                        modifier = Modifier.fillParentMaxWidth(),
-                        onSubmitReport = onSubmitReport,
-                        onCancelReport = {
-
-                        },
-                        onGoToAppPurpose = onGoToAppPurpose,
-                        onGoToTermsAndConditions = onGoToTermsAndConditions,
-                        onGoToPrivacyPolicy = onGoToPrivacyPolicy,
-                    )
-                }
-            }
-        )
+            )
+        }
     }
 }
 
@@ -355,34 +342,6 @@ private fun FormSlider(
 }
 
 @Composable
-private fun FormFooter(
-    modifier: Modifier = Modifier,
-    onSubmitReport: () -> Unit,
-    onCancelReport: () -> Unit,
-    onGoToAppPurpose: () -> Unit,
-    onGoToTermsAndConditions: () -> Unit,
-    onGoToPrivacyPolicy: () -> Unit,
-) {
-    Column(
-        modifier = modifier,
-        verticalArrangement = Arrangement.spacedBy(MozillaDimension.XL),
-    ) {
-        FormButtons(
-            modifier = Modifier.fillMaxWidth(),
-            onSubmitReport = onSubmitReport,
-            onCancelReport = onCancelReport
-        )
-
-        FormLinks(
-            modifier = Modifier.fillMaxWidth(),
-            onGoToAppPurpose = onGoToAppPurpose,
-            onGoToTermsAndConditions = onGoToTermsAndConditions,
-            onGoToPrivacyPolicy = onGoToPrivacyPolicy
-        )
-    }
-}
-
-@Composable
 private fun FormButtons(
     modifier: Modifier = Modifier,
     onSubmitReport: (() -> Unit)? = null,
@@ -407,89 +366,5 @@ private fun FormButtons(
                 onClick = it
             )
         }
-    }
-}
-
-@Composable
-private fun FormLinks(
-    modifier: Modifier = Modifier,
-    onGoToAppPurpose: () -> Unit,
-    onGoToTermsAndConditions: () -> Unit,
-    onGoToPrivacyPolicy: () -> Unit,
-) {
-    Column(
-        modifier = modifier,
-        verticalArrangement = Arrangement.spacedBy(MozillaDimension.M),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text(
-            modifier = Modifier.clickable {
-                onGoToAppPurpose()
-            },
-            text = "TikTok Reporter Purpose",
-            style = MozillaTypography.Body2,
-            color = MozillaColor.TextColor
-        )
-        ConstraintLayout {
-            val (termsRef, dividerRef, policyRef) = createRefs()
-
-            Text(
-                modifier = Modifier
-                    .constrainAs(termsRef) {
-                        start.linkTo(parent.start)
-                        top.linkTo(parent.top)
-                        bottom.linkTo(parent.bottom)
-                    }
-                    .clickable {
-                        onGoToTermsAndConditions()
-                    },
-                text = "Terms & Conditions",
-                style = MozillaTypography.Body2,
-                color = MozillaColor.TextColor
-            )
-
-            Box(
-                modifier = Modifier
-                    .constrainAs(dividerRef) {
-                        start.linkTo(termsRef.end, margin = MozillaDimension.XXS)
-                        top.linkTo(parent.top)
-                        end.linkTo(policyRef.start, margin = MozillaDimension.XXS)
-                        bottom.linkTo(parent.bottom)
-
-                        height = Dimension.fillToConstraints
-                        width = Dimension.value(1.dp)
-                    }
-                    .background(MozillaColor.TextColor)
-            )
-            Text(
-                modifier = Modifier
-                    .constrainAs(policyRef) {
-                        top.linkTo(parent.top)
-                        end.linkTo(parent.end)
-                        bottom.linkTo(parent.bottom)
-                    }
-                    .clickable {
-                        onGoToPrivacyPolicy()
-                    },
-                text = "Privacy Policy",
-                style = MozillaTypography.Body2,
-                color = MozillaColor.TextColor
-            )
-        }
-    }
-}
-
-@Preview(
-    showBackground = true
-)
-@Composable
-private fun FormLinksPreview() {
-    TikTokReporterTheme {
-        FormLinks(
-            modifier = Modifier.fillMaxWidth(),
-            onGoToAppPurpose = {},
-            onGoToTermsAndConditions = {},
-            onGoToPrivacyPolicy = {}
-        )
     }
 }
