@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.mozilla.tiktokreporter.data.model.StudyOverview
 import org.mozilla.tiktokreporter.repository.TikTokReporterRepository
+import org.mozilla.tiktokreporter.termsconditions.TermsAndConditionsScreenViewModel
 import org.mozilla.tiktokreporter.util.OneTimeEvent
 import org.mozilla.tiktokreporter.util.toOneTimeEvent
 import javax.inject.Inject
@@ -30,7 +31,20 @@ class StudiesListScreenViewModel @Inject constructor(
                 )
             }
 
-            val studies = tikTokReporterRepository.fetchStudies()
+            val studiesResult = tikTokReporterRepository.fetchStudies()
+            if (studiesResult.isFailure)  {
+                // TODO: map error
+                return@launch
+            }
+
+            val studies = studiesResult.getOrNull() ?: kotlin.run {
+                _state.update {
+                    it.copy(
+                        action = UiAction.ShowNoStudiesFound.toOneTimeEvent()
+                    )
+                }
+                return@launch
+            }
 
             _state.update {
                 it.copy(
@@ -87,6 +101,7 @@ class StudiesListScreenViewModel @Inject constructor(
 
     sealed class UiAction {
         data object ShowLoading : UiAction()
+        data object ShowNoStudiesFound : UiAction()
         data object OnNextScreen : UiAction()
         data object OnNoStudySelected : UiAction()
     }

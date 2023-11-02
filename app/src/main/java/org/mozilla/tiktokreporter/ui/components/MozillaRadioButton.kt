@@ -35,9 +35,9 @@ fun MozillaRadioButton(
     onClick: (() -> Unit)? = null,
     enabled: Boolean = true,
     selectedColor: Color = MozillaColor.Blue,
-    unselectedColor: Color = MozillaColor.Outline,
+    unselectedColor: Color = MozillaColor.Inactive,
     disabledSelectedColor: Color = MozillaColor.BlueDisabled,
-    disabledUnselectedColor: Color = MozillaColor.OutlineDisabled
+    disabledUnselectedColor: Color = MozillaColor.Disabled
 ) {
     val strokeWidth = animateDpAsState(
         targetValue = if (selected) selectedStrokeWidth else unselectedStrokeWidth,

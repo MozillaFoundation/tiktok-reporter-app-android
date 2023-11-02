@@ -2,6 +2,7 @@ package org.mozilla.tiktokreporter.ui.components
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.text.selection.TextSelectionColors
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
@@ -17,52 +18,54 @@ import org.mozilla.tiktokreporter.ui.theme.MozillaTypography
 import org.mozilla.tiktokreporter.ui.theme.TikTokReporterTheme
 
 @Composable
-fun mozillaTextFieldColors() = OutlinedTextFieldDefaults.colors(
+fun mozillaTextFieldColors(
+    isFilled: Boolean
+) = OutlinedTextFieldDefaults.colors(
     focusedTextColor = MozillaColor.TextColor,
-    unfocusedTextColor = MozillaColor.TextColor,
-    disabledTextColor = MozillaColor.TextColorDisabled,
+    unfocusedTextColor = if (isFilled) MozillaColor.TextColor else MozillaColor.Inactive,
+    disabledTextColor = MozillaColor.Disabled,
     errorTextColor = MozillaColor.Error,
     focusedContainerColor = Color.Transparent,
     unfocusedContainerColor = Color.Transparent,
     disabledContainerColor = Color.Transparent,
     errorContainerColor = Color.Transparent,
-    cursorColor = Color.Black,
+    cursorColor = MozillaColor.TextColor,
     errorCursorColor = MozillaColor.Error,
     selectionColors = TextSelectionColors(
-        handleColor = Color.Black,
-        backgroundColor = Color.Black
+        handleColor = MozillaColor.TextColor,
+        backgroundColor = MozillaColor.Divider
     ),
     focusedBorderColor = MozillaColor.Blue,
-    unfocusedBorderColor = Color.Black,
-    disabledBorderColor = Color.Black.copy(alpha = .3f),
+    unfocusedBorderColor = if (isFilled) MozillaColor.TextColor else MozillaColor.Inactive,
+    disabledBorderColor = MozillaColor.Disabled,
     errorBorderColor = MozillaColor.Error,
     focusedLeadingIconColor = MozillaColor.Blue,
-    unfocusedLeadingIconColor = Color.Black,
-    disabledLeadingIconColor = Color.Black.copy(alpha = .3f),
+    unfocusedLeadingIconColor = if (isFilled) MozillaColor.TextColor else MozillaColor.Inactive,
+    disabledLeadingIconColor = MozillaColor.Disabled,
     errorLeadingIconColor = MozillaColor.Error,
     focusedTrailingIconColor = MozillaColor.Blue,
-    unfocusedTrailingIconColor = Color.Black,
-    disabledTrailingIconColor = Color.Black.copy(alpha = .3f),
+    unfocusedTrailingIconColor = if (isFilled) MozillaColor.TextColor else MozillaColor.Inactive,
+    disabledTrailingIconColor = MozillaColor.Disabled,
     errorTrailingIconColor = MozillaColor.Error,
     focusedLabelColor = MozillaColor.TextColor,
-    unfocusedLabelColor = MozillaColor.TextColorDisabled,
-    disabledLabelColor = MozillaColor.TextColorDisabled,
+    unfocusedLabelColor = if (isFilled) MozillaColor.TextColor else MozillaColor.Inactive,
+    disabledLabelColor = MozillaColor.Disabled,
     errorLabelColor = MozillaColor.Error,
-    focusedPlaceholderColor = MozillaColor.TextColorDisabled,
-    unfocusedPlaceholderColor = MozillaColor.TextColorDisabled,
-    disabledPlaceholderColor = MozillaColor.TextColorDisabled,
+    focusedPlaceholderColor = MozillaColor.Inactive,
+    unfocusedPlaceholderColor = MozillaColor.Inactive,
+    disabledPlaceholderColor = MozillaColor.Disabled,
     errorPlaceholderColor = MozillaColor.Error,
     focusedSupportingTextColor = MozillaColor.TextColor,
-    unfocusedSupportingTextColor = MozillaColor.TextColor,
-    disabledSupportingTextColor = MozillaColor.TextColorDisabled,
+    unfocusedSupportingTextColor = if (isFilled) MozillaColor.TextColor else MozillaColor.Inactive,
+    disabledSupportingTextColor = MozillaColor.Disabled,
     errorSupportingTextColor = MozillaColor.Error,
     focusedPrefixColor = MozillaColor.TextColor,
-    unfocusedPrefixColor = MozillaColor.TextColor,
-    disabledPrefixColor = MozillaColor.TextColorDisabled,
+    unfocusedPrefixColor = if (isFilled) MozillaColor.TextColor else MozillaColor.Inactive,
+    disabledPrefixColor = MozillaColor.Disabled,
     errorPrefixColor = MozillaColor.Error,
     focusedSuffixColor = MozillaColor.TextColor,
-    unfocusedSuffixColor = MozillaColor.TextColor,
-    disabledSuffixColor = MozillaColor.TextColorDisabled,
+    unfocusedSuffixColor = if (isFilled) MozillaColor.TextColor else MozillaColor.Inactive,
+    disabledSuffixColor = MozillaColor.Disabled,
     errorSuffixColor = MozillaColor.Error,
 )
 @Composable
@@ -77,7 +80,7 @@ fun MozillaTextField(
     singleLine: Boolean = false,
     readOnly: Boolean = false,
     trailingIcon: (@Composable () -> Unit)? = null,
-    colors: TextFieldColors = mozillaTextFieldColors(),
+    colors: TextFieldColors = mozillaTextFieldColors(text.isNotBlank()),
 ) {
     OutlinedTextField(
         value = text,
@@ -99,51 +102,80 @@ fun MozillaTextField(
         textStyle = MozillaTypography.Body1,
         colors = colors,
         readOnly = readOnly,
-        trailingIcon = trailingIcon
+        trailingIcon = trailingIcon,
     )
 }
 
 @Preview(
-    showBackground = true,
-    device = Devices.PIXEL_4_XL
+    showBackground = true
 )
 @Composable
-private fun MozillaTextFieldPreview() {
+private fun MozillaTextFieldPreviewEnabled() {
     TikTokReporterTheme {
-        Column(Modifier.fillMaxSize()) {
+        Column(Modifier.fillMaxWidth()) {
             MozillaTextField(
                 text = "",
+                label = "label",
+                placeholder = "",
                 onTextChanged = { },
-                label = "TikTok Link"
+                enabled = true
+            )
+            MozillaTextField(
+                text = "text",
+                label = "label",
+                placeholder = "",
+                onTextChanged = { },
+                enabled = true
             )
             MozillaTextField(
                 text = "",
+                label = "label",
+                placeholder = "placeholder",
                 onTextChanged = { },
-                label = "TikTok Link",
+                enabled = true
+            )
+            MozillaTextField(
+                text = "",
+                label = "",
+                placeholder = "placeholder",
+                onTextChanged = { },
+                enabled = true
+            )
+        }
+    }
+}
+@Preview(
+    showBackground = true
+)
+@Composable
+private fun MozillaTextFieldPreviewDisabled() {
+    TikTokReporterTheme {
+        Column(Modifier.fillMaxWidth()) {
+            MozillaTextField(
+                text = "",
+                label = "label",
+                onTextChanged = { },
                 enabled = false
             )
             MozillaTextField(
-                text = "ala bala",
+                text = "text",
+                label = "label",
                 onTextChanged = { },
-                label = "TikTok Link"
-            )
-            MozillaTextField(
-                text = "ala bala",
-                onTextChanged = { },
-                label = "TikTok Link",
                 enabled = false
             )
             MozillaTextField(
                 text = "",
-                placeholder = "ala bala",
+                label = "label",
+                placeholder = "placeholder",
                 onTextChanged = { },
-                label = "TikTok Link"
+                enabled = false
             )
+
             MozillaTextField(
                 text = "",
-                placeholder = "ala bala",
+                label = "",
+                placeholder = "placeholder",
                 onTextChanged = { },
-                label = "TikTok Link",
                 enabled = false
             )
         }

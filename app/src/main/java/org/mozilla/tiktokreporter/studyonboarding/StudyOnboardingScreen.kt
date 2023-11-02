@@ -49,7 +49,9 @@ fun StudyOnboardingScreen(
         } else {
             StudyOnboardingScreenContent(
                 state = state,
-                modifier = Modifier.fillMaxSize()
+                modifier = Modifier.fillMaxSize(),
+                onGoToEmailForm = onGoToEmailForm,
+                onGoToReportForm = onGoToReportForm
             )
         }
     }
@@ -60,6 +62,8 @@ fun StudyOnboardingScreen(
 private fun StudyOnboardingScreenContent(
     state: StudyOnboardingScreenViewModel.State,
     modifier: Modifier = Modifier,
+    onGoToEmailForm: () -> Unit,
+    onGoToReportForm: () -> Unit
 ) {
 
     val scope = rememberCoroutineScope()
@@ -70,7 +74,7 @@ private fun StudyOnboardingScreenContent(
 
         val pagerState = rememberPagerState(
             initialPage = 0,
-            pageCount = { state.steps.size + (state.form?.let { 1 } ?: 0) }
+            pageCount = { state.steps.size }
         )
 
         HorizontalPager(
@@ -117,7 +121,8 @@ private fun StudyOnboardingScreenContent(
                             modifier = Modifier.fillMaxWidth(),
                             text = "Skip",
                             onClick = {
-
+                                // determine which screens to skip, i.e goToEmail / goToReportForm
+                                onGoToReportForm()
                             }
                         )
                     }

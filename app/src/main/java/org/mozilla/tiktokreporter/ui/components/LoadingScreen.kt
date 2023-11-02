@@ -28,9 +28,9 @@ fun LoadingScreen() {
     ) {
         CircularProgressIndicator(
             modifier = Modifier.size(80.dp),
-            color = MozillaColor.WarmRed,
+            color = MozillaColor.Red,
             strokeWidth = 8.dp,
-            trackColor = MozillaColor.DividerColor,
+            trackColor = MozillaColor.Divider,
             strokeCap = StrokeCap.Round
         )
         Spacer(modifier = Modifier.height(MozillaDimension.L))

@@ -32,7 +32,9 @@ data class StudyDetails(
     val description: String,
     val isActive: Boolean,
     val onboarding: Onboarding?,
-    val policies: List<Policy>
+    val policies: List<Policy>,
+    val form: Form?,
+    val supportsRecording: Boolean
 )
 
 fun StudyDTO.toStudyDetails(): StudyDetails {
@@ -42,6 +44,8 @@ fun StudyDTO.toStudyDetails(): StudyDetails {
         description = description,
         isActive = isActive,
         onboarding = onboardingDTO?.toOnboarding(),
-        policies = policyDTOs.map { it.toPolicy() }
+        policies = policyDTOs.map { it.toPolicy() },
+        form = formDTO?.toForm(),
+        supportsRecording = supportsRecording
     )
 }

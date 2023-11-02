@@ -29,13 +29,24 @@ class TermsAndConditionsScreenViewModel @Inject constructor(
                 )
             }
 
-            val policy = tikTokReporterRepository.getAppTermsAndConditions() ?: kotlin.run {
+            val policyResult = tikTokReporterRepository.getAppTermsAndConditions()
+            if (policyResult.isFailure) {
+                // TODO: map error
+                val err = policyResult.exceptionOrNull()!!
+                _state.update {
+                    it.copy(
+                        action = UiAction.ShowMessage(err.message.orEmpty()).toOneTimeEvent()
+                    )
+                }
+                return@launch
+            }
+
+            val policy = policyResult.getOrNull() ?: kotlin.run {
                 _state.update {
                     it.copy(
                         action = UiAction.ShowNoPolicyFound.toOneTimeEvent()
                     )
                 }
-
                 return@launch
             }
 
@@ -61,5 +72,8 @@ class TermsAndConditionsScreenViewModel @Inject constructor(
     sealed class UiAction {
         data object ShowLoading : UiAction()
         data object ShowNoPolicyFound : UiAction()
+        data class ShowMessage(
+            val message: String
+        ): UiAction()
     }
 }

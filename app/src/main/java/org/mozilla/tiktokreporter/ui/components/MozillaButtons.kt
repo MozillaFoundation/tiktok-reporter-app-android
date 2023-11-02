@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -18,7 +17,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import org.mozilla.tiktokreporter.ui.theme.MozillaColor
 import org.mozilla.tiktokreporter.ui.theme.MozillaTypography
-import org.mozilla.tiktokreporter.ui.theme.Shapes
 import org.mozilla.tiktokreporter.ui.theme.TikTokReporterTheme
 
 @Composable
@@ -29,17 +27,19 @@ fun PrimaryButton(
     enabled: Boolean = true,
     isPrimaryVariant: Boolean = false
 ) {
-    val color = when {
-        enabled && !isPrimaryVariant -> MozillaColor.Blue
-        !enabled && !isPrimaryVariant -> MozillaColor.BlueDisabled
-        enabled && isPrimaryVariant -> MozillaColor.WarmRed
-        else -> MozillaColor.WarmRedDisabled
+    val containerColor = when {
+        !isPrimaryVariant -> MozillaColor.Blue
+        else -> MozillaColor.Red
+    }
+    val disabledContainerColor = when {
+        !isPrimaryVariant -> MozillaColor.BlueDisabled
+        else -> MozillaColor.RedDisabled
     }
 
     val colors = ButtonDefaults.buttonColors(
-        containerColor = color,
+        containerColor = containerColor,
         contentColor = Color.White,
-        disabledContainerColor = color.copy(alpha = .3f),
+        disabledContainerColor = disabledContainerColor,
         disabledContentColor = Color.White,
     )
     Button(
@@ -65,8 +65,8 @@ fun SecondaryButton(
 ) {
     val colors = ButtonDefaults.outlinedButtonColors(
         containerColor = Color.Transparent,
-        contentColor = Color.Black,
-        disabledContentColor = Color.Black.copy(alpha = .3f)
+        contentColor = MozillaColor.TextColor,
+        disabledContentColor = MozillaColor.Disabled
     )
     OutlinedButton(
         onClick = onClick,
@@ -76,7 +76,7 @@ fun SecondaryButton(
         colors = colors,
         border = BorderStroke(
             1.dp,
-            if (enabled) Color.Black else Color.Black.copy(alpha = .3f)
+            if (enabled) MozillaColor.TextColor else MozillaColor.Disabled
         )
     ) {
         Text(
@@ -87,8 +87,7 @@ fun SecondaryButton(
 }
 
 @Preview(
-    showBackground = true,
-    device = Devices.PIXEL_4
+    showBackground = true
 )
 @Composable
 private fun PrimaryButtonPreview() {
@@ -121,7 +120,6 @@ private fun PrimaryButtonPreview() {
                 onClick = {},
                 enabled = true
             )
-
             SecondaryButton(
                 text = "Secondary Button",
                 onClick = {},

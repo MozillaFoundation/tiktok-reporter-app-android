@@ -32,7 +32,7 @@ fun MozillaTabRow(
                 TabRowDefaults.Indicator(
                     modifier = Modifier.tabIndicatorOffset(it[selectedTabIndex]),
                     height = 4.dp,
-                    color = MozillaColor.WarmRed
+                    color = MozillaColor.Red
                 )
             }
         },
@@ -49,7 +49,7 @@ fun MozillaTabRow(
                     Text(
                         text = tab,
                         style = MozillaTypography.Interface,
-                        color = if (isSelected) MozillaColor.TextColor else MozillaColor.TextColor50
+                        color = if (isSelected) MozillaColor.TextColor else MozillaColor.Inactive
                     )
                 }
             )
@@ -59,8 +59,6 @@ fun MozillaTabRow(
 
 @Preview(
     showBackground = true,
-    device = Devices.PIXEL_4_XL,
-    showSystemUi = true
 )
 @Composable
 private fun MozillaTabRowPreview() {
@@ -73,9 +71,7 @@ private fun MozillaTabRowPreview() {
     }
 }
 @Preview(
-    showBackground = true,
-    device = Devices.PIXEL_4_XL,
-    showSystemUi = true
+    showBackground = true
 )
 @Composable
 private fun MozillaTabRowSinglePreview() {

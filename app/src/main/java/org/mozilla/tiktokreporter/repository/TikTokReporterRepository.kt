@@ -28,39 +28,57 @@ class TikTokReporterRepository @Inject constructor(
 
     private var selectedStudy: StudyDetails? = null
 
-    suspend fun getAppTermsAndConditions(): Policy? {
-        val policies = withContext(Dispatchers.IO) {
-            return@withContext tikTokReporterService.getAppTermsAndConditions()
-                .map { it.toPolicy() }
+    suspend fun getAppTermsAndConditions(): Result<Policy?> {
+        val policies = try {
+            withContext(Dispatchers.IO) {
+                return@withContext tikTokReporterService.getAppTermsAndConditions()
+                    .map { it.toPolicy() }
+            }
+        } catch (e: Exception) {
+            return Result.failure(e)
         }
 
-        return policies.firstOrNull { it.type == Policy.Type.TermsAndConditions }
+        val policy = policies.firstOrNull { it.type == Policy.Type.TermsAndConditions }
+        return Result.success(policy)
     }
 
-    suspend fun fetchStudies(): List<StudyOverview> {
-        val remoteStudies = tikTokReporterService.getStudies()
-            .map {
-                it.toStudyOverview(
-                    isSelected = it.id == selectedStudyId
-                )
-            }
+    suspend fun fetchStudies(): Result<List<StudyOverview>> {
+        val remoteStudies = try {
+            tikTokReporterService.getStudies()
+                .map {
+                    it.toStudyOverview(
+                        isSelected = it.id == selectedStudyId
+                    )
+                }
+        } catch (e: Exception) {
+            return Result.failure(e)
+        }
 
-        return remoteStudies
+        return Result.success(remoteStudies)
     }
 
-    suspend fun fetchStudyById(studyId: String): StudyDetails {
-        val remoteStudy = tikTokReporterService.getStudyById(studyId)
+    suspend fun fetchStudyById(studyId: String): Result<StudyDetails> {
+        val remoteStudy = try {
+            tikTokReporterService.getStudyById(studyId)
+        } catch (e: Exception) {
+            return Result.failure(e)
+        }
 
-        return remoteStudy.toStudyDetails()
+        return Result.success(remoteStudy.toStudyDetails())
     }
 
-    suspend fun getSelectedStudy(): StudyDetails {
+    suspend fun getSelectedStudy(): Result<StudyDetails> {
         if (selectedStudy == null) {
             val study = fetchStudyById(selectedStudyId)
-            selectedStudy = study
+
+            if (study.isSuccess) {
+                selectedStudy = study.getOrNull()!!
+            }
+
+            return study
         }
 
-        return selectedStudy!!
+        return Result.success(selectedStudy!!)
     }
 
     suspend fun selectStudy(studyId: String) {

@@ -17,6 +17,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navigation
 import org.mozilla.tiktokreporter.MainViewModel
+import org.mozilla.tiktokreporter.reportform.ReportFormScreen
 import org.mozilla.tiktokreporter.termsconditions.TermsAndConditionsScreen
 import org.mozilla.tiktokreporter.splashscreen.SplashScreen
 import org.mozilla.tiktokreporter.studieslist.StudiesListScreen
@@ -118,15 +119,30 @@ private fun NavGraphBuilder.addReportForm(
         route = Destination.ReportForm.route,
         startDestination = destination
     ) {
-        addReportFormNested()
+        addReportFormNested(navController)
         addReportSubmittedNested()
     }
 }
-private fun NavGraphBuilder.addReportFormNested() {
+private fun NavGraphBuilder.addReportFormNested(
+    navController: NavController
+) {
     composable(
         route = NestedDestination.ReportFormNested.createRoute(Destination.ReportForm)
     ) {
+        val onGoToSettings = {
+            val destination = NestedDestination.SettingsNested.createRoute(Destination.Settings)
+            navController.navigate(destination)
+        }
+        val onGoToTermsAndConditions = { }
+        val onGoToPrivacyPolicy = { }
+        val onGoToAppPurpose = { }
 
+        ReportFormScreen(
+            onGoToSettings = onGoToSettings,
+            onGoToTermsAndConditions = onGoToTermsAndConditions,
+            onGoToPrivacyPolicy = onGoToPrivacyPolicy,
+            onGoToAppPurpose = onGoToAppPurpose
+        )
     }
 }
 private fun NavGraphBuilder.addReportSubmittedNested() {

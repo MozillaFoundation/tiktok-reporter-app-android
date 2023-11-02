@@ -19,10 +19,10 @@ fun MozillaCheckbox(
 ) {
     val colors = CheckboxDefaults.colors(
         checkedColor = MozillaColor.Blue,
-        uncheckedColor = MozillaColor.Outline,
+        uncheckedColor = MozillaColor.Inactive,
         checkmarkColor = Color.White,
         disabledCheckedColor = MozillaColor.BlueDisabled,
-        disabledUncheckedColor = MozillaColor.OutlineDisabled,
+        disabledUncheckedColor = MozillaColor.Disabled,
     )
     Checkbox(
         checked = checked,

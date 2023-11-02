@@ -29,6 +29,8 @@ fun MozillaDropdown(
     onOptionSelected: (Int, String) -> Unit,
     modifier: Modifier = Modifier,
     selectedIndex: Int = -1,
+    label: String? = null,
+    placeholder: String? = null,
 ) {
     val focusManager = LocalFocusManager.current
     var isExpanded by remember { mutableStateOf(false) }
@@ -38,16 +40,19 @@ fun MozillaDropdown(
         expanded = isExpanded,
         onExpandedChange = {
             isExpanded = !isExpanded
-        }
+        },
     ) {
         MozillaTextField(
+            modifier = Modifier.fillMaxWidth()
+                .menuAnchor(),
             text = options.getOrNull(selectedIndex) ?: "",
             onTextChanged = { },
-            modifier = Modifier.menuAnchor(),
             readOnly = true,
             trailingIcon = {
                 ExposedDropdownMenuDefaults.TrailingIcon(expanded = isExpanded)
-            }
+            },
+            label = label,
+            placeholder = placeholder
         )
 
         ExposedDropdownMenu(
@@ -73,16 +78,16 @@ fun MozillaDropdown(
                         textColor = MozillaColor.TextColor,
                         leadingIconColor = MozillaColor.TextColor,
                         trailingIconColor = MozillaColor.TextColor,
-                        disabledTextColor = MozillaColor.TextColorDisabled,
-                        disabledLeadingIconColor = MozillaColor.TextColorDisabled,
-                        disabledTrailingIconColor = MozillaColor.TextColorDisabled
+                        disabledTextColor = MozillaColor.Disabled,
+                        disabledLeadingIconColor = MozillaColor.Disabled,
+                        disabledTrailingIconColor = MozillaColor.Disabled
                     )
                 )
                 if (index < options.lastIndex) {
                     Divider(
                         modifier = Modifier.fillMaxWidth().padding(ExposedDropdownMenuDefaults.ItemContentPadding),
                         thickness = 2.dp,
-                        color = MozillaColor.DividerColor
+                        color = MozillaColor.Divider
                     )
                 }
             }
