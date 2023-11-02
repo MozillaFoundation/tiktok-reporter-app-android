@@ -1,7 +1,6 @@
 package org.mozilla.tiktokreporter.ui.components
 
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.text.selection.TextSelectionColors
 import androidx.compose.material3.OutlinedTextField
@@ -11,7 +10,7 @@ import androidx.compose.material3.TextFieldColors
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.tooling.preview.Devices
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.tooling.preview.Preview
 import org.mozilla.tiktokreporter.ui.theme.MozillaColor
 import org.mozilla.tiktokreporter.ui.theme.MozillaTypography
@@ -77,7 +76,7 @@ fun MozillaTextField(
     placeholder: String? = null,
     enabled: Boolean = true,
     maxLines: Int = Int.MAX_VALUE,
-    singleLine: Boolean = false,
+    multiline: Boolean = false,
     readOnly: Boolean = false,
     trailingIcon: (@Composable () -> Unit)? = null,
     colors: TextFieldColors = mozillaTextFieldColors(text.isNotBlank()),
@@ -98,11 +97,13 @@ fun MozillaTextField(
             }
         },
         maxLines = maxLines,
-        singleLine = singleLine,
+        minLines = if (multiline) maxLines else 1,
+        singleLine = !multiline,
         textStyle = MozillaTypography.Body1,
         colors = colors,
         readOnly = readOnly,
         trailingIcon = trailingIcon,
+        shape = RectangleShape
     )
 }
 
