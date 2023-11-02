@@ -29,6 +29,7 @@ sealed class NestedDestination(
     data object Email: NestedDestination("email")
     data object PrivacyPolicy: NestedDestination("privacyPolicy")
     data object DataHandling: NestedDestination("dataHandling")
+    data object AboutApp: NestedDestination("aboutApp")
 
 
     data object ReportFormNested: NestedDestination("reportForm")

@@ -17,7 +17,9 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navigation
 import org.mozilla.tiktokreporter.MainViewModel
+import org.mozilla.tiktokreporter.aboutapp.AboutAppScreen
 import org.mozilla.tiktokreporter.reportform.ReportFormScreen
+import org.mozilla.tiktokreporter.settings.SettingsScreen
 import org.mozilla.tiktokreporter.termsconditions.TermsAndConditionsScreen
 import org.mozilla.tiktokreporter.splashscreen.SplashScreen
 import org.mozilla.tiktokreporter.studieslist.StudiesListScreen
@@ -60,7 +62,8 @@ private fun NavGraphBuilder.addSplashScreen(
     navController: NavController,
     onboardingCompleted: Boolean
 ) {
-    val startDestination = NestedDestination.SplashScreenNested.createRoute(Destination.SplashScreen)
+    val startDestination =
+        NestedDestination.SplashScreenNested.createRoute(Destination.SplashScreen)
     navigation(
         route = Destination.SplashScreen.route,
         startDestination = startDestination
@@ -123,6 +126,7 @@ private fun NavGraphBuilder.addReportForm(
         addReportSubmittedNested()
     }
 }
+
 private fun NavGraphBuilder.addReportFormNested(
     navController: NavController
 ) {
@@ -147,6 +151,7 @@ private fun NavGraphBuilder.addReportFormNested(
         )
     }
 }
+
 private fun NavGraphBuilder.addReportSubmittedNested() {
     composable(
         route = NestedDestination.ReportSubmittedNested.createRoute(Destination.ReportForm)
@@ -173,6 +178,7 @@ private fun NavGraphBuilder.addSettings(
         startDestination = destination
     ) {
         addSettingsNested(navController)
+        addAboutApp(navController)
         addTermsAndConditions(navController, Destination.Settings)
         addStudies(navController, Destination.Settings)
         addEmail(navController, Destination.Onboarding)
@@ -183,18 +189,46 @@ private fun NavGraphBuilder.addSettings(
 private fun NavGraphBuilder.addSettingsNested(
     navController: NavController
 ) {
+    val onGoToAppPurpose = {
+        val destination = NestedDestination.AboutApp.createRoute(Destination.Settings)
+        navController.navigate(destination)
+    }
+    val onGoToStudies = { }
+    val onGoToEmail = { }
+    val onGoToTermsAndConditions = { }
+    val onGoToPrivacyPolicy = { }
+    val onGoToDataHandling = { }
+
     composable(
         route = NestedDestination.SettingsNested.createRoute(Destination.Settings)
     ) {
-        Box(
-            modifier = Modifier.fillMaxSize()
-        ) {
-            Text(text = "Settings home")
-        }
-
+        SettingsScreen(
+            onNavigateBack = {
+                navController.navigateUp()
+            },
+            onGoToAppPurpose = onGoToAppPurpose,
+            onGoToStudies = {},
+            onGoToEmail = {},
+            onGoToTermsAndConditions = {},
+            onGoToPrivacyPolicy = {},
+            onGoToDataHandling = {},
+        )
     }
 }
 
+private fun NavGraphBuilder.addAboutApp(
+    navController: NavController
+) {
+    composable(
+        route = NestedDestination.AboutApp.createRoute(Destination.Settings)
+    ) {
+        AboutAppScreen(
+            onNavigateBack = {
+                navController.navigateUp()
+            }
+        )
+    }
+}
 
 private fun NavGraphBuilder.addTermsAndConditions(
     navController: NavController,
@@ -215,6 +249,7 @@ private fun NavGraphBuilder.addTermsAndConditions(
         )
     }
 }
+
 private fun NavGraphBuilder.addStudies(
     navController: NavController,
     root: Destination
@@ -232,6 +267,7 @@ private fun NavGraphBuilder.addStudies(
         )
     }
 }
+
 private fun NavGraphBuilder.addEmail(
     navController: NavController,
     root: Destination
@@ -262,6 +298,7 @@ private fun NavGraphBuilder.addEmail(
         }
     }
 }
+
 private fun NavGraphBuilder.addStudyOnboarding(
     navController: NavController,
     root: Destination
