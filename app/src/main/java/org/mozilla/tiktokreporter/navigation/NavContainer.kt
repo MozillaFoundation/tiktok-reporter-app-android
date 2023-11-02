@@ -136,12 +136,14 @@ private fun NavGraphBuilder.addReportFormNested(
         val onGoToTermsAndConditions = { }
         val onGoToPrivacyPolicy = { }
         val onGoToAppPurpose = { }
+        val onGoToReportSubmittedScreen = { }
 
         ReportFormScreen(
             onGoToSettings = onGoToSettings,
             onGoToTermsAndConditions = onGoToTermsAndConditions,
             onGoToPrivacyPolicy = onGoToPrivacyPolicy,
-            onGoToAppPurpose = onGoToAppPurpose
+            onGoToAppPurpose = onGoToAppPurpose,
+            onGoToReportSubmittedScreen = onGoToReportSubmittedScreen
         )
     }
 }

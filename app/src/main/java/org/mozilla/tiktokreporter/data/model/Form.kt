@@ -30,7 +30,7 @@ sealed class FormField(
         override val isRequired: Boolean,
         val label: String,
         val options: List<Option>,
-        val selected: String,
+        val selectedOptionId: String,
         val description: String,
         val placeholder: String,
         val hasOtherOption: Boolean
@@ -95,7 +95,7 @@ fun FormFieldDTO.toFormField(): FormField {
             isRequired = isRequired,
             label = label,
             options = optionDTOs.map { it.toOption() },
-            selected = selected,
+            selectedOptionId = selectedOptionId,
             description = description,
             placeholder = placeholder,
             hasOtherOption = hasOtherOption

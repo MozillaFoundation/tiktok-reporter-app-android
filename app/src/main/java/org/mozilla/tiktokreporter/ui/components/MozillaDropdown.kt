@@ -26,9 +26,9 @@ import org.mozilla.tiktokreporter.ui.theme.MozillaTypography
 @Composable
 fun MozillaDropdown(
     options: List<String>,
+    text: String,
     onOptionSelected: (Int, String) -> Unit,
     modifier: Modifier = Modifier,
-    selectedIndex: Int = -1,
     label: String? = null,
     placeholder: String? = null,
 ) {
@@ -45,7 +45,7 @@ fun MozillaDropdown(
         MozillaTextField(
             modifier = Modifier.fillMaxWidth()
                 .menuAnchor(),
-            text = options.getOrNull(selectedIndex) ?: "",
+            text = text,
             onTextChanged = { },
             readOnly = true,
             trailingIcon = {

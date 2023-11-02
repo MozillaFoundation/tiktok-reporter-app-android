@@ -34,7 +34,7 @@ sealed class FormFieldDTO(
         @Json(name = "isRequired") override val isRequired: Boolean,
         @Json(name = "label") val label: String,
         @Json(name = "options") val optionDTOs: List<OptionDTO>,
-        @Json(name = "selected") val selected: String,
+        @Json(name = "selected") val selectedOptionId: String,
         @Json(name = "description") val description: String,
         @Json(name = "placeholder") val placeholder: String,
         @Json(name = "hasOtherOption") val hasOtherOption: Boolean
