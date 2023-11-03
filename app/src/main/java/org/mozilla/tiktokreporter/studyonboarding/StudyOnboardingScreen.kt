@@ -33,8 +33,7 @@ import org.mozilla.tiktokreporter.ui.theme.MozillaTypography
 @Composable
 fun StudyOnboardingScreen(
     viewModel: StudyOnboardingScreenViewModel = hiltViewModel(),
-    onGoToEmailForm: () -> Unit,
-    onGoToReportForm: () -> Unit
+    onNextScreen: () -> Unit
 ) {
     DialogContainer(
         modifier = Modifier.fillMaxSize()
@@ -50,8 +49,7 @@ fun StudyOnboardingScreen(
             StudyOnboardingScreenContent(
                 state = state,
                 modifier = Modifier.fillMaxSize(),
-                onGoToEmailForm = onGoToEmailForm,
-                onGoToReportForm = onGoToReportForm
+                onNextScreen = onNextScreen
             )
         }
     }
@@ -62,8 +60,7 @@ fun StudyOnboardingScreen(
 private fun StudyOnboardingScreenContent(
     state: StudyOnboardingScreenViewModel.State,
     modifier: Modifier = Modifier,
-    onGoToEmailForm: () -> Unit,
-    onGoToReportForm: () -> Unit
+    onNextScreen: () -> Unit
 ) {
 
     val scope = rememberCoroutineScope()
@@ -94,10 +91,14 @@ private fun StudyOnboardingScreenContent(
                         modifier = Modifier.fillMaxWidth(),
                         text = "Next",
                         onClick = {
-                            scope.launch {
-                                pagerState.animateScrollToPage(
-                                    page = page + 1
-                                )
+                            if (!pagerState.canScrollForward) {
+                                onNextScreen()
+                            } else {
+                                scope.launch {
+                                    pagerState.animateScrollToPage(
+                                        page = page + 1
+                                    )
+                                }
                             }
                         }
                     )
@@ -120,10 +121,7 @@ private fun StudyOnboardingScreenContent(
                         SecondaryButton(
                             modifier = Modifier.fillMaxWidth(),
                             text = "Skip",
-                            onClick = {
-                                // determine which screens to skip, i.e goToEmail / goToReportForm
-                                onGoToReportForm()
-                            }
+                            onClick = onNextScreen
                         )
                     }
                 }

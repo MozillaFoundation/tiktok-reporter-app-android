@@ -1,4 +1,4 @@
-package org.mozilla.tiktokreporter.reportform
+package org.mozilla.tiktokreporter.email
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -9,7 +9,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.mozilla.tiktokreporter.common.formcomponents.FormFieldUiComponent
-import org.mozilla.tiktokreporter.common.TabModelType
 import org.mozilla.tiktokreporter.common.formcomponents.toUiComponents
 import org.mozilla.tiktokreporter.data.model.FormFieldType
 import org.mozilla.tiktokreporter.repository.TikTokReporterRepository
@@ -18,8 +17,8 @@ import org.mozilla.tiktokreporter.util.toOneTimeEvent
 import javax.inject.Inject
 
 @HiltViewModel
-class ReportFormScreenViewModel @Inject constructor(
-    private val tikTokReporterRepository: TikTokReporterRepository
+class EmailScreenViewModel @Inject constructor(
+    tikTokReporterRepository: TikTokReporterRepository
 ): ViewModel() {
 
     private val _state = MutableStateFlow(State())
@@ -39,25 +38,19 @@ class ReportFormScreenViewModel @Inject constructor(
                 return@launch
             }
 
-            val study = studyResult.getOrNull()
-            val studyForm = study?.form ?: kotlin.run {
+            val onboardingForm = studyResult.getOrNull()?.onboarding?.form ?: kotlin.run {
                 _state.update {
                     it.copy(
-                        action = UiAction.ShowNoFormFound.toOneTimeEvent()
+                        action = UiAction.GoToReportForm.toOneTimeEvent()
                     )
                 }
+
                 return@launch
             }
 
             _state.update { state ->
                 state.copy(
-                    tabs = buildList {
-                        add(TabModelType.ReportLink)
-                        if (study.supportsRecording) {
-                            add(TabModelType.RecordSession)
-                        }
-                    },
-                    formFields = studyForm.fields.toUiComponents(),
+                    formFields = onboardingForm.fields.toUiComponents(),
                     action = null
                 )
             }
@@ -101,30 +94,28 @@ class ReportFormScreenViewModel @Inject constructor(
         }
     }
 
-    fun onTabSelected(tabIndex: Int) {
-        viewModelScope.launch(Dispatchers.Unconfined) {
-            _state.update {
-                it.copy(
-                    selectedTabIndex = tabIndex
+    fun onSaveEmail() {
+        viewModelScope.launch {
+//            val emailField = state.value.formFields.firstOrNull { it.formField.type == FormFieldType.TextField }
+
+            // save email
+//            val email = emailField?.value as String
+
+            _state.update { state ->
+                state.copy(
+                    action = UiAction.GoToReportForm.toOneTimeEvent()
                 )
             }
         }
     }
 
-    fun onSubmitReport() {
-
-    }
-
     data class State(
-        val tabs: List<TabModelType> = emptyList(),
-        val selectedTabIndex: Int = 0,
-        val formFields: List<FormFieldUiComponent> = listOf(),
+        val formFields: List<FormFieldUiComponent> = emptyList(),
         val action: OneTimeEvent<UiAction>? = null
     )
 
     sealed class UiAction {
         data object ShowLoading: UiAction()
-        data object ShowNoFormFound: UiAction()
-        data object GoToReportSubmittedScreen: UiAction()
+        data object GoToReportForm: UiAction()
     }
 }

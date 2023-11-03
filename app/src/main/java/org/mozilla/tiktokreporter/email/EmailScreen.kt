@@ -1,0 +1,129 @@
+package org.mozilla.tiktokreporter.email
+
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.runtime.Composable
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Modifier
+import androidx.hilt.navigation.compose.hiltViewModel
+import org.mozilla.tiktokreporter.common.formcomponents.formComponentsItems
+import org.mozilla.tiktokreporter.ui.components.LoadingScreen
+import org.mozilla.tiktokreporter.ui.components.MozillaScaffold
+import org.mozilla.tiktokreporter.ui.components.PrimaryButton
+import org.mozilla.tiktokreporter.ui.components.SecondaryButton
+import org.mozilla.tiktokreporter.ui.components.dialog.DialogContainer
+import org.mozilla.tiktokreporter.ui.theme.MozillaDimension
+
+@Composable
+fun EmailScreen(
+    viewModel: EmailScreenViewModel = hiltViewModel(),
+    isForOnboarding: Boolean = true,
+    onNextScreen: () -> Unit
+) {
+    DialogContainer { dialogState ->
+
+        val state by viewModel.state.collectAsStateWithLifecycle()
+        val action = state.action?.get()
+        val isLoading = action is EmailScreenViewModel.UiAction.ShowLoading
+
+        when (action) {
+            EmailScreenViewModel.UiAction.GoToReportForm -> onNextScreen()
+            else -> Unit
+        }
+
+        if (isLoading) {
+            LoadingScreen()
+        } else {
+            EmailScreenContent(
+                state = state,
+                onFormFieldValueChanged = viewModel::onFormFieldValueChanged,
+                onSaveEmail = viewModel::onSaveEmail,
+                onNextScreen = onNextScreen,
+                isForOnboarding = isForOnboarding,
+                modifier = Modifier.fillMaxSize()
+            )
+        }
+    }
+}
+
+@Composable
+private fun EmailScreenContent(
+    state: EmailScreenViewModel.State,
+    onFormFieldValueChanged: (formFieldId: String, value: Any) -> Unit,
+    onSaveEmail: () -> Unit,
+    onNextScreen: () -> Unit,
+    isForOnboarding: Boolean,
+    modifier: Modifier = Modifier
+) {
+    MozillaScaffold(
+        modifier = modifier
+    ) { innerPadding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+        ) {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f),
+                contentPadding = PaddingValues(
+                    horizontal = MozillaDimension.M,
+                    vertical = MozillaDimension.L
+                ),
+                verticalArrangement = Arrangement.spacedBy(MozillaDimension.L),
+                content = {
+                    formComponentsItems(
+                        formFields = state.formFields,
+                        onFormFieldValueChanged = onFormFieldValueChanged
+                    )
+                }
+            )
+
+            OnboardingFormButtons(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(
+                        horizontal = MozillaDimension.M,
+                        vertical = MozillaDimension.L
+                    ),
+                nextButton = {
+                    PrimaryButton(
+                        modifier = Modifier.fillMaxWidth(),
+                        text = "Next",
+                        onClick = onSaveEmail
+                    )
+                },
+                skipButton = if (isForOnboarding) {
+                    {
+                        SecondaryButton(
+                            modifier = Modifier.fillMaxWidth(),
+                            text = "Skip",
+                            onClick = onNextScreen
+                        )
+                    }
+                } else null
+            )
+        }
+    }
+}
+
+@Composable
+private fun OnboardingFormButtons(
+    modifier: Modifier = Modifier,
+    nextButton: (@Composable () -> Unit)? = null,
+    skipButton: (@Composable () -> Unit)? = null,
+) {
+    Column(
+        modifier = modifier
+    ) {
+        nextButton?.let { it() }
+        skipButton?.let { it() }
+    }
+}

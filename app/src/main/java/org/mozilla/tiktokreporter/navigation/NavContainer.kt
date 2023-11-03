@@ -22,6 +22,7 @@ import org.mozilla.tiktokreporter.reportform.ReportFormScreen
 import org.mozilla.tiktokreporter.settings.SettingsScreen
 import org.mozilla.tiktokreporter.apppolicy.AppPolicyScreen
 import org.mozilla.tiktokreporter.datahandling.DataHandlingScreen
+import org.mozilla.tiktokreporter.email.EmailScreen
 import org.mozilla.tiktokreporter.splashscreen.SplashScreen
 import org.mozilla.tiktokreporter.studieslist.StudiesListScreen
 import org.mozilla.tiktokreporter.studyonboarding.StudyOnboardingScreen
@@ -239,10 +240,16 @@ private fun NavGraphBuilder.addTermsAndConditions(
     navController: NavController,
     root: Destination
 ) {
+    val startDestination = NestedDestination.AppPolicy.createRoute(root)
+
     val isForOnboarding = root is Destination.Onboarding
     val onNextScreen = {
         val destination = NestedDestination.Studies.createRoute(Destination.Onboarding)
-        navController.navigate(destination)
+        navController.navigate(destination) {
+            popUpTo(startDestination) {
+                inclusive = true
+            }
+        }
     }
 
     composable(
@@ -263,16 +270,61 @@ private fun NavGraphBuilder.addStudies(
     navController: NavController,
     root: Destination
 ) {
+    val startDestination = NestedDestination.Studies.createRoute(root)
+
     val onGoToStudyOnboarding = {
         val destination = NestedDestination.StudyOnboarding.createRoute(Destination.Onboarding)
-        navController.navigate(destination)
+        navController.navigate(destination) {
+            popUpTo(startDestination) {
+                inclusive = true
+            }
+        }
     }
 
     composable(
-        route = NestedDestination.Studies.createRoute(root)
+        route = startDestination
     ) {
         StudiesListScreen(
             onNextScreen = onGoToStudyOnboarding
+        )
+    }
+}
+
+private fun NavGraphBuilder.addStudyOnboarding(
+    navController: NavController,
+    root: Destination
+) {
+    val startDestination = NestedDestination.StudyOnboarding.createRoute(root)
+
+    val onGoToEmailForm = {
+        val destination = NestedDestination.Email.createRoute(Destination.Onboarding)
+        navController.navigate(destination) {
+            popUpTo(startDestination) {
+                inclusive = true
+            }
+        }
+    }
+    val onGoToReportForm = {
+        val destination = NestedDestination.Email.createRoute(Destination.Onboarding)
+        navController.navigate(destination) {
+            popUpTo(startDestination) {
+                inclusive = true
+            }
+        }
+    }
+
+    composable(
+        route = startDestination
+    ) {
+        StudyOnboardingScreen(
+            onNextScreen = {
+                val startedFromSettings = root is Destination.Settings
+                if (startedFromSettings) {
+                    onGoToReportForm()
+                } else {
+                    onGoToEmailForm()
+                }
+            }
         )
     }
 }
@@ -281,51 +333,17 @@ private fun NavGraphBuilder.addEmail(
     navController: NavController,
     root: Destination
 ) {
+    val isForOnboarding = root is Destination.Onboarding
+
     composable(
         route = NestedDestination.Email.createRoute(root)
     ) {
-        when (root) {
-            is Destination.Onboarding -> {
-                // email onboarding screen
-                Box(
-                    modifier = Modifier.fillMaxSize()
-                ) {
-                    Text(text = "Onboarding email")
-                }
+        EmailScreen(
+            isForOnboarding = isForOnboarding,
+            onNextScreen = {
+                val destination = NestedDestination.ReportFormNested.createRoute(Destination.ReportForm)
+                navController.navigate(destination)
             }
-
-            is Destination.Settings -> {
-                // email settings screen
-                Box(
-                    modifier = Modifier.fillMaxSize()
-                ) {
-                    Text(text = "Settings email")
-                }
-            }
-
-            else -> Unit
-        }
-    }
-}
-
-private fun NavGraphBuilder.addStudyOnboarding(
-    navController: NavController,
-    root: Destination
-) {
-    val onGoToEmailForm = {
-        val destination = NestedDestination.Email.createRoute(Destination.Onboarding)
-        navController.navigate(destination)
-    }
-    val onGoToReportForm = {
-        val destination = NestedDestination.ReportFormNested.createRoute(Destination.ReportForm)
-        navController.navigate(destination)
-    }
-    composable(
-        route = NestedDestination.StudyOnboarding.createRoute(root)
-    ) {
-        StudyOnboardingScreen(
-            onGoToEmailForm = onGoToEmailForm,
-            onGoToReportForm = onGoToReportForm
         )
     }
 }

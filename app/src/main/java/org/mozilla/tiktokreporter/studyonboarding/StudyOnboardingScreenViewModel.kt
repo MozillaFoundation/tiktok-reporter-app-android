@@ -46,10 +46,10 @@ class StudyOnboardingScreenViewModel @Inject constructor(
                 return@launch
             }
 
-            _state.update {
-                it.copy(
+            _state.update { state ->
+                state.copy(
                     action = null,
-                    steps = onboarding.steps,
+                    steps = onboarding.steps.sortedBy { it.order },
                     form = onboarding.form,
                 )
             }

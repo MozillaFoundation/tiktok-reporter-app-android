@@ -1,5 +1,6 @@
 package org.mozilla.tiktokreporter.apppolicy
 
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -103,55 +104,82 @@ private fun AppPolicyScreenContent(
             }
         }
     ) { innerPadding ->
-        LazyColumn(
+
+        Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding),
-            contentPadding = PaddingValues(
-                horizontal = MozillaDimension.M,
-                vertical = MozillaDimension.L
-            )
+                .padding(innerPadding)
         ) {
-            item {
-                Text(
-                    text = state.title,
-                    style = MozillaTypography.H3
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f),
+                contentPadding = PaddingValues(
+                    horizontal = MozillaDimension.M,
+                    vertical = MozillaDimension.L
                 )
-                Spacer(modifier = Modifier.height(MozillaDimension.L))
+            ) {
+                item {
+                    Text(
+                        text = state.title,
+                        style = MozillaTypography.H3
+                    )
+                    Spacer(modifier = Modifier.height(MozillaDimension.L))
+                }
+                item {
+                    Text(
+                        text = state.subtitle,
+                        style = MozillaTypography.H5
+                    )
+                    Spacer(modifier = Modifier.height(MozillaDimension.M))
+                }
+                item {
+                    Text(
+                        text = state.content,
+                        style = MozillaTypography.Body2
+                    )
+                    Spacer(modifier = Modifier.height(MozillaDimension.L))
+                }
             }
-            item {
-                Text(
-                    text = state.subtitle,
-                    style = MozillaTypography.H5
-                )
-                Spacer(modifier = Modifier.height(MozillaDimension.M))
-            }
-            item {
-                Text(
-                    text = state.content,
-                    style = MozillaTypography.Body2
-                )
-                Spacer(modifier = Modifier.height(MozillaDimension.L))
-            }
+
             if (isForOnboarding) {
-                item {
-                    PrimaryButton(
-                        modifier = Modifier.fillMaxWidth(),
-                        text = "I agree",
-                        onClick = onAgree
-                    )
-                    Spacer(modifier = Modifier.height(MozillaDimension.S))
-                }
-                item {
-                    SecondaryButton(
-                        modifier = Modifier.fillMaxWidth(),
-                        text = "I disagree",
-                        onClick = {
-                            onDisagree()
-                        }
-                    )
-                }
+                AppPolicyButtons(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(
+                            horizontal = MozillaDimension.M,
+                            vertical = MozillaDimension.L
+                        ),
+                    agreeButton = {
+                        PrimaryButton(
+                            modifier = Modifier.fillMaxWidth(),
+                            text = "I agree",
+                            onClick = onAgree
+                        )
+                    },
+                    disagreeButton = {
+                        SecondaryButton(
+                            modifier = Modifier.fillMaxWidth(),
+                            text = "I disagree",
+                            onClick = onDisagree
+                        )
+                    }
+                )
             }
         }
+    }
+}
+
+@Composable
+private fun AppPolicyButtons(
+    modifier: Modifier = Modifier,
+    agreeButton: (@Composable () -> Unit)? = null,
+    disagreeButton: (@Composable () -> Unit)? = null,
+) {
+    Column(
+        modifier = modifier
+    ) {
+        agreeButton?.let { it() }
+        disagreeButton?.let { it() }
     }
 }

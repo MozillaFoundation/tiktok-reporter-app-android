@@ -3,14 +3,11 @@ package org.mozilla.tiktokreporter.reportform
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.Icon
@@ -21,11 +18,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import org.mozilla.tiktokreporter.data.model.FormField
+import org.mozilla.tiktokreporter.common.TabModelType
+import org.mozilla.tiktokreporter.common.formcomponents.formComponentsItems
 import org.mozilla.tiktokreporter.ui.components.LoadingScreen
-import org.mozilla.tiktokreporter.ui.components.MozillaDropdown
 import org.mozilla.tiktokreporter.ui.components.MozillaScaffold
-import org.mozilla.tiktokreporter.ui.components.MozillaSlider
 import org.mozilla.tiktokreporter.ui.components.MozillaTabRow
 import org.mozilla.tiktokreporter.ui.components.MozillaTextField
 import org.mozilla.tiktokreporter.ui.components.MozillaTopAppBar
@@ -113,8 +109,8 @@ private fun ReportFormScreenContent(
                             modifier = modifier,
                             tabs = state.tabs.map {
                                 when (it) {
-                                    ReportFormScreenViewModel.TabModelType.ReportLink -> " Report a Link"
-                                    ReportFormScreenViewModel.TabModelType.RecordSession -> "Record a session"
+                                    TabModelType.ReportLink -> " Report a Link"
+                                    TabModelType.RecordSession -> "Record a session"
                                 }
                             },
                             onTabSelected = onTabSelected,
@@ -123,7 +119,7 @@ private fun ReportFormScreenContent(
                     }
 
                     if (state.selectedTabIndex == 0) {
-                        reportLinkItems(
+                        formComponentsItems(
                             formFields = state.formFields,
                             onFormFieldValueChanged = onFormFieldValueChanged
                         )
@@ -149,50 +145,6 @@ private fun ReportFormScreenContent(
 
                 }
             )
-        }
-    }
-}
-
-private fun LazyListScope.reportLinkItems(
-    formFields: List<ReportFormScreenViewModel.FormFieldUiComponent>,
-    onFormFieldValueChanged: (formFieldId: String, value: Any) -> Unit
-) {
-    items(formFields) { field ->
-        when (val formField = field.formField) {
-            is FormField.TextField -> {
-                FormTextField(
-                    modifier = Modifier.fillParentMaxWidth(),
-                    field = formField,
-                    value = field.value as String,
-                    onTextChanged = {
-                        onFormFieldValueChanged(formField.id, it)
-                    }
-                )
-            }
-
-            is FormField.DropDown -> {
-                FormDropDown(
-                    modifier = Modifier.fillParentMaxWidth(),
-                    field = formField,
-                    value = field.value as String,
-                    onOptionChanged = {
-                        onFormFieldValueChanged(formField.id, it)
-                    }
-                )
-            }
-
-            is FormField.Slider -> {
-                FormSlider(
-                    modifier = Modifier.fillParentMaxWidth(),
-                    field = formField,
-                    sliderPosition = field.value as Int,
-                    onValueChanged = {
-                        onFormFieldValueChanged(formField.id, it)
-                    }
-                )
-            }
-
-            else -> Unit
         }
     }
 }
@@ -235,108 +187,6 @@ private fun LazyListScope.recordSessionItems(
             label = "Comments (optional)",
             maxLines = 5,
             multiline = true
-        )
-    }
-}
-
-@Composable
-private fun FormTextField(
-    field: FormField.TextField,
-    value: String,
-    onTextChanged: (String) -> Unit,
-    modifier: Modifier = Modifier
-) {
-    Column(
-        modifier = modifier
-    ) {
-        if (field.description.isNotBlank()) {
-            Text(
-                modifier = Modifier.fillMaxWidth(),
-                text = field.description,
-                style = MozillaTypography.Body2
-            )
-            Spacer(modifier = Modifier.height(MozillaDimension.S))
-        }
-
-        MozillaTextField(
-            modifier = Modifier.fillMaxWidth(),
-            text = value,
-            onTextChanged = onTextChanged,
-            label = field.label,
-            placeholder = field.placeholder,
-            maxLines = field.maxLines,
-            multiline = field.multiline,
-        )
-    }
-}
-
-@Composable
-private fun FormDropDown(
-    field: FormField.DropDown,
-    value: String,
-    onOptionChanged: (String) -> Unit,
-    modifier: Modifier = Modifier
-) {
-    Column(
-        modifier = modifier
-    ) {
-        if (field.description.isNotBlank()) {
-            Text(
-                modifier = Modifier.fillMaxWidth(),
-                text = field.description,
-                style = MozillaTypography.Body2
-            )
-            Spacer(modifier = Modifier.height(MozillaDimension.S))
-        }
-
-        MozillaDropdown(
-            modifier = Modifier.fillMaxWidth(),
-            options = field.options.map { it.title },
-            onOptionSelected = { index, option ->
-                onOptionChanged(option)
-            },
-            text = value,
-            label = field.label,
-            placeholder = field.placeholder,
-        )
-    }
-}
-
-@Composable
-private fun FormSlider(
-    field: FormField.Slider,
-    sliderPosition: Int,
-    onValueChanged: (Int) -> Unit,
-    modifier: Modifier = Modifier
-) {
-    Column(
-        modifier = modifier
-    ) {
-        if (field.label.isNotBlank()) {
-            Text(
-                modifier = Modifier.fillMaxWidth(),
-                text = field.label,
-                style = MozillaTypography.Body1
-            )
-            Spacer(modifier = Modifier.height(MozillaDimension.S))
-        }
-        if (field.description.isNotBlank()) {
-            Text(
-                modifier = Modifier.fillMaxWidth(),
-                text = field.description,
-                style = MozillaTypography.Body2
-            )
-            Spacer(modifier = Modifier.height(MozillaDimension.S))
-        }
-
-        MozillaSlider(
-            modifier = Modifier.fillMaxWidth(),
-            sliderPosition = sliderPosition,
-            max = field.max,
-            step = field.step,
-            onValueChanged = onValueChanged,
-            leftLabel = field.leftLabel,
-            rightLabel = field.rightLabel
         )
     }
 }
