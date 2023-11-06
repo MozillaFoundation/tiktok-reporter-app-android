@@ -64,7 +64,7 @@ fun MozillaRadioButton(
         Modifier.selectable(
             selected = selected,
             onClick = onClick,
-            enabled = true,
+            enabled = enabled,
             role = Role.RadioButton,
             interactionSource = remember { MutableInteractionSource() },
             indication = rememberRipple(

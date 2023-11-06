@@ -11,6 +11,7 @@ import org.mozilla.tiktokreporter.data.model.toPolicy
 import org.mozilla.tiktokreporter.data.model.toStudyDetails
 import org.mozilla.tiktokreporter.data.model.toStudyOverview
 import org.mozilla.tiktokreporter.data.remote.TikTokReporterService
+import org.mozilla.tiktokreporter.util.Common
 import org.mozilla.tiktokreporter.util.sharedPreferences
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -21,10 +22,9 @@ class TikTokReporterRepository @Inject constructor(
     @ApplicationContext private val context: Context
 ) {
 
-    var selectedStudyId by context.sharedPreferences(name = "selected_study", defaultValue = "")
-        private set
-    var onboardingCompleted by context.sharedPreferences(name = "onboarding_completed", defaultValue = false)
-        private set
+    private var selectedStudyId by context.sharedPreferences(name = Common.PREFERENCES_SELECTED_STUDY_KEY, defaultValue = "")
+    private var onboardingCompleted by context.sharedPreferences(name = Common.PREFERENCES_ONBOARDING_COMPLETED_KEY, defaultValue = false)
+    private var termsAccepted by context.sharedPreferences(name = Common.PREFERENCES_TERMS_ACCEPTED_KEY, defaultValue = false)
 
     private var selectedStudy: StudyDetails? = null
 
@@ -68,6 +68,7 @@ class TikTokReporterRepository @Inject constructor(
 
     suspend fun getSelectedStudy(): Result<StudyDetails> {
         if (selectedStudy == null) {
+
             val study = fetchStudyById(selectedStudyId)
 
             if (study.isSuccess) {
@@ -83,6 +84,18 @@ class TikTokReporterRepository @Inject constructor(
     suspend fun selectStudy(studyId: String) {
         withContext(Dispatchers.IO) {
             selectedStudyId = studyId
+            selectedStudy = null
+        }
+    }
+
+    suspend fun acceptTermsAndConditions() {
+        withContext(Dispatchers.IO) {
+            termsAccepted = true
+        }
+    }
+    suspend fun setOnboardingCompleted(isCompleted: Boolean) {
+        withContext(Dispatchers.IO) {
+            onboardingCompleted = isCompleted
         }
     }
 }

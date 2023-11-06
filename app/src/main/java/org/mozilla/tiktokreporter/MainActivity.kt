@@ -11,9 +11,15 @@ import dagger.hilt.android.AndroidEntryPoint
 import org.mozilla.tiktokreporter.navigation.NavContainer
 import org.mozilla.tiktokreporter.ui.theme.MozillaColor
 import org.mozilla.tiktokreporter.ui.theme.TikTokReporterTheme
+import org.mozilla.tiktokreporter.util.Common
+import org.mozilla.tiktokreporter.util.sharedPreferences
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+
+    private val onboardingCompleted by sharedPreferences(Common.PREFERENCES_ONBOARDING_COMPLETED_KEY, false)
+    private val termsAccepted by sharedPreferences(Common.PREFERENCES_TERMS_ACCEPTED_KEY, false)
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -25,7 +31,10 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MozillaColor.Background
                 ) {
-                    NavContainer()
+                    NavContainer(
+                        onboardingCompleted = onboardingCompleted,
+                        termsAccepted = termsAccepted
+                    )
                 }
             }
         }

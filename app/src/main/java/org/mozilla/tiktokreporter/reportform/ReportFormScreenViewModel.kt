@@ -39,8 +39,25 @@ class ReportFormScreenViewModel @Inject constructor(
                 return@launch
             }
 
-            val study = studyResult.getOrNull()
-            val studyForm = study?.form ?: kotlin.run {
+            val study = studyResult.getOrNull() ?: kotlin.run {
+                _state.update {
+                    it.copy(
+                        action = UiAction.ShowFetchStudyError.toOneTimeEvent()
+                    )
+                }
+                return@launch
+            }
+            if (!study.isActive) {
+                tikTokReporterRepository.setOnboardingCompleted(false)
+                _state.update {
+                    it.copy(
+                        action = UiAction.ShowStudyNotActive.toOneTimeEvent()
+                    )
+                }
+                return@launch
+            }
+
+            val studyForm = study.form ?: kotlin.run {
                 _state.update {
                     it.copy(
                         action = UiAction.ShowNoFormFound.toOneTimeEvent()
@@ -61,6 +78,10 @@ class ReportFormScreenViewModel @Inject constructor(
                     action = null
                 )
             }
+        }
+
+        viewModelScope.launch {
+            tikTokReporterRepository.setOnboardingCompleted(true)
         }
     }
 
@@ -126,5 +147,7 @@ class ReportFormScreenViewModel @Inject constructor(
         data object ShowLoading: UiAction()
         data object ShowNoFormFound: UiAction()
         data object GoToReportSubmittedScreen: UiAction()
+        data object ShowFetchStudyError: UiAction()
+        data object ShowStudyNotActive: UiAction()
     }
 }

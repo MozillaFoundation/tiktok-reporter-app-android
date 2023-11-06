@@ -52,7 +52,12 @@ fun AppPolicyScreen(
                 state = state,
                 isForOnboarding = isForOnboarding,
                 onNavigateBack = onNavigateBack,
-                onAgree = if (isForOnboarding) onNextScreen else emptyCallback,
+                onAgree = {
+                    if (isForOnboarding) {
+                        viewModel.acceptTerms()
+                        onNextScreen()
+                    }
+                },
                 onDisagree = if (isForOnboarding) {
                     {
                         dialogState.value = DialogState.Message(

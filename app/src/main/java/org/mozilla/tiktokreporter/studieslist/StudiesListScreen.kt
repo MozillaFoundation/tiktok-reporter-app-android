@@ -9,6 +9,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -24,9 +28,11 @@ import org.mozilla.tiktokreporter.data.model.StudyOverview
 import org.mozilla.tiktokreporter.ui.components.LoadingScreen
 import org.mozilla.tiktokreporter.ui.components.MozillaRadioButton
 import org.mozilla.tiktokreporter.ui.components.MozillaScaffold
+import org.mozilla.tiktokreporter.ui.components.MozillaTopAppBar
 import org.mozilla.tiktokreporter.ui.components.SecondaryButton
 import org.mozilla.tiktokreporter.ui.components.dialog.DialogContainer
 import org.mozilla.tiktokreporter.ui.components.dialog.DialogState
+import org.mozilla.tiktokreporter.ui.theme.MozillaColor
 import org.mozilla.tiktokreporter.ui.theme.MozillaDimension
 import org.mozilla.tiktokreporter.ui.theme.MozillaTypography
 import org.mozilla.tiktokreporter.ui.theme.TikTokReporterTheme
@@ -34,7 +40,9 @@ import org.mozilla.tiktokreporter.ui.theme.TikTokReporterTheme
 @Composable
 fun StudiesListScreen(
     viewModel: StudiesListScreenViewModel = hiltViewModel(),
-    onNextScreen: () -> Unit
+    isForOnboarding: Boolean = true,
+    onNextScreen: () -> Unit,
+    onNavigateBack: () -> Unit
 ) {
     DialogContainer(
         modifier = Modifier.fillMaxSize()
@@ -65,8 +73,27 @@ fun StudiesListScreen(
             StudiesListScreenContent(
                 modifier = Modifier.fillMaxSize(),
                 state = state,
+                isForOnboarding = isForOnboarding,
+                onNavigateBack = onNavigateBack,
                 onStudySelected = viewModel::selectStudyAtIndex,
-                onSave = viewModel::onSave
+                onSave = {
+                    if (!isForOnboarding) {
+                        dialogState.value = DialogState.Message(
+                            title = "Change study",
+                            message = "Are you sure you want to enroll in another study?",
+                            positiveButtonText = "Yes",
+                            onPositive = {
+                                viewModel.onSave()
+                            },
+                            negativeButtonText = "No",
+                            onNegative = {
+                                dialogState.value = DialogState.Nothing
+                            }
+                        )
+                    } else {
+                        viewModel.onSave()
+                    }
+                }
             )
         }
     }
@@ -76,11 +103,31 @@ fun StudiesListScreen(
 private fun StudiesListScreenContent(
     modifier: Modifier = Modifier,
     state: StudiesListScreenViewModel.State,
+    isForOnboarding: Boolean,
+    onNavigateBack: () -> Unit,
     onStudySelected: (Int) -> Unit,
     onSave: () -> Unit
 ) {
     MozillaScaffold(
-        modifier = modifier
+        modifier = modifier,
+        topBar = if (isForOnboarding) null else {
+            {
+                MozillaTopAppBar(
+                    modifier = Modifier.fillMaxWidth(),
+                    action = {
+                        IconButton(
+                            onClick = onNavigateBack
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Close,
+                                contentDescription = "",
+                                tint = MozillaColor.TextColor
+                            )
+                        }
+                    }
+                )
+            }
+        }
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -164,6 +211,8 @@ private fun StudyEntry(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val color = if (!studyOverview.isActive) MozillaColor.Disabled else MozillaColor.TextColor
+
     ConstraintLayout(
         modifier = modifier
             .wrapContentHeight(),
@@ -172,17 +221,20 @@ private fun StudyEntry(
         MozillaRadioButton(
             modifier = Modifier.layoutId("radioButton"),
             selected = studyOverview.isSelected,
-            onClick = onClick
+            onClick = onClick,
+            enabled = studyOverview.isActive
         )
         Text(
             modifier = Modifier.layoutId("title"),
             text = studyOverview.name,
-            style = MozillaTypography.Body1
+            style = MozillaTypography.Body1,
+            color = color
         )
         Text(
             modifier = Modifier.layoutId("description"),
             text = studyOverview.description,
-            style = MozillaTypography.Body2
+            style = MozillaTypography.Body2,
+            color = color
         )
     }
 }
@@ -249,7 +301,9 @@ private fun StudiesListScreenPreview() {
                 }
             ),
             onStudySelected = { },
-            onSave = { }
+            onSave = { },
+            onNavigateBack = { },
+            isForOnboarding = false
         )
     }
 }

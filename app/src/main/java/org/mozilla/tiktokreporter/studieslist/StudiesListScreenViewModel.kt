@@ -72,6 +72,8 @@ class StudiesListScreenViewModel @Inject constructor(
 
     fun onSave() {
         viewModelScope.launch(Dispatchers.Unconfined) {
+            tikTokReporterRepository.setOnboardingCompleted(false)
+
             val selectedStudy = state.value.studies.firstOrNull { it.isSelected }
             if (selectedStudy == null) {
                 _state.update {

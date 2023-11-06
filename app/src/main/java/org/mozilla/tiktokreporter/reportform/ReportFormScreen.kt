@@ -28,6 +28,7 @@ import org.mozilla.tiktokreporter.ui.components.MozillaTopAppBar
 import org.mozilla.tiktokreporter.ui.components.PrimaryButton
 import org.mozilla.tiktokreporter.ui.components.SecondaryButton
 import org.mozilla.tiktokreporter.ui.components.dialog.DialogContainer
+import org.mozilla.tiktokreporter.ui.components.dialog.DialogState
 import org.mozilla.tiktokreporter.ui.theme.MozillaColor
 import org.mozilla.tiktokreporter.ui.theme.MozillaDimension
 import org.mozilla.tiktokreporter.ui.theme.MozillaTypography
@@ -37,6 +38,7 @@ fun ReportFormScreen(
     viewModel: ReportFormScreenViewModel = hiltViewModel(),
     onGoToReportSubmittedScreen: () -> Unit,
     onGoToSettings: () -> Unit,
+    onGoToStudies: () -> Unit,
 ) {
     DialogContainer { dialogState ->
 
@@ -58,6 +60,19 @@ fun ReportFormScreen(
         }
 
         when (action) {
+            is ReportFormScreenViewModel.UiAction.ShowStudyNotActive -> {
+                dialogState.value = DialogState.Message(
+                    title = "Select another study",
+                    message = "The study you were participating into has ended. Please select another study to join.",
+                    positiveButtonText = "Settings",
+                    onPositive = onGoToStudies,
+                    negativeButtonText = "Not now",
+                    onNegative = {
+
+                    },
+                    onDismissRequest = { dialogState.value = DialogState.Nothing }
+                )
+            }
             is ReportFormScreenViewModel.UiAction.GoToReportSubmittedScreen -> onGoToReportSubmittedScreen()
             else -> Unit
         }

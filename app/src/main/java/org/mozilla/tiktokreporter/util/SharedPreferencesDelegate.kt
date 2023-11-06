@@ -2,12 +2,11 @@ package org.mozilla.tiktokreporter.util
 
 import android.content.Context
 import androidx.activity.ComponentActivity
-import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KProperty
 
 class SharedPreferencesDelegate<T>(
-    @ApplicationContext private val context: Context,
+    private val context: Context,
     private val name: String,
     private val defaultValue: T
 ): ReadWriteProperty<Any, T> {
@@ -15,6 +14,8 @@ class SharedPreferencesDelegate<T>(
     private val sharedPreferences by lazy {
         context.getSharedPreferences(name, ComponentActivity.MODE_PRIVATE)
     }
+
+    @Suppress("UNCHECKED_CAST")
     override fun getValue(thisRef: Any, property: KProperty<*>): T {
         return when (defaultValue) {
             is String -> {

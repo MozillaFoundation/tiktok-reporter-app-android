@@ -75,6 +75,12 @@ class AppPolicyScreenViewModel @Inject constructor(
         }
     }
 
+    fun acceptTerms() {
+        viewModelScope.launch {
+            tikTokReporterRepository.acceptTermsAndConditions()
+        }
+    }
+
     data class State(
         val title: String = "",
         val subtitle: String = "",
