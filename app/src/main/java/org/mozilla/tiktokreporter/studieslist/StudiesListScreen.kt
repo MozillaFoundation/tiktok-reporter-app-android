@@ -49,10 +49,9 @@ fun StudiesListScreen(
     ) { dialogState ->
 
         val state by viewModel.state.collectAsStateWithLifecycle()
-        val action = state.action?.get()
-        val isLoading = action is StudiesListScreenViewModel.UiAction.ShowLoading
+        val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
 
-        when (action) {
+        when (state.action?.get()) {
             StudiesListScreenViewModel.UiAction.OnNextScreen -> onNextScreen()
             StudiesListScreenViewModel.UiAction.OnNoStudySelected -> {
                 dialogState.value = DialogState.Message(

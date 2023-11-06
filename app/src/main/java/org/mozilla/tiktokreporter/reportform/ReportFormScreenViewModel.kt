@@ -6,6 +6,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.mozilla.tiktokreporter.common.formcomponents.FormFieldUiComponent
@@ -25,21 +26,22 @@ class ReportFormScreenViewModel @Inject constructor(
     private val _state = MutableStateFlow(State())
     val state: StateFlow<State> = _state
 
+    private val _isLoading = MutableStateFlow(false)
+    val isLoading = _isLoading.asStateFlow()
+
     init {
         viewModelScope.launch {
-            _state.update {
-                it.copy(
-                    action = UiAction.ShowLoading.toOneTimeEvent()
-                )
-            }
+            _isLoading.update { true }
 
             val studyResult = tikTokReporterRepository.getSelectedStudy()
             if (studyResult.isFailure) {
                 // TODO: map error
+                _isLoading.update { false }
                 return@launch
             }
 
             val study = studyResult.getOrNull() ?: kotlin.run {
+                _isLoading.update { false }
                 _state.update {
                     it.copy(
                         action = UiAction.ShowFetchStudyError.toOneTimeEvent()
@@ -58,6 +60,7 @@ class ReportFormScreenViewModel @Inject constructor(
             }
 
             val studyForm = study.form ?: kotlin.run {
+                _isLoading.update { false }
                 _state.update {
                     it.copy(
                         action = UiAction.ShowNoFormFound.toOneTimeEvent()
@@ -66,6 +69,8 @@ class ReportFormScreenViewModel @Inject constructor(
                 return@launch
             }
 
+
+            _isLoading.update { false }
             _state.update { state ->
                 state.copy(
                     tabs = buildList {
@@ -144,7 +149,6 @@ class ReportFormScreenViewModel @Inject constructor(
     )
 
     sealed class UiAction {
-        data object ShowLoading: UiAction()
         data object ShowNoFormFound: UiAction()
         data object GoToReportSubmittedScreen: UiAction()
         data object ShowFetchStudyError: UiAction()

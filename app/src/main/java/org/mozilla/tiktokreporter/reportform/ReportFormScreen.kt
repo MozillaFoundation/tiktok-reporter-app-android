@@ -43,8 +43,7 @@ fun ReportFormScreen(
     DialogContainer { dialogState ->
 
         val state by viewModel.state.collectAsStateWithLifecycle()
-        val action = state.action?.get()
-        val isLoading = action is ReportFormScreenViewModel.UiAction.ShowLoading
+        val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
 
         if (isLoading) {
             LoadingScreen()
@@ -59,7 +58,7 @@ fun ReportFormScreen(
             )
         }
 
-        when (action) {
+        when (state.action?.get()) {
             is ReportFormScreenViewModel.UiAction.ShowStudyNotActive -> {
                 dialogState.value = DialogState.Message(
                     title = "Select another study",

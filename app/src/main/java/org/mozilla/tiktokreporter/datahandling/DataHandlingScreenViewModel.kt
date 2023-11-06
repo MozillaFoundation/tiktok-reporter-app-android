@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import org.mozilla.tiktokreporter.util.OneTimeEvent
 import javax.inject.Inject
 
@@ -13,6 +14,9 @@ class DataHandlingScreenViewModel @Inject constructor(
 
     private val _state = MutableStateFlow(State())
     val state: StateFlow<State> = _state
+
+    private val _isLoading = MutableStateFlow(false)
+    val isLoading = _isLoading.asStateFlow()
 
     fun downloadData() {
 
@@ -27,7 +31,6 @@ class DataHandlingScreenViewModel @Inject constructor(
     )
 
     sealed class UiAction {
-        data object ShowLoading: UiAction()
         data object NavigateBack: UiAction()
     }
 }

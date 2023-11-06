@@ -31,10 +31,9 @@ fun DataHandlingScreen(
     DialogContainer { _ ->
 
         val state by viewModel.state.collectAsStateWithLifecycle()
-        val action = state.action?.get()
-        val isLoading = action is DataHandlingScreenViewModel.UiAction.ShowLoading
+        val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
 
-        when (action) {
+        when (state.action?.get()) {
             is DataHandlingScreenViewModel.UiAction.NavigateBack -> onNavigateBack()
             else -> Unit
         }

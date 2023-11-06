@@ -36,10 +36,9 @@ fun EmailScreen(
     DialogContainer { dialogState ->
 
         val state by viewModel.state.collectAsStateWithLifecycle()
-        val action = state.action?.get()
-        val isLoading = action is EmailScreenViewModel.UiAction.ShowLoading
+        val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
 
-        when (action) {
+        when (state.action?.get()) {
             EmailScreenViewModel.UiAction.GoToReportForm -> onNextScreen()
             EmailScreenViewModel.UiAction.NavigateBack -> onNavigateBack()
             else -> Unit

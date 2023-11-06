@@ -6,6 +6,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.mozilla.tiktokreporter.common.formcomponents.FormFieldUiComponent
@@ -24,21 +25,22 @@ class EmailScreenViewModel @Inject constructor(
     private val _state = MutableStateFlow(State())
     val state: StateFlow<State> = _state
 
+    private val _isLoading = MutableStateFlow(false)
+    val isLoading = _isLoading.asStateFlow()
+
     init {
         viewModelScope.launch {
-            _state.update {
-                it.copy(
-                    action = UiAction.ShowLoading.toOneTimeEvent()
-                )
-            }
+            _isLoading.update { true }
 
             val studyResult = tikTokReporterRepository.getSelectedStudy()
             if (studyResult.isFailure) {
                 // TODO: map error
+                _isLoading.update { false }
                 return@launch
             }
 
             val onboardingForm = studyResult.getOrNull()?.onboarding?.form ?: kotlin.run {
+                _isLoading.update { false }
                 _state.update {
                     it.copy(
                         action = UiAction.GoToReportForm.toOneTimeEvent()
@@ -48,6 +50,7 @@ class EmailScreenViewModel @Inject constructor(
                 return@launch
             }
 
+            _isLoading.update { false }
             _state.update { state ->
                 state.copy(
                     formFields = onboardingForm.fields.toUiComponents(),
@@ -115,7 +118,6 @@ class EmailScreenViewModel @Inject constructor(
     )
 
     sealed class UiAction {
-        data object ShowLoading: UiAction()
         data object GoToReportForm: UiAction()
         data object NavigateBack: UiAction()
     }

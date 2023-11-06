@@ -42,8 +42,7 @@ fun AppPolicyScreen(
     ) { dialogState ->
 
         val state by viewModel.state.collectAsStateWithLifecycle()
-        val action = state.action?.get()
-        val isLoading = action is AppPolicyScreenViewModel.UiAction.ShowLoading
+        val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
 
         if (isLoading) {
             LoadingScreen()

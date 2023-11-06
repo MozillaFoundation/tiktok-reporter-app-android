@@ -22,21 +22,22 @@ class StudiesListScreenViewModel @Inject constructor(
     private val _state = MutableStateFlow(State())
     val state = _state.asStateFlow()
 
+    private val _isLoading = MutableStateFlow(false)
+    val isLoading = _isLoading.asStateFlow()
+
     init {
         viewModelScope.launch(Dispatchers.Unconfined) {
-            _state.update {
-                it.copy(
-                    action = UiAction.ShowLoading.toOneTimeEvent()
-                )
-            }
+            _isLoading.update { true }
 
             val studiesResult = tikTokReporterRepository.fetchStudies()
             if (studiesResult.isFailure)  {
                 // TODO: map error
+                _isLoading.update { false }
                 return@launch
             }
 
             val studies = studiesResult.getOrNull() ?: kotlin.run {
+                _isLoading.update { false }
                 _state.update {
                     it.copy(
                         action = UiAction.ShowNoStudiesFound.toOneTimeEvent()
@@ -45,6 +46,7 @@ class StudiesListScreenViewModel @Inject constructor(
                 return@launch
             }
 
+            _isLoading.update { false }
             _state.update {
                 it.copy(
                     action = null,
@@ -101,7 +103,6 @@ class StudiesListScreenViewModel @Inject constructor(
     )
 
     sealed class UiAction {
-        data object ShowLoading : UiAction()
         data object ShowNoStudiesFound : UiAction()
         data object OnNextScreen : UiAction()
         data object OnNoStudySelected : UiAction()
