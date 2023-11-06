@@ -4,14 +4,17 @@ import org.mozilla.tiktokreporter.data.model.FormField
 
 data class FormFieldUiComponent(
     val formField: FormField,
+    val readOnly: Boolean,
     val value: Any
 )
 
 fun FormField.toUiComponent(
-    value: Any
+    value: Any,
+    readOnly: Boolean = false
 ): FormFieldUiComponent {
     return FormFieldUiComponent(
         formField = this,
+        readOnly = readOnly,
         value = value
     )
 }

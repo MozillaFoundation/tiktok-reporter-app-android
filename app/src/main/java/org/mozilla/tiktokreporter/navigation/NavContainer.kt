@@ -7,17 +7,15 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
-import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navigation
-import org.mozilla.tiktokreporter.MainViewModel
+import kotlinx.coroutines.delay
 import org.mozilla.tiktokreporter.aboutapp.AboutAppScreen
 import org.mozilla.tiktokreporter.reportform.ReportFormScreen
 import org.mozilla.tiktokreporter.settings.SettingsScreen
@@ -28,8 +26,6 @@ import org.mozilla.tiktokreporter.splashscreen.SplashScreen
 import org.mozilla.tiktokreporter.studieslist.StudiesListScreen
 import org.mozilla.tiktokreporter.studyonboarding.StudyOnboardingScreen
 import org.mozilla.tiktokreporter.util.emptyCallback
-import java.net.URLEncoder
-import java.nio.charset.StandardCharsets
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
@@ -38,9 +34,6 @@ fun NavContainer(
     termsAccepted: Boolean,
     firstAccess: Boolean
 ) {
-    val mainViewModel: MainViewModel = hiltViewModel()
-
-
     val navController = rememberNavController()
     navController.addOnDestinationChangedListener { controller, destination, _ ->
         val list = controller.currentBackStack.value.map {it.destination.route } + controller.currentBackStackEntry?.destination?.route
@@ -61,28 +54,12 @@ fun NavContainer(
                 termsAccepted = termsAccepted
             )
             addOnBoarding(
-                navController = navController,
-                firstAccess = firstAccess
+                navController = navController
             )
             addReportForm(navController)
             addSettings(navController)
         }
     }
-
-    val sharedTikTokLink by mainViewModel.tikTokLinkState.collectAsStateWithLifecycle()
-    sharedTikTokLink?.let {
-        val encodedUrl = URLEncoder.encode(it, StandardCharsets.UTF_8.toString())
-        navigateToReportFormWithTikTokUrl(encodedUrl, navController)
-    }
-}
-
-private fun navigateToReportFormWithTikTokUrl(
-    url: String,
-    navController: NavController
-) {
-//    val root = Destination.ReportForm
-//    val destination = NestedDestination.ReportFormNested.createRouteWithArguments(root, url)
-//    navController.navigate(destination)
 }
 
 /**
@@ -95,6 +72,28 @@ private fun NavGraphBuilder.addSplashScreen(
 ) {
     val startDestination =
         NestedDestination.SplashScreenNested.createRoute(Destination.SplashScreen)
+
+    val onNextScreen = {
+        val destination = if (onboardingCompleted) {
+            NestedDestination.ReportFormNested.createRoute(Destination.ReportForm)
+        } else if (termsAccepted) {
+            NestedDestination.Studies.createRoute(
+                root = Destination.Onboarding
+            )
+        } else {
+            NestedDestination.AppPolicy.createRouteWithArguments(
+                root = Destination.Onboarding,
+                type = NestedDestination.AppPolicy.Type.TermsAndConditions
+            )
+        }
+
+        navController.navigate(destination) {
+            popUpTo(0) {
+                inclusive = true
+            }
+        }
+    }
+
     navigation(
         route = Destination.SplashScreen.route,
         startDestination = startDestination
@@ -102,28 +101,11 @@ private fun NavGraphBuilder.addSplashScreen(
         composable(
             route = startDestination
         ) {
-            SplashScreen(
-                onNextScreen = {
-                    val destination = if (onboardingCompleted) {
-                        NestedDestination.ReportFormNested.createRoute(Destination.ReportForm)
-                    } else if (termsAccepted) {
-                        NestedDestination.Studies.createRoute(
-                            root = Destination.Onboarding
-                        )
-                    } else {
-                        NestedDestination.AppPolicy.createRouteWithArguments(
-                            root = Destination.Onboarding,
-                            type = NestedDestination.AppPolicy.Type.TermsAndConditions
-                        )
-                    }
-
-                    navController.navigate(destination) {
-                        popUpTo(startDestination) {
-                            inclusive = true
-                        }
-                    }
-                }
-            )
+            LaunchedEffect(Unit) {
+                delay(2000L)
+                onNextScreen()
+            }
+            SplashScreen()
         }
     }
 }
@@ -133,8 +115,7 @@ private fun NavGraphBuilder.addSplashScreen(
  * ONBOARDING
  */
 private fun NavGraphBuilder.addOnBoarding(
-    navController: NavController,
-    firstAccess: Boolean
+    navController: NavController
 ) {
     val destination = NestedDestination.AppPolicy.createRoute(Destination.Onboarding)
     navigation(
@@ -151,7 +132,6 @@ private fun NavGraphBuilder.addOnBoarding(
         )
         addStudyOnboarding(
             navController = navController,
-            firstAccess = firstAccess,
             root = Destination.Onboarding
         )
         addEmail(
@@ -171,7 +151,7 @@ private fun NavGraphBuilder.addReportForm(
     val destination = NestedDestination.ReportFormNested.createRoute(Destination.ReportForm)
     navigation(
         route = Destination.ReportForm.route,
-        startDestination = destination
+        startDestination = destination,
     ) {
         addReportFormNested(navController)
         addReportSubmittedNested()
@@ -183,7 +163,8 @@ private fun NavGraphBuilder.addReportFormNested(
 ) {
     val startDestination = NestedDestination.ReportFormNested.createRoute(Destination.ReportForm)
     composable(
-        route = startDestination
+        route = startDestination,
+        arguments = NestedDestination.ReportFormNested.argumentsList
     ) {
         val onGoToSettings = {
             val destination = NestedDestination.SettingsNested.createRoute(Destination.Settings)
@@ -248,7 +229,6 @@ private fun NavGraphBuilder.addSettings(
         )
         addStudyOnboarding(
             navController = navController,
-            firstAccess = false,
             root = Destination.Settings
         )
         addDataHandling(navController)
@@ -372,7 +352,6 @@ private fun NavGraphBuilder.addStudies(
 
 private fun NavGraphBuilder.addStudyOnboarding(
     navController: NavController,
-    firstAccess: Boolean,
     root: Destination
 ) {
     val startedFromSettings = root is Destination.Settings

@@ -17,7 +17,8 @@ fun FormTextField(
     field: FormField.TextField,
     value: String,
     onTextChanged: (String) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    readOnly: Boolean
 ) {
     Column(
         modifier = modifier
@@ -39,6 +40,7 @@ fun FormTextField(
             placeholder = field.placeholder,
             maxLines = field.maxLines,
             multiline = field.multiline,
+            readOnly = readOnly
         )
     }
 }

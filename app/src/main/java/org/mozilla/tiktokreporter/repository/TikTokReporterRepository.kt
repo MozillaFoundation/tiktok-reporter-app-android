@@ -3,6 +3,8 @@ package org.mozilla.tiktokreporter.repository
 import android.content.Context
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.withContext
 import org.mozilla.tiktokreporter.data.model.Policy
 import org.mozilla.tiktokreporter.data.model.StudyDetails
@@ -26,6 +28,9 @@ class TikTokReporterRepository @Inject constructor(
     private var termsAccepted by context.sharedPreferences(name = Common.PREFERENCES_TERMS_ACCEPTED_KEY, defaultValue = false)
 
     private var selectedStudy: StudyDetails? = null
+
+    private val _tikTokUrl = MutableSharedFlow<String?>(1)
+    val tikTokUrl = _tikTokUrl.asSharedFlow()
 
     suspend fun getAppPolicies(): Result<List<Policy>> {
         val policies = try {
@@ -96,5 +101,9 @@ class TikTokReporterRepository @Inject constructor(
         withContext(Dispatchers.IO) {
             onboardingCompleted = isCompleted
         }
+    }
+
+    suspend fun tikTokUrlShared(url: String?) {
+        _tikTokUrl.emit(url)
     }
 }

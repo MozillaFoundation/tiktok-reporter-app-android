@@ -9,26 +9,15 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import kotlinx.coroutines.delay
 
 @Composable
-fun SplashScreen(
-    onNextScreen: () -> Unit
-) {
-    LaunchedEffect(
-        key1 = Unit,
-        block = {
-            delay(2000L)
-            onNextScreen()
-        }
-    )
+fun SplashScreen() {
     BoxWithConstraints(
         modifier = Modifier.fillMaxSize()
     ) {

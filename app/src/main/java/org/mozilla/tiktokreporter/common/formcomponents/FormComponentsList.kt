@@ -19,7 +19,8 @@ fun LazyListScope.formComponentsItems(
                     value = field.value as String,
                     onTextChanged = {
                         onFormFieldValueChanged(formField.id, it)
-                    }
+                    },
+                    readOnly = field.readOnly
                 )
             }
 

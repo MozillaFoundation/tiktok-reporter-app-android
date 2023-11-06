@@ -1,6 +1,5 @@
 package org.mozilla.tiktokreporter.reportform
 
-import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -8,6 +7,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.onSubscription
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.mozilla.tiktokreporter.common.formcomponents.FormFieldUiComponent
@@ -21,8 +21,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ReportFormScreenViewModel @Inject constructor(
-    private val tikTokReporterRepository: TikTokReporterRepository,
-    savedStateHandle: SavedStateHandle,
+    private val tikTokReporterRepository: TikTokReporterRepository
 ): ViewModel() {
 
     private val _state = MutableStateFlow(State())
@@ -32,9 +31,6 @@ class ReportFormScreenViewModel @Inject constructor(
     val isLoading = _isLoading.asStateFlow()
 
     init {
-        val tikTokUrl = savedStateHandle.get<String>("tikTokUrl")
-        println("@@@@@@ $tikTokUrl")
-
         viewModelScope.launch {
             _isLoading.update { true }
 
@@ -74,20 +70,35 @@ class ReportFormScreenViewModel @Inject constructor(
                 return@launch
             }
 
+            tikTokReporterRepository.tikTokUrl
+                .onSubscription { emit(null) }
+                .collect { tikTokUrl ->
+                    _isLoading.update { false }
 
-            _isLoading.update { false }
-            _state.update { state ->
-                state.copy(
-                    tabs = buildList {
-                        add(TabModelType.ReportLink)
-                        if (study.supportsRecording) {
-                            add(TabModelType.RecordSession)
+                    val fields = studyForm.fields.toUiComponents().toMutableList().apply {
+                        if (tikTokUrl != null) {
+                            val index = this.indexOfFirst { it.formField.type == FormFieldType.TextField }
+                            val field = this[index]
+                            this[index] = field.copy(
+                                readOnly = true,
+                                value = tikTokUrl
+                            )
                         }
-                    },
-                    formFields = studyForm.fields.toUiComponents(),
-                    action = null
-                )
-            }
+                    }
+
+                    _state.update { state ->
+                        state.copy(
+                            tabs = buildList {
+                                add(TabModelType.ReportLink)
+                                if (study.supportsRecording) {
+                                    add(TabModelType.RecordSession)
+                                }
+                            },
+                            formFields = fields,
+                            action = null
+                        )
+                    }
+                }
         }
 
         viewModelScope.launch {
