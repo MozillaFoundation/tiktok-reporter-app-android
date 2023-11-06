@@ -16,17 +16,25 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import coil.ImageLoader
 import coil.compose.AsyncImage
+import coil.request.ImageRequest
+import coil.util.Logger
 import kotlinx.coroutines.launch
+import okhttp3.OkHttpClient
+import org.mozilla.tiktokreporter.coilImageLoader
 import org.mozilla.tiktokreporter.data.model.OnboardingStep
 import org.mozilla.tiktokreporter.ui.components.LoadingScreen
 import org.mozilla.tiktokreporter.ui.components.MozillaScaffold
 import org.mozilla.tiktokreporter.ui.components.PrimaryButton
 import org.mozilla.tiktokreporter.ui.components.SecondaryButton
 import org.mozilla.tiktokreporter.ui.components.dialog.DialogContainer
+import org.mozilla.tiktokreporter.ui.theme.MozillaColor
+import org.mozilla.tiktokreporter.ui.theme.MozillaColorScheme
 import org.mozilla.tiktokreporter.ui.theme.MozillaDimension
 import org.mozilla.tiktokreporter.ui.theme.MozillaTypography
 
@@ -198,7 +206,8 @@ private fun OnboardingStepInfo(
                 Text(
                     modifier = Modifier.fillMaxWidth(),
                     text = it,
-                    style = MozillaTypography.H5
+                    style = MozillaTypography.H5,
+                    color = MozillaColor.Red
                 )
             }
         }
@@ -215,9 +224,14 @@ private fun OnboardingStepInfo(
             item {
                 AsyncImage(
                     modifier = Modifier.padding(top = MozillaDimension.S),
-                    model = it,
+                    model = ImageRequest.Builder(LocalContext.current)
+                        .data(it)
+                        .build(),
+                    imageLoader = ImageLoader.Builder(LocalContext.current)
+                        .okHttpClient(coilImageLoader)
+                        .build(),
                     contentDescription = "",
-                    contentScale = ContentScale.Crop
+                    contentScale = ContentScale.Crop,
                 )
             }
         }

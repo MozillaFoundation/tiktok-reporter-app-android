@@ -7,13 +7,17 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navigation
+import org.mozilla.tiktokreporter.MainViewModel
 import org.mozilla.tiktokreporter.aboutapp.AboutAppScreen
 import org.mozilla.tiktokreporter.reportform.ReportFormScreen
 import org.mozilla.tiktokreporter.settings.SettingsScreen
@@ -24,6 +28,8 @@ import org.mozilla.tiktokreporter.splashscreen.SplashScreen
 import org.mozilla.tiktokreporter.studieslist.StudiesListScreen
 import org.mozilla.tiktokreporter.studyonboarding.StudyOnboardingScreen
 import org.mozilla.tiktokreporter.util.emptyCallback
+import java.net.URLEncoder
+import java.nio.charset.StandardCharsets
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
@@ -32,6 +38,9 @@ fun NavContainer(
     termsAccepted: Boolean,
     firstAccess: Boolean
 ) {
+    val mainViewModel: MainViewModel = hiltViewModel()
+
+
     val navController = rememberNavController()
     navController.addOnDestinationChangedListener { controller, destination, _ ->
         val list = controller.currentBackStack.value.map {it.destination.route } + controller.currentBackStackEntry?.destination?.route
@@ -59,8 +68,22 @@ fun NavContainer(
             addSettings(navController)
         }
     }
+
+    val sharedTikTokLink by mainViewModel.tikTokLinkState.collectAsStateWithLifecycle()
+    sharedTikTokLink?.let {
+        val encodedUrl = URLEncoder.encode(it, StandardCharsets.UTF_8.toString())
+        navigateToReportFormWithTikTokUrl(encodedUrl, navController)
+    }
 }
 
+private fun navigateToReportFormWithTikTokUrl(
+    url: String,
+    navController: NavController
+) {
+//    val root = Destination.ReportForm
+//    val destination = NestedDestination.ReportFormNested.createRouteWithArguments(root, url)
+//    navController.navigate(destination)
+}
 
 /**
  * SPLASH SCREEN
@@ -95,7 +118,7 @@ private fun NavGraphBuilder.addSplashScreen(
                     }
 
                     navController.navigate(destination) {
-                        popUpTo(0) {
+                        popUpTo(startDestination) {
                             inclusive = true
                         }
                     }

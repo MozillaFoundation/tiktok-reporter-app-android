@@ -1,9 +1,11 @@
 package org.mozilla.tiktokreporter
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.viewModels
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
@@ -20,6 +22,8 @@ class MainActivity : ComponentActivity() {
     private val onboardingCompleted by sharedPreferences(Common.PREFERENCES_ONBOARDING_COMPLETED_KEY, false)
     private val termsAccepted by sharedPreferences(Common.PREFERENCES_TERMS_ACCEPTED_KEY, false)
     private var firstAccess by sharedPreferences(Common.PREFERENCES_FIRST_ACCESS_KEY, true)
+
+    private val mainViewModel: MainViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -41,5 +45,17 @@ class MainActivity : ComponentActivity() {
         }
 
         firstAccess = false
+
+        handleNewIntent(intent)
+    }
+
+    override fun onNewIntent(intent: Intent?) {
+        super.onNewIntent(intent)
+        handleNewIntent(intent)
+    }
+
+    private fun handleNewIntent(intent: Intent?) {
+        val data = intent?.extras?.getString(Intent.EXTRA_TEXT)
+        mainViewModel.onTikTokLinkShared(data)
     }
 }

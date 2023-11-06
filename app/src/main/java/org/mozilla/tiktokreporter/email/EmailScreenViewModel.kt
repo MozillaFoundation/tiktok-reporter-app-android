@@ -106,7 +106,7 @@ class EmailScreenViewModel @Inject constructor(
 
             _state.update { state ->
                 state.copy(
-                    action = UiAction.NavigateBack.toOneTimeEvent()
+                    action = UiAction.EmailSaved.toOneTimeEvent()
                 )
             }
         }
@@ -119,6 +119,6 @@ class EmailScreenViewModel @Inject constructor(
 
     sealed class UiAction {
         data object GoToReportForm: UiAction()
-        data object NavigateBack: UiAction()
+        data object EmailSaved: UiAction()
     }
 }

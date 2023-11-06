@@ -40,7 +40,10 @@ fun EmailScreen(
 
         when (state.action?.get()) {
             EmailScreenViewModel.UiAction.GoToReportForm -> onNextScreen()
-            EmailScreenViewModel.UiAction.NavigateBack -> onNavigateBack()
+            EmailScreenViewModel.UiAction.EmailSaved -> {
+                if (isForOnboarding) onNextScreen()
+                else onNavigateBack()
+            }
             else -> Unit
         }
 

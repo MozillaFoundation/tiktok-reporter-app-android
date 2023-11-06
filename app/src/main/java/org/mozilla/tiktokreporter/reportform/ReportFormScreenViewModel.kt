@@ -1,5 +1,6 @@
 package org.mozilla.tiktokreporter.reportform
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -20,7 +21,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ReportFormScreenViewModel @Inject constructor(
-    private val tikTokReporterRepository: TikTokReporterRepository
+    private val tikTokReporterRepository: TikTokReporterRepository,
+    savedStateHandle: SavedStateHandle,
 ): ViewModel() {
 
     private val _state = MutableStateFlow(State())
@@ -30,6 +32,9 @@ class ReportFormScreenViewModel @Inject constructor(
     val isLoading = _isLoading.asStateFlow()
 
     init {
+        val tikTokUrl = savedStateHandle.get<String>("tikTokUrl")
+        println("@@@@@@ $tikTokUrl")
+
         viewModelScope.launch {
             _isLoading.update { true }
 

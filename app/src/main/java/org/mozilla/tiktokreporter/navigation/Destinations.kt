@@ -22,7 +22,7 @@ sealed class NestedDestination(
     private val route: String
 ) {
 
-    fun createRoute(root: Destination): String = "${root.route}/$route"
+    open fun createRoute(root: Destination): String = "${root.route}/$route"
 
     data object SplashScreenNested: NestedDestination("splashScreenNested")
 
@@ -62,7 +62,33 @@ sealed class NestedDestination(
     data object AboutApp: NestedDestination("aboutApp")
 
 
-    data object ReportFormNested: NestedDestination("reportForm")
+    data object ReportFormNested: NestedDestination("reportForm/{tikTokUrl}") {
+        val argumentsList = listOf(
+            navArgument("tikTokUrl") {
+                type = NavType.StringType
+                nullable = true
+                defaultValue = null
+            }
+        )
+
+        data class Args(
+            val tikTokUrl: String
+        )
+
+        override fun createRoute(
+            root: Destination
+        ): String = "${root.route}/reportForm/${null}"
+        fun createRouteWithArguments(
+            root: Destination,
+            tikTokUrl: String
+        ): String = "${root.route}/reportForm/$tikTokUrl"
+
+        fun parseArguments(
+            backStackEntry: NavBackStackEntry
+        ): Args = Args(
+            tikTokUrl = backStackEntry.arguments?.getString("tikTokUrl").orEmpty()
+        )
+    }
     data object ReportSubmittedNested: NestedDestination("reportSubmitted")
     data object SettingsNested: NestedDestination("settingsHome")
 
