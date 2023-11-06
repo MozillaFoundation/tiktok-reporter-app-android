@@ -21,7 +21,6 @@ class TikTokReporterRepository @Inject constructor(
     private val tikTokReporterService: TikTokReporterService,
     @ApplicationContext private val context: Context
 ) {
-
     private var selectedStudyId by context.sharedPreferences(name = Common.PREFERENCES_SELECTED_STUDY_KEY, defaultValue = "")
     private var onboardingCompleted by context.sharedPreferences(name = Common.PREFERENCES_ONBOARDING_COMPLETED_KEY, defaultValue = false)
     private var termsAccepted by context.sharedPreferences(name = Common.PREFERENCES_TERMS_ACCEPTED_KEY, defaultValue = false)

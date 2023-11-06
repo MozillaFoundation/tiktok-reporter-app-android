@@ -29,7 +29,8 @@ import org.mozilla.tiktokreporter.util.emptyCallback
 @Composable
 fun NavContainer(
     onboardingCompleted: Boolean,
-    termsAccepted: Boolean
+    termsAccepted: Boolean,
+    firstAccess: Boolean
 ) {
     val navController = rememberNavController()
     navController.addOnDestinationChangedListener { controller, destination, _ ->
@@ -45,8 +46,15 @@ fun NavContainer(
             navController = navController,
             startDestination = Destination.SplashScreen.route
         ) {
-            addSplashScreen(navController, onboardingCompleted, termsAccepted)
-            addOnBoarding(navController)
+            addSplashScreen(
+                navController = navController,
+                onboardingCompleted = onboardingCompleted,
+                termsAccepted = termsAccepted
+            )
+            addOnBoarding(
+                navController = navController,
+                firstAccess = firstAccess
+            )
             addReportForm(navController)
             addSettings(navController)
         }
@@ -102,17 +110,31 @@ private fun NavGraphBuilder.addSplashScreen(
  * ONBOARDING
  */
 private fun NavGraphBuilder.addOnBoarding(
-    navController: NavController
+    navController: NavController,
+    firstAccess: Boolean
 ) {
     val destination = NestedDestination.AppPolicy.createRoute(Destination.Onboarding)
     navigation(
         route = Destination.Onboarding.route,
         startDestination = destination
     ) {
-        addTermsAndConditions(navController, Destination.Onboarding)
-        addStudies(navController, Destination.Onboarding)
-        addStudyOnboarding(navController, Destination.Onboarding)
-        addEmail(navController, Destination.Onboarding)
+        addTermsAndConditions(
+            navController = navController,
+            root = Destination.Onboarding
+        )
+        addStudies(
+            navController = navController,
+            root = Destination.Onboarding
+        )
+        addStudyOnboarding(
+            navController = navController,
+            firstAccess = firstAccess,
+            root = Destination.Onboarding
+        )
+        addEmail(
+            navController = navController,
+            root = Destination.Onboarding
+        )
     }
 }
 
@@ -189,10 +211,23 @@ private fun NavGraphBuilder.addSettings(
     ) {
         addSettingsNested(navController)
         addAboutApp(navController)
-        addTermsAndConditions(navController, Destination.Settings)
-        addStudies(navController, Destination.Settings)
-        addEmail(navController, Destination.Settings)
-        addStudyOnboarding(navController, Destination.Settings)
+        addTermsAndConditions(
+            navController = navController,
+            root = Destination.Settings
+        )
+        addStudies(
+            navController = navController,
+            root = Destination.Settings
+        )
+        addEmail(
+            navController = navController,
+            root = Destination.Settings
+        )
+        addStudyOnboarding(
+            navController = navController,
+            firstAccess = false,
+            root = Destination.Settings
+        )
         addDataHandling(navController)
     }
 }
@@ -314,6 +349,7 @@ private fun NavGraphBuilder.addStudies(
 
 private fun NavGraphBuilder.addStudyOnboarding(
     navController: NavController,
+    firstAccess: Boolean,
     root: Destination
 ) {
     val startedFromSettings = root is Destination.Settings
