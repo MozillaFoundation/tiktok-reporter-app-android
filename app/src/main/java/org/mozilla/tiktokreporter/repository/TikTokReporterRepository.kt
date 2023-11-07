@@ -94,6 +94,7 @@ class TikTokReporterRepository @Inject constructor(
         withContext(Dispatchers.IO) {
             selectedStudyId = studyId
             selectedStudy = null
+            onboardingCompleted = false
         }
     }
 

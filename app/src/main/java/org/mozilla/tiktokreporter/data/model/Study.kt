@@ -9,7 +9,8 @@ data class StudyOverview(
     val isActive: Boolean,
     val isSelected: Boolean,
     val hasOnboarding: Boolean = false,
-    val hasEmailForm: Boolean = false
+    val hasEmailForm: Boolean = false,
+    val hasPolicies: Boolean = false
 )
 
 fun StudyDTO.toStudyOverview(
@@ -22,7 +23,8 @@ fun StudyDTO.toStudyOverview(
         isActive = isActive,
         isSelected = isSelected,
         hasOnboarding = onboardingDTO != null,
-        hasEmailForm = onboardingDTO?.formDTO != null
+        hasEmailForm = onboardingDTO?.formDTO != null,
+        hasPolicies = policyDTOs.isNotEmpty()
     )
 }
 

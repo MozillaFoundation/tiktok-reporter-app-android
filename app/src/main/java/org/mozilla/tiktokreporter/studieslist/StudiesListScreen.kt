@@ -41,7 +41,8 @@ import org.mozilla.tiktokreporter.ui.theme.TikTokReporterTheme
 fun StudiesListScreen(
     viewModel: StudiesListScreenViewModel = hiltViewModel(),
     isForOnboarding: Boolean = true,
-    onNextScreen: () -> Unit,
+    onGoToStudyOnboarding: () -> Unit,
+    onGoToStudyTerms: () -> Unit,
     onNavigateBack: () -> Unit
 ) {
     DialogContainer(
@@ -51,8 +52,26 @@ fun StudiesListScreen(
         val state by viewModel.state.collectAsStateWithLifecycle()
         val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
 
-        when (state.action?.get()) {
-            StudiesListScreenViewModel.UiAction.OnNextScreen -> onNextScreen()
+        when (val action = state.action?.get()) {
+            StudiesListScreenViewModel.UiAction.OnGoToStudyOnboarding -> onGoToStudyOnboarding()
+            StudiesListScreenViewModel.UiAction.OnGoToStudyTerms -> onGoToStudyTerms()
+            StudiesListScreenViewModel.UiAction.ShowChangeStudyWarning -> {
+                dialogState.value = DialogState.Message(
+                    title = "Change study",
+                    message = "Are you sure you want to enroll in another study?",
+                    positiveButtonText = "Yes",
+                    onPositive = {
+                        viewModel.onSave(
+                            isForOnboarding = isForOnboarding,
+                            shouldForceChange = true
+                        )
+                    },
+                    negativeButtonText = "No",
+                    onNegative = {
+                        dialogState.value = DialogState.Nothing
+                    }
+                )
+            }
             StudiesListScreenViewModel.UiAction.OnNoStudySelected -> {
                 dialogState.value = DialogState.Message(
                     title = "No study selected",
@@ -76,22 +95,10 @@ fun StudiesListScreen(
                 onNavigateBack = onNavigateBack,
                 onStudySelected = viewModel::selectStudyAtIndex,
                 onSave = {
-                    if (!isForOnboarding) {
-                        dialogState.value = DialogState.Message(
-                            title = "Change study",
-                            message = "Are you sure you want to enroll in another study?",
-                            positiveButtonText = "Yes",
-                            onPositive = {
-                                viewModel.onSave()
-                            },
-                            negativeButtonText = "No",
-                            onNegative = {
-                                dialogState.value = DialogState.Nothing
-                            }
-                        )
-                    } else {
-                        viewModel.onSave()
-                    }
+                    viewModel.onSave(
+                        isForOnboarding = isForOnboarding,
+                        shouldForceChange = false
+                    )
                 }
             )
         }

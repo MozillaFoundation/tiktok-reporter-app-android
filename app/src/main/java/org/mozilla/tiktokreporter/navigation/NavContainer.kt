@@ -301,8 +301,16 @@ private fun NavGraphBuilder.addTermsAndConditions(
     val startDestination = NestedDestination.AppPolicy.createRoute(root)
 
     val isForOnboarding = root is Destination.Onboarding
-    val onNextScreen = {
+    val onGoToStudies = {
         val destination = NestedDestination.Studies.createRoute(Destination.Onboarding)
+        navController.navigate(destination) {
+            popUpTo(0) {
+                inclusive = true
+            }
+        }
+    }
+    val onGoToStudyOnboarding = {
+        val destination = NestedDestination.StudyOnboarding.createRoute(Destination.Onboarding)
         navController.navigate(destination) {
             popUpTo(0) {
                 inclusive = true
@@ -316,7 +324,8 @@ private fun NavGraphBuilder.addTermsAndConditions(
     ) {
         AppPolicyScreen(
             isForOnboarding = isForOnboarding,
-            onNextScreen = if (isForOnboarding) onNextScreen else emptyCallback,
+            onGoToStudies = onGoToStudies,
+            onGoToStudyOnboarding = onGoToStudyOnboarding,
             onNavigateBack = {
                 navController.navigateUp()
             }
@@ -336,12 +345,22 @@ private fun NavGraphBuilder.addStudies(
             popUpTo(0)
         }
     }
+    val onGoToStudyTerms = {
+        val destination = NestedDestination.AppPolicy.createRouteWithArguments(
+            root = Destination.Onboarding,
+            type = NestedDestination.AppPolicy.Type.Study
+        )
+        navController.navigate(destination) {
+            popUpTo(0)
+        }
+    }
 
     composable(
         route = startDestination
     ) {
         StudiesListScreen(
-            onNextScreen = onGoToStudyOnboarding,
+            onGoToStudyOnboarding = onGoToStudyOnboarding,
+            onGoToStudyTerms = onGoToStudyTerms,
             isForOnboarding = root is Destination.Onboarding,
             onNavigateBack = {
                 navController.navigateUp()

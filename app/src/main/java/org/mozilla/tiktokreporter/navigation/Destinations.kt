@@ -30,7 +30,8 @@ sealed class NestedDestination(
     data object AppPolicy: NestedDestination("appPolicy/{type}") {
         enum class Type {
             TermsAndConditions,
-            PrivacyPolicy
+            PrivacyPolicy,
+            Study;
         }
 
         val argumentsList = listOf(

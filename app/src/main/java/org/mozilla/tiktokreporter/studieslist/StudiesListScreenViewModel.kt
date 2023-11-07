@@ -72,9 +72,11 @@ class StudiesListScreenViewModel @Inject constructor(
         }
     }
 
-    fun onSave() {
+    fun onSave(
+        isForOnboarding: Boolean,
+        shouldForceChange: Boolean
+    ) {
         viewModelScope.launch(Dispatchers.Unconfined) {
-            tikTokReporterRepository.setOnboardingCompleted(false)
 
             val selectedStudy = state.value.studies.firstOrNull { it.isSelected }
             if (selectedStudy == null) {
@@ -87,11 +89,24 @@ class StudiesListScreenViewModel @Inject constructor(
                 return@launch
             }
 
-            tikTokReporterRepository.selectStudy(selectedStudy.id)
+            if (!isForOnboarding && !shouldForceChange) {
+                val action = if (selectedStudy.id != tikTokReporterRepository.selectedStudyId) {
+                    UiAction.ShowChangeStudyWarning.toOneTimeEvent<UiAction>()
+                } else null
 
+                _state.update {
+                    it.copy(
+                        action = action
+                    )
+                }
+                return@launch
+            }
+
+            tikTokReporterRepository.selectStudy(selectedStudy.id)
             _state.update {
                 it.copy(
-                    action = UiAction.OnNextScreen.toOneTimeEvent()
+                    action = if (selectedStudy.hasPolicies) UiAction.OnGoToStudyTerms.toOneTimeEvent()
+                        else UiAction.OnGoToStudyOnboarding.toOneTimeEvent()
                 )
             }
         }
@@ -104,7 +119,9 @@ class StudiesListScreenViewModel @Inject constructor(
 
     sealed class UiAction {
         data object ShowNoStudiesFound : UiAction()
-        data object OnNextScreen : UiAction()
+        data object ShowChangeStudyWarning : UiAction()
+        data object OnGoToStudyOnboarding : UiAction()
+        data object OnGoToStudyTerms : UiAction()
         data object OnNoStudySelected : UiAction()
     }
 }

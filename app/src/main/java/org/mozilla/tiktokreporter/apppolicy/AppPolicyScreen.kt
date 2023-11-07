@@ -8,13 +8,16 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -34,7 +37,8 @@ import org.mozilla.tiktokreporter.util.emptyCallback
 fun AppPolicyScreen(
     viewModel: AppPolicyScreenViewModel = hiltViewModel(),
     isForOnboarding: Boolean = true,
-    onNextScreen: () -> Unit = { },
+    onGoToStudies: () -> Unit = { },
+    onGoToStudyOnboarding: () -> Unit = { },
     onNavigateBack: () -> Unit = { },
 ) {
     DialogContainer(
@@ -44,6 +48,22 @@ fun AppPolicyScreen(
         val state by viewModel.state.collectAsStateWithLifecycle()
         val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
 
+        when (val action = state.action?.get()) {
+            AppPolicyScreenViewModel.UiAction.OnGoToStudies -> onGoToStudies()
+            AppPolicyScreenViewModel.UiAction.OnGoToStudyOnboarding -> onGoToStudyOnboarding()
+            is AppPolicyScreenViewModel.UiAction.ShowMessage -> {
+                dialogState.value = DialogState.Message(
+                    title = "Alert",
+                    message = action.message,
+                    positiveButtonText = "Got it",
+                    onPositive = { dialogState.value = DialogState.Nothing },
+                    onDismissRequest = { dialogState.value = DialogState.Nothing }
+                )
+            }
+            AppPolicyScreenViewModel.UiAction.ShowNoPolicyFound -> Unit
+            null -> Unit
+        }
+
         if (isLoading) {
             LoadingScreen()
         } else {
@@ -51,12 +71,7 @@ fun AppPolicyScreen(
                 state = state,
                 isForOnboarding = isForOnboarding,
                 onNavigateBack = onNavigateBack,
-                onAgree = {
-                    if (isForOnboarding) {
-                        viewModel.acceptTerms()
-                        onNextScreen()
-                    }
-                },
+                onAgree = viewModel::acceptTerms,
                 onDisagree = if (isForOnboarding) {
                     {
                         dialogState.value = DialogState.Message(
@@ -87,6 +102,13 @@ private fun AppPolicyScreenContent(
     onDisagree: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val scrollState = rememberLazyListState()
+    val buttonsEnabled by remember {
+        derivedStateOf {
+            !scrollState.canScrollForward
+        }
+    }
+
     MozillaScaffold(
         modifier = modifier,
         topBar = if (isForOnboarding) null else {
@@ -121,7 +143,8 @@ private fun AppPolicyScreenContent(
                 contentPadding = PaddingValues(
                     horizontal = MozillaDimension.M,
                     vertical = MozillaDimension.L
-                )
+                ),
+                state = scrollState
             ) {
                 item {
                     Text(
@@ -158,14 +181,16 @@ private fun AppPolicyScreenContent(
                         PrimaryButton(
                             modifier = Modifier.fillMaxWidth(),
                             text = "I agree",
-                            onClick = onAgree
+                            onClick = onAgree,
+                            enabled = buttonsEnabled
                         )
                     },
                     disagreeButton = {
                         SecondaryButton(
                             modifier = Modifier.fillMaxWidth(),
                             text = "I disagree",
-                            onClick = onDisagree
+                            onClick = onDisagree,
+                            enabled = buttonsEnabled
                         )
                     }
                 )

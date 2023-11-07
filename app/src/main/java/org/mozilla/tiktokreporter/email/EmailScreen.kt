@@ -124,21 +124,21 @@ private fun EmailScreenContent(
                         vertical = MozillaDimension.L
                     ),
                 nextButton = {
-                    PrimaryButton(
-                        modifier = Modifier.fillMaxWidth(),
-                        text = "Next",
-                        onClick = onSaveEmail
-                    )
-                },
-                skipButton = if (isForOnboarding) {
-                    {
-                        SecondaryButton(
+                    if (isForOnboarding) {
+                        PrimaryButton(
                             modifier = Modifier.fillMaxWidth(),
-                            text = "Skip",
-                            onClick = onNextScreen
+                            text = "Next",
+                            onClick = onSaveEmail
                         )
                     }
-                } else null
+                },
+                skipButton = {
+                    SecondaryButton(
+                        modifier = Modifier.fillMaxWidth(),
+                        text = if (isForOnboarding) "Skip" else "Save",
+                        onClick = if (isForOnboarding) onNextScreen else onSaveEmail
+                    )
+                }
             )
         }
     }
