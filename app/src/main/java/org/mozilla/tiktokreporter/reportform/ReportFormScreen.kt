@@ -51,9 +51,13 @@ fun ReportFormScreen(
             ReportFormScreenContent(
                 state = state,
                 onFormFieldValueChanged = viewModel::onFormFieldValueChanged,
+                onRecordSessionCommentsChanged = viewModel::onRecordSessionCommentsChanged,
                 onTabSelected = viewModel::onTabSelected,
                 onSubmitReport = viewModel::onSubmitReport,
                 onGoToSettings = onGoToSettings,
+                onStartRecording = {
+
+                },
                 modifier = Modifier.fillMaxSize()
             )
         }
@@ -82,9 +86,11 @@ fun ReportFormScreen(
 private fun ReportFormScreenContent(
     state: ReportFormScreenViewModel.State,
     onFormFieldValueChanged: (formFieldId: String, value: Any) -> Unit,
+    onRecordSessionCommentsChanged: (String) -> Unit,
     onTabSelected: (tabIndex: Int) -> Unit,
     onSubmitReport: () -> Unit,
     onGoToSettings: () -> Unit,
+    onStartRecording: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     MozillaScaffold(
@@ -139,10 +145,10 @@ private fun ReportFormScreenContent(
                         )
                     } else {
                         recordSessionItems(
-                            isRecording = false,
-                            onStartRecording = {
-
-                            }
+                            isRecording = state.isRecording,
+                            comments = state.recordSessionComments,
+                            onCommentsChanged = onRecordSessionCommentsChanged,
+                            onStartRecording = onStartRecording
                         )
                     }
                 }
@@ -166,6 +172,8 @@ private fun ReportFormScreenContent(
 private fun LazyListScope.recordSessionItems(
     videoAvailable: Boolean = false,
     isRecording: Boolean,
+    comments: String,
+    onCommentsChanged: (String) -> Unit,
     onStartRecording: () -> Unit
 ) {
     item {
@@ -196,8 +204,8 @@ private fun LazyListScope.recordSessionItems(
     item {
         MozillaTextField(
             modifier = Modifier.fillParentMaxWidth(),
-            text = "",
-            onTextChanged = { },
+            text = comments,
+            onTextChanged = onCommentsChanged,
             label = "Comments (optional)",
             maxLines = 5,
             multiline = true

@@ -3,50 +3,43 @@ package org.mozilla.tiktokreporter.common.formcomponents
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
 import androidx.compose.ui.Modifier
-import org.mozilla.tiktokreporter.common.FormTextField
-import org.mozilla.tiktokreporter.data.model.FormField
+import org.mozilla.tiktokreporter.common.FormFieldUiComponent
 
 fun LazyListScope.formComponentsItems(
-    formFields: List<FormFieldUiComponent>,
+    formFields: List<FormFieldUiComponent<*>>,
     onFormFieldValueChanged: (formFieldId: String, value: Any) -> Unit
 ) {
-    items(formFields) { field ->
-        when (val formField = field.formField) {
-            is FormField.TextField -> {
+    items(formFields.filter { it.isVisible }) { field ->
+        when (field) {
+            is FormFieldUiComponent.TextField -> {
                 FormTextField(
                     modifier = Modifier.fillParentMaxWidth(),
-                    field = formField,
-                    value = field.value as String,
+                    field = field,
                     onTextChanged = {
-                        onFormFieldValueChanged(formField.id, it)
-                    },
-                    readOnly = field.readOnly
+                        onFormFieldValueChanged(field.id, it)
+                    }
                 )
             }
 
-            is FormField.DropDown -> {
+            is FormFieldUiComponent.DropDown -> {
                 FormDropDown(
                     modifier = Modifier.fillParentMaxWidth(),
-                    field = formField,
-                    value = field.value as String,
+                    field = field,
                     onOptionChanged = {
-                        onFormFieldValueChanged(formField.id, it)
+                        onFormFieldValueChanged(field.id, it)
                     }
                 )
             }
 
-            is FormField.Slider -> {
+            is FormFieldUiComponent.Slider -> {
                 FormSlider(
                     modifier = Modifier.fillParentMaxWidth(),
-                    field = formField,
-                    sliderPosition = field.value as Int,
+                    field = field,
                     onValueChanged = {
-                        onFormFieldValueChanged(formField.id, it)
+                        onFormFieldValueChanged(field.id, it)
                     }
                 )
             }
-
-            else -> Unit
         }
     }
 }

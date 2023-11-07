@@ -9,9 +9,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import org.mozilla.tiktokreporter.common.formcomponents.FormFieldUiComponent
-import org.mozilla.tiktokreporter.common.formcomponents.toUiComponents
-import org.mozilla.tiktokreporter.data.model.FormFieldType
+import org.mozilla.tiktokreporter.common.FormFieldUiComponent
+import org.mozilla.tiktokreporter.common.toUiComponents
 import org.mozilla.tiktokreporter.repository.TikTokReporterRepository
 import org.mozilla.tiktokreporter.util.OneTimeEvent
 import org.mozilla.tiktokreporter.util.toOneTimeEvent
@@ -19,7 +18,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class EmailScreenViewModel @Inject constructor(
-    tikTokReporterRepository: TikTokReporterRepository
+    private val tikTokReporterRepository: TikTokReporterRepository
 ): ViewModel() {
 
     private val _state = MutableStateFlow(State())
@@ -50,10 +49,20 @@ class EmailScreenViewModel @Inject constructor(
                 return@launch
             }
 
+            val userEmail = tikTokReporterRepository.userEmail
+            val fields = onboardingForm.fields.toUiComponents().toMutableList().apply {
+                if (userEmail.isNotBlank()) {
+                    val index = this.indexOfFirst { it is FormFieldUiComponent.TextField }
+                    val field = this[index] as FormFieldUiComponent.TextField
+                    this[index] = field.copy(
+                        value = userEmail
+                    )
+                }
+            }
             _isLoading.update { false }
             _state.update { state ->
                 state.copy(
-                    formFields = onboardingForm.fields.toUiComponents(),
+                    formFields = fields,
                     action = null
                 )
             }
@@ -65,29 +74,27 @@ class EmailScreenViewModel @Inject constructor(
         value: Any
     ) {
         viewModelScope.launch(Dispatchers.Unconfined) {
-            val fieldIndex = state.value.formFields.indexOfFirst { it.formField.id == formFieldId }
-            val field = state.value.formFields[fieldIndex]
-            val newField = when (field.formField.type) {
-                FormFieldType.TextField -> {
+            val fieldIndex = state.value.formFields.indexOfFirst { it.id == formFieldId }
+            val newField = when (val field = state.value.formFields[fieldIndex]) {
+                is FormFieldUiComponent.TextField -> {
                     field.copy(
                         value = value as String
                     )
                 }
-                FormFieldType.Slider -> {
+                is FormFieldUiComponent.Slider -> {
                     field.copy(
                         value = value as Int
                     )
                 }
-                FormFieldType.DropDown -> {
+                is FormFieldUiComponent.DropDown -> {
                     field.copy(
                         value = value as String
                     )
                 }
-                else -> null
             }
 
             val newFields = state.value.formFields.toMutableList()
-            newFields[fieldIndex] = newField!!
+            newFields[fieldIndex] = newField
 
             _state.update {
                 it.copy(
@@ -99,10 +106,10 @@ class EmailScreenViewModel @Inject constructor(
 
     fun onSaveEmail() {
         viewModelScope.launch {
-//            val emailField = state.value.formFields.firstOrNull { it.formField.type == FormFieldType.TextField }
+            val emailField = state.value.formFields.firstOrNull { it is FormFieldUiComponent.TextField }
+            val email = emailField?.value as String
 
-            // save email
-//            val email = emailField?.value as String
+            tikTokReporterRepository.saveUserEmail(email)
 
             _state.update { state ->
                 state.copy(
@@ -113,7 +120,7 @@ class EmailScreenViewModel @Inject constructor(
     }
 
     data class State(
-        val formFields: List<FormFieldUiComponent> = emptyList(),
+        val formFields: List<FormFieldUiComponent<*>> = emptyList(),
         val action: OneTimeEvent<UiAction>? = null
     )
 

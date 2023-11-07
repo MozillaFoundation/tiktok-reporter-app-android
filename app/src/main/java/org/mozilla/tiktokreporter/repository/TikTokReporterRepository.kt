@@ -23,9 +23,14 @@ class TikTokReporterRepository @Inject constructor(
     private val tikTokReporterService: TikTokReporterService,
     @ApplicationContext private val context: Context
 ) {
-    private var selectedStudyId by context.sharedPreferences(name = Common.PREFERENCES_SELECTED_STUDY_KEY, defaultValue = "")
-    private var onboardingCompleted by context.sharedPreferences(name = Common.PREFERENCES_ONBOARDING_COMPLETED_KEY, defaultValue = false)
-    private var termsAccepted by context.sharedPreferences(name = Common.PREFERENCES_TERMS_ACCEPTED_KEY, defaultValue = false)
+    var userEmail by context.sharedPreferences(name = Common.PREFERENCES_USER_EMAIL_KEY, defaultValue = "")
+        private set
+    var selectedStudyId by context.sharedPreferences(name = Common.PREFERENCES_SELECTED_STUDY_KEY, defaultValue = "")
+        private set
+    var onboardingCompleted by context.sharedPreferences(name = Common.PREFERENCES_ONBOARDING_COMPLETED_KEY, defaultValue = false)
+        private set
+    var termsAccepted by context.sharedPreferences(name = Common.PREFERENCES_TERMS_ACCEPTED_KEY, defaultValue = false)
+        private set
 
     private var selectedStudy: StudyDetails? = null
 
@@ -105,5 +110,11 @@ class TikTokReporterRepository @Inject constructor(
 
     suspend fun tikTokUrlShared(url: String?) {
         _tikTokUrl.emit(url)
+    }
+
+    suspend fun saveUserEmail(email: String) {
+        withContext(Dispatchers.IO) {
+            userEmail = email
+        }
     }
 }

@@ -7,15 +7,14 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import org.mozilla.tiktokreporter.data.model.FormField
+import org.mozilla.tiktokreporter.common.FormFieldUiComponent
 import org.mozilla.tiktokreporter.ui.components.MozillaDropdown
 import org.mozilla.tiktokreporter.ui.theme.MozillaDimension
 import org.mozilla.tiktokreporter.ui.theme.MozillaTypography
 
 @Composable
 fun FormDropDown(
-    field: FormField.DropDown,
-    value: String,
+    field: FormFieldUiComponent.DropDown,
     onOptionChanged: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -37,7 +36,7 @@ fun FormDropDown(
             onOptionSelected = { index, option ->
                 onOptionChanged(option)
             },
-            text = value,
+            text = field.value,
             label = field.label,
             placeholder = field.placeholder,
         )
