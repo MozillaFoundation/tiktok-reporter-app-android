@@ -22,10 +22,10 @@ import org.mozilla.tiktokreporter.settings.SettingsScreen
 import org.mozilla.tiktokreporter.apppolicy.AppPolicyScreen
 import org.mozilla.tiktokreporter.datahandling.DataHandlingScreen
 import org.mozilla.tiktokreporter.email.EmailScreen
+import org.mozilla.tiktokreporter.reportformcompleted.ReportFormCompletedScreen
 import org.mozilla.tiktokreporter.splashscreen.SplashScreen
 import org.mozilla.tiktokreporter.studieslist.StudiesListScreen
 import org.mozilla.tiktokreporter.studyonboarding.StudyOnboardingScreen
-import org.mozilla.tiktokreporter.util.emptyCallback
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
@@ -154,7 +154,7 @@ private fun NavGraphBuilder.addReportForm(
         startDestination = destination,
     ) {
         addReportFormNested(navController)
-        addReportSubmittedNested()
+        addReportSubmittedNested(navController)
     }
 }
 
@@ -170,7 +170,10 @@ private fun NavGraphBuilder.addReportFormNested(
             val destination = NestedDestination.SettingsNested.createRoute(Destination.Settings)
             navController.navigate(destination)
         }
-        val onGoToReportSubmittedScreen = { }
+        val onGoToReportSubmittedScreen = {
+            val destination = NestedDestination.ReportSubmittedNested.createRoute(Destination.ReportForm)
+            navController.navigate(destination)
+        }
         val onGoToStudies = {
             val destination = NestedDestination.Studies.createRoute(Destination.Settings)
             navController.navigate(destination) {
@@ -188,16 +191,24 @@ private fun NavGraphBuilder.addReportFormNested(
     }
 }
 
-private fun NavGraphBuilder.addReportSubmittedNested() {
+private fun NavGraphBuilder.addReportSubmittedNested(
+    navController: NavController
+) {
+    val startDestination = NestedDestination.ReportSubmittedNested.createRoute(Destination.ReportForm)
     composable(
-        route = NestedDestination.ReportSubmittedNested.createRoute(Destination.ReportForm)
+        route = startDestination
     ) {
-        Box(
-            modifier = Modifier.fillMaxSize()
-        ) {
-            Text(text = "Report submitted")
-        }
-
+        ReportFormCompletedScreen(
+            onNavigateBack = { navController.navigateUp() },
+            onGoToSettings = {
+                val direction = NestedDestination.SettingsNested.createRoute(Destination.Settings)
+                navController.navigate(direction) {
+                    popUpTo(startDestination) {
+                        inclusive = true
+                    }
+                }
+            }
+        )
     }
 }
 

@@ -129,7 +129,7 @@ private fun ReportFormScreenContent(
                             modifier = modifier,
                             tabs = state.tabs.map {
                                 when (it) {
-                                    TabModelType.ReportLink -> " Report a Link"
+                                    TabModelType.ReportLink -> "Report a Link"
                                     TabModelType.RecordSession -> "Record a session"
                                 }
                             },

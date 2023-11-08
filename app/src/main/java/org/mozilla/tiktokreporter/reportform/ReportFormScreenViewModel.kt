@@ -173,7 +173,11 @@ class ReportFormScreenViewModel @Inject constructor(
     }
 
     fun onSubmitReport() {
-
+        _state.update {
+            it.copy(
+                action = UiAction.GoToReportSubmittedScreen.toOneTimeEvent()
+            )
+        }
     }
 
     data class State(
