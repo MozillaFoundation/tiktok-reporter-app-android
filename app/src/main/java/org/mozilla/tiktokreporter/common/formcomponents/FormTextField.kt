@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import org.mozilla.tiktokreporter.common.FormFieldError
 import org.mozilla.tiktokreporter.common.FormFieldUiComponent
 import org.mozilla.tiktokreporter.ui.components.MozillaTextField
 import org.mozilla.tiktokreporter.ui.theme.MozillaDimension
@@ -44,7 +45,14 @@ fun FormTextField(
                 placeholder = field.placeholder,
                 maxLines = field.maxLines,
                 multiline = field.multiline,
-                readOnly = field.readOnly
+                readOnly = field.readOnly,
+                errorText = field.error?.let {
+                    println("Error: $it - ${field.label}")
+                    when (it) {
+                        FormFieldError.Empty -> "This field cannot be empty"
+                        FormFieldError.EmptyCategory -> "Please suggest a category"
+                    }
+                }
             )
         }
     }

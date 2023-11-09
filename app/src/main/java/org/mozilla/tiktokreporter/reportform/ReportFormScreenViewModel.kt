@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.onSubscription
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import org.mozilla.tiktokreporter.common.FormFieldError
 import org.mozilla.tiktokreporter.common.TabModelType
 import org.mozilla.tiktokreporter.common.FormFieldUiComponent
 import org.mozilla.tiktokreporter.common.OTHER_CATEGORY_TEXT_FIELD_ID
@@ -23,7 +24,7 @@ import javax.inject.Inject
 @HiltViewModel
 class ReportFormScreenViewModel @Inject constructor(
     private val tikTokReporterRepository: TikTokReporterRepository
-): ViewModel() {
+) : ViewModel() {
 
     private val _state = MutableStateFlow(State())
     val state: StateFlow<State> = _state
@@ -121,17 +122,21 @@ class ReportFormScreenViewModel @Inject constructor(
                         value = value as String
                     )
                 }
+
                 is FormFieldUiComponent.Slider -> {
                     field.copy(
                         value = value as Int
                     )
                 }
+
                 is FormFieldUiComponent.DropDown -> {
                     val selectedOption = field.options.firstOrNull { it.title == value }
 
-                    val otherTextFieldIndex = newFields.indexOfFirst { it.id == OTHER_CATEGORY_TEXT_FIELD_ID }
+                    val otherTextFieldIndex =
+                        newFields.indexOfFirst { it.id == OTHER_CATEGORY_TEXT_FIELD_ID }
                     if (otherTextFieldIndex >= 0) {
-                        val otherTextField = newFields[otherTextFieldIndex] as FormFieldUiComponent.TextField
+                        val otherTextField =
+                            newFields[otherTextFieldIndex] as FormFieldUiComponent.TextField
                         newFields[otherTextFieldIndex] = otherTextField.copy(
                             isVisible = selectedOption?.id == OTHER_DROP_DOWN_OPTION_ID
                         )
@@ -173,11 +178,105 @@ class ReportFormScreenViewModel @Inject constructor(
     }
 
     fun onSubmitReport() {
-        _state.update {
-            it.copy(
-                action = UiAction.GoToReportSubmittedScreen.toOneTimeEvent()
-            )
+        viewModelScope.launch(Dispatchers.Unconfined) {
+
+            _state.update {
+                it.copy(
+                    formFields = state.value.formFields.map { field ->
+                        when (field) {
+                            is FormFieldUiComponent.TextField -> field.copy(error = null)
+                            is FormFieldUiComponent.DropDown -> field.copy(error = null)
+                            is FormFieldUiComponent.Slider -> field.copy(error = null)
+                        }
+                    }
+                )
+            }
+
+            val errors: Map<Int, FormFieldError> = getFormErrors()
+            println("Errors: $errors")
+            if (errors.isNotEmpty()) {
+                // invalid form, update state
+
+                val newFields = state.value.formFields.toMutableList()
+                newFields.apply {
+                    errors.forEach { (fieldIndex, error) ->
+                        val newField = when (val field = this[fieldIndex]) {
+                            is FormFieldUiComponent.TextField -> field.copy(error = error)
+                            is FormFieldUiComponent.DropDown -> field.copy(error = error)
+                            is FormFieldUiComponent.Slider -> field.copy(error = error)
+                        }
+
+                        this[fieldIndex] = newField
+                    }
+                }
+
+                _state.update {
+                    it.copy(
+                        formFields = newFields
+                    )
+                }
+
+                return@launch
+            }
+
+            _state.update {
+                it.copy(
+                    action = UiAction.GoToReportSubmittedScreen.toOneTimeEvent()
+                )
+            }
         }
+    }
+
+    /**
+     * @return map containing the error (value) for each field located index (key)
+     */
+    private fun getFormErrors(): Map<Int, FormFieldError> {
+
+        val formFields = _state.value.formFields
+        val errors = formFields.mapIndexedNotNull { index, field ->
+            when (field) {
+                is FormFieldUiComponent.TextField -> {
+                    if (field.id != OTHER_CATEGORY_TEXT_FIELD_ID && field.isRequired && field.value.isEmpty()) {
+                        return@mapIndexedNotNull index to FormFieldError.Empty
+                    }
+
+                    null
+                }
+
+                is FormFieldUiComponent.DropDown -> {
+                    val selectedOption = field.options.firstOrNull { it.title == field.value }
+
+                    if (field.isRequired) {
+
+                        if (selectedOption?.id == OTHER_DROP_DOWN_OPTION_ID) {
+                            val otherTextFieldIndex = formFields.indexOfFirst { it.id == OTHER_CATEGORY_TEXT_FIELD_ID }
+                            if (otherTextFieldIndex >= 0) {
+                                val otherTextField = formFields[otherTextFieldIndex] as FormFieldUiComponent.TextField
+
+                                if (otherTextField.value.isEmpty()) {
+                                    return@mapIndexedNotNull otherTextFieldIndex to FormFieldError.EmptyCategory
+                                }
+                            }
+                        } else {
+                            if (field.value.isEmpty()) {
+                                return@mapIndexedNotNull index to FormFieldError.Empty
+                            }
+                        }
+                    }
+
+                    null
+                }
+
+                is FormFieldUiComponent.Slider -> {
+                    null
+                }
+            }
+        }.let {
+            println(it)
+            it
+        }.toMap()
+
+        return errors
     }
 
     data class State(
@@ -190,9 +289,9 @@ class ReportFormScreenViewModel @Inject constructor(
     )
 
     sealed class UiAction {
-        data object ShowNoFormFound: UiAction()
-        data object GoToReportSubmittedScreen: UiAction()
-        data object ShowFetchStudyError: UiAction()
-        data object ShowStudyNotActive: UiAction()
+        data object ShowNoFormFound : UiAction()
+        data object GoToReportSubmittedScreen : UiAction()
+        data object ShowFetchStudyError : UiAction()
+        data object ShowStudyNotActive : UiAction()
     }
 }
