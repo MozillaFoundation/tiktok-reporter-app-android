@@ -34,21 +34,14 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+
+            buildConfigField("String", "BASE_URL", "\"https://tiktok-reporter-app-be-jbrlktowcq-ew.a.run.app/\"")
         }
 
         debug {
             isDebuggable = true
             isMinifyEnabled = false
-        }
-    }
 
-    flavorDimensions += "version"
-    productFlavors {
-        create("production") {
-            buildConfigField("String", "BASE_URL", "\"https://tiktok-reporter-app-be-jbrlktowcq-ew.a.run.app/\"")
-        }
-
-        create("demo") {
             buildConfigField("String", "BASE_URL", "\"https://tiktok-reporter-app-be-jbrlktowcq-ew.a.run.app/\"")
         }
     }

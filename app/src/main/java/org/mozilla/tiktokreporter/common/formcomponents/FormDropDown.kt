@@ -33,7 +33,7 @@ fun FormDropDown(
         MozillaDropdown(
             modifier = Modifier.fillMaxWidth(),
             options = field.options.map { it.title },
-            onOptionSelected = { index, option ->
+            onOptionSelected = { _, option ->
                 onOptionChanged(option)
             },
             text = field.value,

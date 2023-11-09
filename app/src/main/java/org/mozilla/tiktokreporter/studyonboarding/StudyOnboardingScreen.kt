@@ -40,7 +40,7 @@ fun StudyOnboardingScreen(
 ) {
     DialogContainer(
         modifier = Modifier.fillMaxSize()
-    ) { dialogState ->
+    ) { _ ->
 
         val state by viewModel.state.collectAsStateWithLifecycle()
         val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()

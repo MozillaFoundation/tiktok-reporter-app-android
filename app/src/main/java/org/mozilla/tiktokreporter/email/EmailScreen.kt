@@ -35,7 +35,7 @@ fun EmailScreen(
     onNextScreen: () -> Unit,
     onNavigateBack: () -> Unit
 ) {
-    DialogContainer { dialogState ->
+    DialogContainer { _ ->
 
         val state by viewModel.state.collectAsStateWithLifecycle()
         val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
