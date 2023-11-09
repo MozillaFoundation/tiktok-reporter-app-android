@@ -11,6 +11,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
@@ -25,6 +26,7 @@ import org.mozilla.tiktokreporter.ui.components.SecondaryButton
 import org.mozilla.tiktokreporter.ui.components.dialog.DialogContainer
 import org.mozilla.tiktokreporter.ui.theme.MozillaColor
 import org.mozilla.tiktokreporter.ui.theme.MozillaDimension
+import org.mozilla.tiktokreporter.ui.theme.MozillaTypography
 
 @Composable
 fun EmailScreen(
@@ -109,6 +111,13 @@ private fun EmailScreenContent(
                 ),
                 verticalArrangement = Arrangement.spacedBy(MozillaDimension.L),
                 content = {
+                    item {
+                        Text(
+                            modifier = Modifier.fillMaxWidth(),
+                            text = "Your e-mail",
+                            style = MozillaTypography.H3
+                        )
+                    }
                     formComponentsItems(
                         formFields = state.formFields,
                         onFormFieldValueChanged = onFormFieldValueChanged
