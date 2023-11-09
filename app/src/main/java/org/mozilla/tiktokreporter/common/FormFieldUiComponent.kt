@@ -5,40 +5,53 @@ import org.mozilla.tiktokreporter.data.model.FormField
 const val OTHER_CATEGORY_TEXT_FIELD_ID = "other_category_id"
 const val OTHER_DROP_DOWN_OPTION_ID = "other_category_id"
 
-data class FormFieldComponent(
-    val id: String,
-    val isVisible: Boolean,
-    val isRequired: Boolean,
-    val description: String,
-    val label: String,
-
-    val field: FormFieldUiComponent<*>
-)
-
 sealed class FormFieldUiComponent<T>(
-    open val value: T
+    open val id: String,
+    open val value: T,
+    open val isVisible: Boolean,
+    open val isRequired: Boolean,
+    open val readOnly: Boolean,
+    open val description: String,
+    open val label: String
 ) {
     data class TextField(
+        override val id: String,
         override val value: String,
-        val readOnly: Boolean,
+        override val isVisible: Boolean,
+        override val isRequired: Boolean,
+        override val readOnly: Boolean,
+        override val description: String,
+        override val label: String,
         val placeholder: String,
         val multiline: Boolean,
         val maxLines: Int,
-    ) : FormFieldUiComponent<String>(value)
+    ) : FormFieldUiComponent<String>(id, value, isVisible, isRequired, readOnly, description, label)
 
     data class DropDown(
+        override val id: String,
         override val value: String,
+        override val isVisible: Boolean,
+        override val isRequired: Boolean,
+        override val readOnly: Boolean,
+        override val description: String,
+        override val label: String,
         val options: List<OptionComponent>,
         val placeholder: String,
-    ) : FormFieldUiComponent<String>(value)
+    ) : FormFieldUiComponent<String>(id, value, isVisible, isRequired, readOnly, description, label)
 
     data class Slider(
+        override val id: String,
         override val value: Int,
+        override val isVisible: Boolean,
+        override val isRequired: Boolean,
+        override val readOnly: Boolean,
+        override val description: String,
+        override val label: String,
         val max: Int,
         val step: Int,
         val leftLabel: String,
         val rightLabel: String,
-    ) : FormFieldUiComponent<Int>(value)
+    ) : FormFieldUiComponent<Int>(id, value, isVisible, isRequired, readOnly, description, label)
 }
 
 data class OptionComponent(
@@ -46,22 +59,20 @@ data class OptionComponent(
     val title: String
 )
 
-fun FormField.toFormFieldComponent(): List<FormFieldComponent>? {
+fun FormField.toFormFieldComponent(): List<FormFieldUiComponent<*>>? {
     return when (this) {
         is FormField.TextField -> listOf(
-            FormFieldComponent(
+            FormFieldUiComponent.TextField(
                 id = id,
+                value = "",
                 isVisible = true,
                 isRequired = isRequired,
+                readOnly = false,
                 description = description,
                 label = label,
-                field = FormFieldUiComponent.TextField(
-                    value = "",
-                    readOnly = false,
-                    placeholder = placeholder,
-                    multiline = multiline,
-                    maxLines = maxLines
-                )
+                placeholder = placeholder,
+                multiline = multiline,
+                maxLines = maxLines
             )
         )
 
@@ -69,42 +80,38 @@ fun FormField.toFormFieldComponent(): List<FormFieldComponent>? {
             val initialValue =
                 this.options.firstOrNull { it.id == this.selectedOptionId }?.title.orEmpty()
 
-            val dropDown = FormFieldComponent(
+            val dropDown = FormFieldUiComponent.DropDown(
                 id = id,
+                value = initialValue,
                 isVisible = true,
                 isRequired = isRequired,
+                readOnly = false,
                 description = description,
                 label = label,
-                field = FormFieldUiComponent.DropDown(
-                    value = initialValue,
-                    options = buildList {
-                        addAll(
-                            options.map {
-                                OptionComponent(it.id, it.title)
-                            }
+                options = buildList {
+                    addAll(
+                        options.map {
+                            OptionComponent(it.id, it.title)
+                        }
+                    )
+                    if (this@toFormFieldComponent.hasOtherOption)
+                        add(
+                            OptionComponent(OTHER_DROP_DOWN_OPTION_ID, "Other")
                         )
-                        if (this@toFormFieldComponent.hasOtherOption)
-                            add(
-                                OptionComponent(OTHER_DROP_DOWN_OPTION_ID, "Other")
-                            )
-                    },
-                    placeholder = placeholder,
-                )
+                },
+                placeholder = placeholder,
             )
-
-            val otherTextField = FormFieldComponent(
+            val otherTextField = FormFieldUiComponent.TextField(
                 id = OTHER_CATEGORY_TEXT_FIELD_ID,
+                value = "",
                 isVisible = false,
                 isRequired = isRequired,
+                readOnly = false,
                 description = "",
                 label = "Suggest a category",
-                field = FormFieldUiComponent.TextField(
-                    value = "",
-                    readOnly = false,
-                    placeholder = placeholder,
-                    multiline = false,
-                    maxLines = 1
-                )
+                placeholder = placeholder,
+                multiline = false,
+                maxLines = 1
             )
 
             buildList {
@@ -118,19 +125,18 @@ fun FormField.toFormFieldComponent(): List<FormFieldComponent>? {
         }
 
         is FormField.Slider -> listOf(
-            FormFieldComponent(
+            FormFieldUiComponent.Slider(
                 id = id,
+                value = 0,
                 isVisible = true,
                 isRequired = isRequired,
+                readOnly = false,
                 description = description,
                 label = label,
-                field = FormFieldUiComponent.Slider(
-                    value = 0,
-                    max = max,
-                    step = step,
-                    leftLabel = leftLabel,
-                    rightLabel = rightLabel
-                )
+                max = max,
+                step = step,
+                leftLabel = leftLabel,
+                rightLabel = rightLabel
             )
         )
 
@@ -138,7 +144,7 @@ fun FormField.toFormFieldComponent(): List<FormFieldComponent>? {
     }
 }
 
-fun List<FormField>.toUiComponents(): List<FormFieldComponent> {
+fun List<FormField>.toUiComponents(): List<FormFieldUiComponent<*>> {
     val components = this.mapNotNull { field ->
         field.toFormFieldComponent()
     }.flatten()

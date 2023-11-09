@@ -10,7 +10,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.onSubscription
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import org.mozilla.tiktokreporter.common.FormFieldComponent
 import org.mozilla.tiktokreporter.common.TabModelType
 import org.mozilla.tiktokreporter.common.FormFieldUiComponent
 import org.mozilla.tiktokreporter.common.OTHER_CATEGORY_TEXT_FIELD_ID
@@ -79,7 +78,7 @@ class ReportFormScreenViewModel @Inject constructor(
 
                     val fields = studyForm.fields.toUiComponents().toMutableList().apply {
                         if (tikTokUrl != null) {
-                            val index = this.indexOfFirst { it.field is FormFieldUiComponent.TextField }
+                            val index = this.indexOfFirst { it is FormFieldUiComponent.TextField }
                             val field = this[index] as FormFieldUiComponent.TextField
                             this[index] = field.copy(
                                 readOnly = true,
@@ -116,7 +115,7 @@ class ReportFormScreenViewModel @Inject constructor(
             val fieldIndex = state.value.formFields.indexOfFirst { it.id == formFieldId }
 
             val newFields = state.value.formFields.toMutableList()
-            val newField = when (val field = state.value.formFields[fieldIndex].field) {
+            val newField = when (val field = state.value.formFields[fieldIndex]) {
                 is FormFieldUiComponent.TextField -> {
                     field.copy(
                         value = value as String
@@ -132,7 +131,8 @@ class ReportFormScreenViewModel @Inject constructor(
 
                     val otherTextFieldIndex = newFields.indexOfFirst { it.id == OTHER_CATEGORY_TEXT_FIELD_ID }
                     if (otherTextFieldIndex >= 0) {
-                        newFields[otherTextFieldIndex] = newFields[otherTextFieldIndex].copy(
+                        val otherTextField = newFields[otherTextFieldIndex] as FormFieldUiComponent.TextField
+                        newFields[otherTextFieldIndex] = otherTextField.copy(
                             isVisible = selectedOption?.id == OTHER_DROP_DOWN_OPTION_ID
                         )
                     }
@@ -142,9 +142,7 @@ class ReportFormScreenViewModel @Inject constructor(
                     )
                 }
             }
-            newFields[fieldIndex] = newFields[fieldIndex].copy(
-                field = newField
-            )
+            newFields[fieldIndex] = newField
 
             _state.update {
                 it.copy(
@@ -175,8 +173,6 @@ class ReportFormScreenViewModel @Inject constructor(
     }
 
     fun onSubmitReport() {
-        validateForm()
-
         _state.update {
             it.copy(
                 action = UiAction.GoToReportSubmittedScreen.toOneTimeEvent()
@@ -184,14 +180,10 @@ class ReportFormScreenViewModel @Inject constructor(
         }
     }
 
-    private fun validateForm() {
-
-    }
-
     data class State(
         val tabs: List<TabModelType> = emptyList(),
         val selectedTabIndex: Int = 0,
-        val formFields: List<FormFieldComponent> = listOf(),
+        val formFields: List<FormFieldUiComponent<*>> = listOf(),
         val isRecording: Boolean = false,
         val recordSessionComments: String = "",
         val action: OneTimeEvent<UiAction>? = null

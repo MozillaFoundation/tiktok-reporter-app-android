@@ -37,7 +37,8 @@ class MainActivity : ComponentActivity() {
                 ) {
                     NavContainer(
                         onboardingCompleted = onboardingCompleted,
-                        termsAccepted = termsAccepted
+                        termsAccepted = termsAccepted,
+                        firstAccess = firstAccess
                     )
                 }
             }
@@ -55,6 +56,7 @@ class MainActivity : ComponentActivity() {
 
     private fun handleNewIntent(intent: Intent?) {
         val data = intent?.extras?.getString(Intent.EXTRA_TEXT)
+        println("@@@@@@ $this - data: $data")
         mainViewModel.onTikTokLinkShared(data)
     }
 }
