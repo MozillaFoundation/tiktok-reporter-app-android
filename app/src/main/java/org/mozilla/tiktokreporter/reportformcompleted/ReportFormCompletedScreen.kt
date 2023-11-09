@@ -120,7 +120,7 @@ fun ReportFormCompletedScreen(
                 text = text,
                 style = MozillaTypography.Body2,
                 onClick = {
-                    text.getStringAnnotations(it, it).firstOrNull()?.tag?.let { tag ->
+                    text.getStringAnnotations(it, it).firstOrNull()?.tag?.let { _ ->
                         onGoToSettings()
                     }
                 }
