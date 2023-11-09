@@ -23,13 +23,13 @@ fun mozillaTextFieldColors(
     focusedTextColor = MozillaColor.TextColor,
     unfocusedTextColor = if (isFilled) MozillaColor.TextColor else MozillaColor.Inactive,
     disabledTextColor = MozillaColor.Disabled,
-    errorTextColor = MozillaColor.Error,
+    errorTextColor = MozillaColor.TextColor,
     focusedContainerColor = Color.Transparent,
     unfocusedContainerColor = Color.Transparent,
     disabledContainerColor = Color.Transparent,
     errorContainerColor = Color.Transparent,
     cursorColor = MozillaColor.TextColor,
-    errorCursorColor = MozillaColor.Error,
+    errorCursorColor = MozillaColor.TextColor,
     selectionColors = TextSelectionColors(
         handleColor = MozillaColor.TextColor,
         backgroundColor = MozillaColor.Divider
@@ -41,19 +41,19 @@ fun mozillaTextFieldColors(
     focusedLeadingIconColor = MozillaColor.Blue,
     unfocusedLeadingIconColor = if (isFilled) MozillaColor.TextColor else MozillaColor.Inactive,
     disabledLeadingIconColor = MozillaColor.Disabled,
-    errorLeadingIconColor = MozillaColor.Error,
+    errorLeadingIconColor = MozillaColor.TextColor,
     focusedTrailingIconColor = MozillaColor.Blue,
     unfocusedTrailingIconColor = if (isFilled) MozillaColor.TextColor else MozillaColor.Inactive,
     disabledTrailingIconColor = MozillaColor.Disabled,
-    errorTrailingIconColor = MozillaColor.Error,
+    errorTrailingIconColor = MozillaColor.TextColor,
     focusedLabelColor = MozillaColor.TextColor,
     unfocusedLabelColor = if (isFilled) MozillaColor.TextColor else MozillaColor.Inactive,
     disabledLabelColor = MozillaColor.Disabled,
-    errorLabelColor = MozillaColor.Error,
+    errorLabelColor = MozillaColor.Inactive,
     focusedPlaceholderColor = MozillaColor.Inactive,
     unfocusedPlaceholderColor = MozillaColor.Inactive,
     disabledPlaceholderColor = MozillaColor.Disabled,
-    errorPlaceholderColor = MozillaColor.Error,
+    errorPlaceholderColor = MozillaColor.Inactive,
     focusedSupportingTextColor = MozillaColor.TextColor,
     unfocusedSupportingTextColor = if (isFilled) MozillaColor.TextColor else MozillaColor.Inactive,
     disabledSupportingTextColor = MozillaColor.Disabled,
@@ -61,17 +61,18 @@ fun mozillaTextFieldColors(
     focusedPrefixColor = MozillaColor.TextColor,
     unfocusedPrefixColor = if (isFilled) MozillaColor.TextColor else MozillaColor.Inactive,
     disabledPrefixColor = MozillaColor.Disabled,
-    errorPrefixColor = MozillaColor.Error,
+    errorPrefixColor = if (isFilled) MozillaColor.TextColor else MozillaColor.Inactive,
     focusedSuffixColor = MozillaColor.TextColor,
     unfocusedSuffixColor = if (isFilled) MozillaColor.TextColor else MozillaColor.Inactive,
     disabledSuffixColor = MozillaColor.Disabled,
-    errorSuffixColor = MozillaColor.Error,
+    errorSuffixColor = if (isFilled) MozillaColor.TextColor else MozillaColor.Inactive,
 )
 @Composable
 fun MozillaTextField(
     text: String,
     onTextChanged: (String) -> Unit,
     modifier: Modifier = Modifier,
+    errorText: String? = null,
     label: String? = null,
     placeholder: String? = null,
     enabled: Boolean = true,
@@ -103,7 +104,16 @@ fun MozillaTextField(
         colors = colors,
         readOnly = readOnly,
         trailingIcon = trailingIcon,
-        shape = RectangleShape
+        shape = RectangleShape,
+        isError = errorText != null,
+        supportingText = errorText?.let {
+            {
+                Text(
+                    text = it,
+                    style = MozillaTypography.Body2
+                )
+            }
+        }
     )
 }
 
@@ -141,6 +151,14 @@ private fun MozillaTextFieldPreviewEnabled() {
                 placeholder = "placeholder",
                 onTextChanged = { },
                 enabled = true
+            )
+            MozillaTextField(
+                text = "",
+                label = "label",
+                placeholder = "placeholder",
+                onTextChanged = { },
+                enabled = true,
+                errorText = "This field cannot be empty!"
             )
         }
     }

@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
@@ -18,6 +19,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.ConstraintSet
 import androidx.constraintlayout.compose.Dimension
@@ -52,7 +54,7 @@ fun StudiesListScreen(
         val state by viewModel.state.collectAsStateWithLifecycle()
         val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
 
-        when (val action = state.action?.get()) {
+        when (state.action?.get()) {
             StudiesListScreenViewModel.UiAction.OnGoToStudyOnboarding -> onGoToStudyOnboarding()
             StudiesListScreenViewModel.UiAction.OnGoToStudyTerms -> onGoToStudyTerms()
             StudiesListScreenViewModel.UiAction.ShowChangeStudyWarning -> {
@@ -187,9 +189,8 @@ private fun studyEntryConstraintSet(): ConstraintSet {
 
         constrain(radioButton) {
             start.linkTo(parent.start)
-            top.linkTo(title.top)
+            top.linkTo(parent.top)
             end.linkTo(title.start, margin = MozillaDimension.M)
-            bottom.linkTo(title.bottom)
         }
 
         constrain(title) {
@@ -202,7 +203,7 @@ private fun studyEntryConstraintSet(): ConstraintSet {
 
         constrain(description) {
             start.linkTo(title.start)
-            top.linkTo(radioButton.bottom, margin = MozillaDimension.XS)
+            top.linkTo(title.bottom, margin = MozillaDimension.XS)
             end.linkTo(parent.end)
             bottom.linkTo(parent.bottom)
 
@@ -225,7 +226,8 @@ private fun StudyEntry(
         constraintSet = studyEntryConstraintSet()
     ) {
         MozillaRadioButton(
-            modifier = Modifier.layoutId("radioButton"),
+            modifier = Modifier.layoutId("radioButton")
+                .height(MozillaTypography.Body1.lineHeight.value.dp),
             selected = studyOverview.isSelected,
             onClick = onClick,
             enabled = studyOverview.isActive
@@ -281,6 +283,28 @@ private fun SelectedStudyEntryPreview() {
                 id = "1",
                 name = "Study name",
                 description = "Study description",
+                isActive = true,
+                isSelected = true
+            ),
+            onClick = {}
+        )
+    }
+}
+
+@Preview(
+    showBackground = true
+)
+@Composable
+private fun SelectedStudyEntryWithLongTextsPreview() {
+    TikTokReporterTheme {
+        StudyEntry(
+            modifier = Modifier
+                .fillMaxWidth()
+                .wrapContentHeight(),
+            studyOverview = StudyOverview(
+                id = "1",
+                name = "Study name Study name Study name Study name Study name Study name Study name Study name",
+                description = "Study description Study description Study description Study description Study description Study description Study description Study description Study description Study description Study description ",
                 isActive = true,
                 isSelected = true
             ),

@@ -180,7 +180,7 @@ private fun AppPolicyScreenContent(
                     agreeButton = {
                         PrimaryButton(
                             modifier = Modifier.fillMaxWidth(),
-                            text = "I agree",
+                            text = "I Agree",
                             onClick = onAgree,
                             enabled = buttonsEnabled
                         )
@@ -188,7 +188,7 @@ private fun AppPolicyScreenContent(
                     disagreeButton = {
                         SecondaryButton(
                             modifier = Modifier.fillMaxWidth(),
-                            text = "I disagree",
+                            text = "I Disagree",
                             onClick = onDisagree,
                             enabled = buttonsEnabled
                         )

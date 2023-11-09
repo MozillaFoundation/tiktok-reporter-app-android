@@ -12,7 +12,8 @@ sealed class FormFieldUiComponent<T>(
     open val isRequired: Boolean,
     open val readOnly: Boolean,
     open val description: String,
-    open val label: String
+    open val label: String,
+    open val error: FormFieldError? = null
 ) {
     data class TextField(
         override val id: String,
@@ -22,6 +23,7 @@ sealed class FormFieldUiComponent<T>(
         override val readOnly: Boolean,
         override val description: String,
         override val label: String,
+        override val error: FormFieldError? = null,
         val placeholder: String,
         val multiline: Boolean,
         val maxLines: Int,
@@ -35,6 +37,7 @@ sealed class FormFieldUiComponent<T>(
         override val readOnly: Boolean,
         override val description: String,
         override val label: String,
+        override val error: FormFieldError? = null,
         val options: List<OptionComponent>,
         val placeholder: String,
     ) : FormFieldUiComponent<String>(id, value, isVisible, isRequired, readOnly, description, label)
@@ -47,6 +50,7 @@ sealed class FormFieldUiComponent<T>(
         override val readOnly: Boolean,
         override val description: String,
         override val label: String,
+        override val error: FormFieldError? = null,
         val max: Int,
         val step: Int,
         val leftLabel: String,
@@ -58,6 +62,11 @@ data class OptionComponent(
     val id: String,
     val title: String
 )
+
+sealed class FormFieldError {
+    data object Empty: FormFieldError()
+    data object EmptyCategory: FormFieldError()
+}
 
 fun FormField.toFormFieldComponent(): List<FormFieldUiComponent<*>>? {
     return when (this) {

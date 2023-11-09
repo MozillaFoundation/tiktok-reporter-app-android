@@ -21,7 +21,6 @@ class MainActivity : ComponentActivity() {
 
     private val onboardingCompleted by sharedPreferences(Common.PREFERENCES_ONBOARDING_COMPLETED_KEY, false)
     private val termsAccepted by sharedPreferences(Common.PREFERENCES_TERMS_ACCEPTED_KEY, false)
-    private var firstAccess by sharedPreferences(Common.PREFERENCES_FIRST_ACCESS_KEY, true)
 
     private val mainViewModel: MainViewModel by viewModels()
 
@@ -37,14 +36,11 @@ class MainActivity : ComponentActivity() {
                 ) {
                     NavContainer(
                         onboardingCompleted = onboardingCompleted,
-                        termsAccepted = termsAccepted,
-                        firstAccess = firstAccess
+                        termsAccepted = termsAccepted
                     )
                 }
             }
         }
-
-        firstAccess = false
 
         handleNewIntent(intent)
     }
@@ -56,7 +52,6 @@ class MainActivity : ComponentActivity() {
 
     private fun handleNewIntent(intent: Intent?) {
         val data = intent?.extras?.getString(Intent.EXTRA_TEXT)
-        println("@@@@@@ $this - data: $data")
         mainViewModel.onTikTokLinkShared(data)
     }
 }
