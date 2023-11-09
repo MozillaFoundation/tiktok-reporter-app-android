@@ -1,11 +1,8 @@
 package org.mozilla.tiktokreporter.navigation
 
 import android.annotation.SuppressLint
-import android.util.Log
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
@@ -31,14 +28,9 @@ import org.mozilla.tiktokreporter.studyonboarding.StudyOnboardingScreen
 @Composable
 fun NavContainer(
     onboardingCompleted: Boolean,
-    termsAccepted: Boolean,
-    firstAccess: Boolean
+    termsAccepted: Boolean
 ) {
     val navController = rememberNavController()
-    navController.addOnDestinationChangedListener { controller, destination, _ ->
-        val list = controller.currentBackStack.value.map {it.destination.route } + controller.currentBackStackEntry?.destination?.route
-        Log.d("Backstack", list.joinToString("\n"))
-    }
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
