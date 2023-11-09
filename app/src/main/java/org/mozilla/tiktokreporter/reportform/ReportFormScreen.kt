@@ -54,6 +54,24 @@ fun ReportFormScreen(
                 onRecordSessionCommentsChanged = viewModel::onRecordSessionCommentsChanged,
                 onTabSelected = viewModel::onTabSelected,
                 onSubmitReport = viewModel::onSubmitReport,
+                onCancelReport = {
+                    dialogState.value = DialogState.Message(
+                        title = "Cancel report?",
+                        message = "Are you sure you want to cancel the report? All the data entered will be deleted.",
+                        positiveButtonText = "Delete",
+                        onPositive = {
+                            viewModel.onCancelReport()
+                            dialogState.value = DialogState.Nothing
+                        },
+                        negativeButtonText = "Keep",
+                        onNegative = {
+                            dialogState.value = DialogState.Nothing
+                        },
+                        onDismissRequest = {
+                            dialogState.value = DialogState.Nothing
+                        }
+                    )
+                },
                 onGoToSettings = onGoToSettings,
                 onStartRecording = {
 
@@ -89,6 +107,7 @@ private fun ReportFormScreenContent(
     onRecordSessionCommentsChanged: (String) -> Unit,
     onTabSelected: (tabIndex: Int) -> Unit,
     onSubmitReport: () -> Unit,
+    onCancelReport: () -> Unit,
     onGoToSettings: () -> Unit,
     onStartRecording: () -> Unit,
     modifier: Modifier = Modifier,
@@ -161,9 +180,7 @@ private fun ReportFormScreenContent(
                         vertical = MozillaDimension.L
                     ),
                 onSubmitReport = onSubmitReport,
-                onCancelReport = {
-
-                }
+                onCancelReport = onCancelReport
             )
         }
     }

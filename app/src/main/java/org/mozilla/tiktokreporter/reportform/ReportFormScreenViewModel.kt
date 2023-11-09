@@ -32,6 +32,8 @@ class ReportFormScreenViewModel @Inject constructor(
     private val _isLoading = MutableStateFlow(false)
     val isLoading = _isLoading.asStateFlow()
 
+    private var initialFormFields = listOf<FormFieldUiComponent<*>>()
+
     init {
         viewModelScope.launch {
             _isLoading.update { true }
@@ -87,6 +89,7 @@ class ReportFormScreenViewModel @Inject constructor(
                             )
                         }
                     }
+                    initialFormFields = fields
 
                     _state.update { state ->
                         state.copy(
@@ -248,9 +251,11 @@ class ReportFormScreenViewModel @Inject constructor(
                     if (field.isRequired) {
 
                         if (selectedOption?.id == OTHER_DROP_DOWN_OPTION_ID) {
-                            val otherTextFieldIndex = formFields.indexOfFirst { it.id == OTHER_CATEGORY_TEXT_FIELD_ID }
+                            val otherTextFieldIndex =
+                                formFields.indexOfFirst { it.id == OTHER_CATEGORY_TEXT_FIELD_ID }
                             if (otherTextFieldIndex >= 0) {
-                                val otherTextField = formFields[otherTextFieldIndex] as FormFieldUiComponent.TextField
+                                val otherTextField =
+                                    formFields[otherTextFieldIndex] as FormFieldUiComponent.TextField
 
                                 if (otherTextField.value.isEmpty()) {
                                     return@mapIndexedNotNull otherTextFieldIndex to FormFieldError.EmptyCategory
@@ -273,6 +278,16 @@ class ReportFormScreenViewModel @Inject constructor(
         }.toMap()
 
         return errors
+    }
+
+    fun onCancelReport() {
+        viewModelScope.launch {
+            _state.update {
+                it.copy(
+                    formFields = initialFormFields
+                )
+            }
+        }
     }
 
     data class State(
