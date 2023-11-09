@@ -47,7 +47,6 @@ fun FormTextField(
                 multiline = field.multiline,
                 readOnly = field.readOnly,
                 errorText = field.error?.let {
-                    println("Error: $it - ${field.label}")
                     when (it) {
                         FormFieldError.Empty -> "This field cannot be empty"
                         FormFieldError.EmptyCategory -> "Please suggest a category"

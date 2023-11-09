@@ -193,7 +193,6 @@ class ReportFormScreenViewModel @Inject constructor(
             }
 
             val errors: Map<Int, FormFieldError> = getFormErrors()
-            println("Errors: $errors")
             if (errors.isNotEmpty()) {
                 // invalid form, update state
 
@@ -271,9 +270,6 @@ class ReportFormScreenViewModel @Inject constructor(
                     null
                 }
             }
-        }.let {
-            println(it)
-            it
         }.toMap()
 
         return errors

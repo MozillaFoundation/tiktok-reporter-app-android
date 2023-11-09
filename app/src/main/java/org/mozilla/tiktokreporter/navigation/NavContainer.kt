@@ -31,14 +31,9 @@ import org.mozilla.tiktokreporter.studyonboarding.StudyOnboardingScreen
 @Composable
 fun NavContainer(
     onboardingCompleted: Boolean,
-    termsAccepted: Boolean,
-    firstAccess: Boolean
+    termsAccepted: Boolean
 ) {
     val navController = rememberNavController()
-    navController.addOnDestinationChangedListener { controller, destination, _ ->
-        val list = controller.currentBackStack.value.map {it.destination.route } + controller.currentBackStackEntry?.destination?.route
-        Log.d("Backstack", list.joinToString("\n"))
-    }
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
