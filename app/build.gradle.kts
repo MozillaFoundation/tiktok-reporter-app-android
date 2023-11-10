@@ -83,6 +83,8 @@ dependencies {
     implementation(libs.compose.material3)
     implementation(libs.compose.constraintlayout)
 
+    implementation(libs.accompanist.permissions)
+
     implementation(libs.coil.compose)
 
     implementation(libs.navigation.compose)
