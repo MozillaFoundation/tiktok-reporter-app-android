@@ -45,6 +45,8 @@ fun StudiesListScreen(
     isForOnboarding: Boolean = true,
     onGoToStudyOnboarding: () -> Unit,
     onGoToStudyTerms: () -> Unit,
+    onGoToEmail: () -> Unit,
+    onGoToReportForm: () -> Unit,
     onNavigateBack: () -> Unit
 ) {
     DialogContainer(
@@ -57,6 +59,8 @@ fun StudiesListScreen(
         when (state.action?.get()) {
             StudiesListScreenViewModel.UiAction.OnGoToStudyOnboarding -> onGoToStudyOnboarding()
             StudiesListScreenViewModel.UiAction.OnGoToStudyTerms -> onGoToStudyTerms()
+            StudiesListScreenViewModel.UiAction.OnGoToEmail -> onGoToEmail()
+            StudiesListScreenViewModel.UiAction.OnGoToReportForm -> onGoToReportForm()
             StudiesListScreenViewModel.UiAction.ShowChangeStudyWarning -> {
                 dialogState.value = DialogState.Message(
                     title = "Change study",

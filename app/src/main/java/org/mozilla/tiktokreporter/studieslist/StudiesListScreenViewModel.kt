@@ -106,7 +106,9 @@ class StudiesListScreenViewModel @Inject constructor(
             _state.update {
                 it.copy(
                     action = if (selectedStudy.hasPolicies) UiAction.OnGoToStudyTerms.toOneTimeEvent()
-                        else UiAction.OnGoToStudyOnboarding.toOneTimeEvent()
+                        else if (selectedStudy.hasOnboarding) UiAction.OnGoToStudyOnboarding.toOneTimeEvent()
+                        else if (selectedStudy.hasEmailForm) UiAction.OnGoToEmail.toOneTimeEvent()
+                        else UiAction.OnGoToReportForm.toOneTimeEvent()
                 )
             }
         }
@@ -122,6 +124,8 @@ class StudiesListScreenViewModel @Inject constructor(
         data object ShowChangeStudyWarning : UiAction()
         data object OnGoToStudyOnboarding : UiAction()
         data object OnGoToStudyTerms : UiAction()
+        data object OnGoToEmail : UiAction()
+        data object OnGoToReportForm : UiAction()
         data object OnNoStudySelected : UiAction()
     }
 }
