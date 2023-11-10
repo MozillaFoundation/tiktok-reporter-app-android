@@ -111,6 +111,16 @@ class ReportFormScreenViewModel @Inject constructor(
         }
     }
 
+    fun onTabSelected(tabIndex: Int) {
+        viewModelScope.launch(Dispatchers.Unconfined) {
+            _state.update {
+                it.copy(
+                    selectedTabIndex = tabIndex
+                )
+            }
+        }
+    }
+
     fun onFormFieldValueChanged(
         formFieldId: String,
         value: Any
@@ -155,16 +165,6 @@ class ReportFormScreenViewModel @Inject constructor(
             _state.update {
                 it.copy(
                     formFields = newFields
-                )
-            }
-        }
-    }
-
-    fun onTabSelected(tabIndex: Int) {
-        viewModelScope.launch(Dispatchers.Unconfined) {
-            _state.update {
-                it.copy(
-                    selectedTabIndex = tabIndex
                 )
             }
         }
@@ -285,6 +285,18 @@ class ReportFormScreenViewModel @Inject constructor(
             _state.update {
                 it.copy(
                     formFields = initialFormFields
+                )
+            }
+        }
+    }
+
+    fun setIsRecording(
+        isRecording: Boolean
+    ) {
+        viewModelScope.launch {
+            _state.update {
+                it.copy(
+                    isRecording = isRecording
                 )
             }
         }

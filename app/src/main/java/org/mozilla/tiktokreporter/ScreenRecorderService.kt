@@ -23,39 +23,39 @@ class ScreenRecorderService : Service() {
     @Inject
     lateinit var screenRecorderManager: ScreenRecorderManager
 
-    private val deleteIntent = PendingIntent.getService(
-        applicationContext,
-        1,
-        Intent(applicationContext, ScreenRecorderService::class.java).apply {
-            action = Actions.SHOW_NOTIFICATION.toString()
-        },
-        PendingIntent.FLAG_IMMUTABLE
-    )
-    private val stopRecordingIntent = PendingIntent.getService(
-        applicationContext,
-        2,
-        Intent(applicationContext, ScreenRecorderService::class.java).apply {
-            action = Actions.STOP.toString()
-        },
-        PendingIntent.FLAG_IMMUTABLE
-    )
-
-    private val notification = NotificationCompat.Builder(this, "screen_recording_channel")
-        .setSmallIcon(R.drawable.ic_launcher_foreground)
-        .setContentTitle("Screen recording...")
-        .setContentText("TikTokRecorder started screen recording.")
-        .setOngoing(true)
-        .setDeleteIntent(deleteIntent)
-        .addAction(
-            R.drawable.ic_launcher_foreground,
-            "Stop recording",
-            stopRecordingIntent
-        )
-        .build()
-
     override fun onBind(p0: Intent?): IBinder? = null
 
     override fun onStartCommand(intent: Intent, flags: Int, startId: Int): Int {
+
+        val deleteIntent = PendingIntent.getService(
+            applicationContext,
+            1,
+            Intent(applicationContext, ScreenRecorderService::class.java).apply {
+                action = Actions.SHOW_NOTIFICATION.toString()
+            },
+            PendingIntent.FLAG_IMMUTABLE
+        )
+        val stopRecordingIntent = PendingIntent.getService(
+            applicationContext,
+            2,
+            Intent(applicationContext, ScreenRecorderService::class.java).apply {
+                action = Actions.STOP.toString()
+            },
+            PendingIntent.FLAG_IMMUTABLE
+        )
+
+        val notification = NotificationCompat.Builder(this, "screen_recording_channel")
+            .setSmallIcon(R.drawable.ic_launcher_foreground)
+            .setContentTitle("Screen recording...")
+            .setContentText("TikTokRecorder started screen recording.")
+            .setOngoing(true)
+            .setDeleteIntent(deleteIntent)
+            .addAction(
+                R.drawable.ic_launcher_foreground,
+                "Stop recording",
+                stopRecordingIntent
+            )
+            .build()
 
         when (intent.action) {
             Actions.START.toString() -> {

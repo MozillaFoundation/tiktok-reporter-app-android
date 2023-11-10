@@ -64,12 +64,12 @@ fun ReportFormScreen(
         onResult = { result ->
 
             if (result.resultCode == ComponentActivity.RESULT_OK) {
-                val intent = Intent(context.applicationContext, ScreenRecorderService::class.java).also {
+                Intent(context.applicationContext, ScreenRecorderService::class.java).also {
                     it.action = ScreenRecorderService.Actions.START.toString()
                     it.putExtra("activityResult", result)
-                }
 
-                context.startService(intent)
+                    context.startService(it)
+                }
             }
         }
     )
@@ -151,12 +151,16 @@ fun ReportFormScreen(
                     } ?: mediaProjectionPermissionLauncher.launch(
                         context.getSystemService(MediaProjectionManager::class.java).createScreenCaptureIntent()
                     )
+
+                    viewModel.setIsRecording(true)
                 },
                 onStopRecording = {
                     Intent(context.applicationContext, ScreenRecorderService::class.java).also {
                         it.action = ScreenRecorderService.Actions.STOP.toString()
                         context.startService(it)
                     }
+
+                    viewModel.setIsRecording(false)
                 },
                 modifier = Modifier.fillMaxSize()
             )

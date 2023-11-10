@@ -39,6 +39,9 @@
             </intent-filter>
         </activity>
 
+        <service android:name=".ScreenRecorderService"
+            android:foregroundServiceType="mediaProjection"/>
+
     </application>
 
 </manifest>
