@@ -3,7 +3,9 @@ package org.mozilla.tiktokreporter.reportform
 import android.Manifest
 import android.content.Intent
 import android.media.projection.MediaProjectionManager
+import android.net.Uri
 import android.os.Build
+import android.provider.Settings
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -21,17 +23,13 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
-import com.google.accompanist.permissions.isGranted
+import com.google.accompanist.permissions.PermissionStatus
 import com.google.accompanist.permissions.rememberPermissionState
 import com.google.accompanist.permissions.shouldShowRationale
 import org.mozilla.tiktokreporter.ScreenRecorderService
@@ -69,7 +67,6 @@ fun ReportFormScreen(
                 val intent = Intent(context.applicationContext, ScreenRecorderService::class.java).also {
                     it.action = ScreenRecorderService.Actions.START.toString()
                     it.putExtra("activityResult", result)
-
                 }
 
                 context.startService(intent)
@@ -77,19 +74,14 @@ fun ReportFormScreen(
         }
     )
 
-    var userRequestedRecording by remember { mutableStateOf(false) }
     val notificationsPermissionState = rememberPermissionState(permission = Manifest.permission.POST_NOTIFICATIONS)
-    LaunchedEffect(
-        key1 = notificationsPermissionState.status,
-        key2 = userRequestedRecording,
-        block = {
-            if (userRequestedRecording && notificationsPermissionState.status.isGranted) {
-                mediaProjectionPermissionLauncher.launch(
-                    context.getSystemService(MediaProjectionManager::class.java).createScreenCaptureIntent()
-                )
-            }
+    val notificationsPermissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { wasGranted ->
+        if (wasGranted) {
+            mediaProjectionPermissionLauncher.launch(
+                context.getSystemService(MediaProjectionManager::class.java).createScreenCaptureIntent()
+            )
         }
-    )
+    }
 
     DialogContainer { dialogState ->
 
@@ -125,25 +117,36 @@ fun ReportFormScreen(
                 },
                 onGoToSettings = onGoToSettings,
                 onStartRecording = {
-                    userRequestedRecording = true
-
                     onSdkVersionAndUp(Build.VERSION_CODES.TIRAMISU) {
-                        if (notificationsPermissionState.status.isGranted) {
 
-                        } else if (notificationsPermissionState.status.shouldShowRationale) {
+                        when (notificationsPermissionState.status) {
+                            PermissionStatus.Granted -> {
+                                mediaProjectionPermissionLauncher.launch(
+                                    context.getSystemService(MediaProjectionManager::class.java).createScreenCaptureIntent()
+                                )
+                            }
 
-                            dialogState.value = DialogState.Message(
-                                title = "Notifications permission required",
-                                message = "Notification permission required",
-                                positiveButtonText = "Got it",
-                                onPositive = {
-                                    notificationsPermissionState.launchPermissionRequest()
-                                    dialogState.value = DialogState.Nothing
+                            else -> {
+                                if (notificationsPermissionState.status.shouldShowRationale) {
+                                    dialogState.value = DialogState.Message(
+                                        title = "Notifications permission required",
+                                        message = "Notification permission required",
+                                        positiveButtonText = "Got it",
+                                        onPositive = {
+                                            dialogState.value = DialogState.Nothing
+                                            val intent = Intent(
+                                                Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                                                Uri.fromParts("package", context.packageName, null)
+                                            )
+                                            context.startActivity(intent)
+                                        }
+                                    )
+                                } else {
+                                    notificationsPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
                                 }
-                            )
-                        } else {
-                            notificationsPermissionState.launchPermissionRequest()
+                            }
                         }
+
 
                     } ?: mediaProjectionPermissionLauncher.launch(
                         context.getSystemService(MediaProjectionManager::class.java).createScreenCaptureIntent()
