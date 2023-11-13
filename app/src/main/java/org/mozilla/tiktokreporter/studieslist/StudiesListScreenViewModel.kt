@@ -33,18 +33,17 @@ class StudiesListScreenViewModel @Inject constructor(
             if (studiesResult.isFailure)  {
                 // TODO: map error
                 _isLoading.update { false }
-                return@launch
-            }
-
-            val studies = studiesResult.getOrNull() ?: kotlin.run {
-                _isLoading.update { false }
                 _state.update {
                     it.copy(
-                        action = UiAction.ShowNoStudiesFound.toOneTimeEvent()
+                        action = UiAction.ShowMessage(
+                            studiesResult.exceptionOrNull()!!.message.orEmpty()
+                        ).toOneTimeEvent()
                     )
                 }
                 return@launch
             }
+
+            val studies = studiesResult.getOrNull().orEmpty()
 
             _isLoading.update { false }
             _state.update {
@@ -120,7 +119,9 @@ class StudiesListScreenViewModel @Inject constructor(
     )
 
     sealed class UiAction {
-        data object ShowNoStudiesFound : UiAction()
+        data class ShowMessage(
+            val message: String
+        ): UiAction()
         data object ShowChangeStudyWarning : UiAction()
         data object OnGoToStudyOnboarding : UiAction()
         data object OnGoToStudyTerms : UiAction()

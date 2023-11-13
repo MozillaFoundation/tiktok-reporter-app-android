@@ -9,4 +9,5 @@ object MozillaDimension {
     val M = 16.dp
     val L = 24.dp
     val XL = 32.dp
+    val XXL = 48.dp
 }
