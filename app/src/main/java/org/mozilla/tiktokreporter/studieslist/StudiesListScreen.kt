@@ -1,5 +1,6 @@
 package org.mozilla.tiktokreporter.studieslist
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -26,6 +27,8 @@ import androidx.constraintlayout.compose.Dimension
 import androidx.constraintlayout.compose.layoutId
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import org.mozilla.tiktokreporter.R
+import org.mozilla.tiktokreporter.common.ErrorContent
 import org.mozilla.tiktokreporter.data.model.StudyOverview
 import org.mozilla.tiktokreporter.ui.components.LoadingScreen
 import org.mozilla.tiktokreporter.ui.components.MozillaRadioButton
@@ -45,6 +48,8 @@ fun StudiesListScreen(
     isForOnboarding: Boolean = true,
     onGoToStudyOnboarding: () -> Unit,
     onGoToStudyTerms: () -> Unit,
+    onGoToEmail: () -> Unit,
+    onGoToReportForm: () -> Unit,
     onNavigateBack: () -> Unit
 ) {
     DialogContainer(
@@ -54,9 +59,24 @@ fun StudiesListScreen(
         val state by viewModel.state.collectAsStateWithLifecycle()
         val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
 
-        when (state.action?.get()) {
+        when (val action = state.action?.get()) {
             StudiesListScreenViewModel.UiAction.OnGoToStudyOnboarding -> onGoToStudyOnboarding()
             StudiesListScreenViewModel.UiAction.OnGoToStudyTerms -> onGoToStudyTerms()
+            StudiesListScreenViewModel.UiAction.OnGoToEmail -> onGoToEmail()
+            StudiesListScreenViewModel.UiAction.OnGoToReportForm -> onGoToReportForm()
+            is StudiesListScreenViewModel.UiAction.ShowMessage -> {
+                dialogState.value = DialogState.Message(
+                    title = "Alert",
+                    message = action.message,
+                    positiveButtonText = "Got it",
+                    onPositive = {
+                        dialogState.value = DialogState.Nothing
+                    },
+                    onDismissRequest = {
+                        dialogState.value = DialogState.Nothing
+                    }
+                )
+            }
             StudiesListScreenViewModel.UiAction.ShowChangeStudyWarning -> {
                 dialogState.value = DialogState.Message(
                     title = "Change study",
@@ -83,7 +103,6 @@ fun StudiesListScreen(
                     onDismissRequest = { dialogState.value = DialogState.Nothing }
                 )
             }
-
             else -> Unit
         }
 
@@ -116,6 +135,8 @@ private fun StudiesListScreenContent(
     onStudySelected: (Int) -> Unit,
     onSave: () -> Unit
 ) {
+    val showEmptyStudiesListContent = state.studies.isEmpty()
+
     MozillaScaffold(
         modifier = modifier,
         topBar = if (isForOnboarding) null else {
@@ -150,32 +171,46 @@ private fun StudiesListScreenContent(
                 verticalArrangement = Arrangement.spacedBy(MozillaDimension.L),
                 contentPadding = PaddingValues(top = MozillaDimension.L)
             ) {
-                item {
-                    Text(
-                        text = "Select a study to participate in",
-                        style = MozillaTypography.H3
-                    )
-                }
-                item {
-                    Text(
-                        text = "We may choose to run a few different studies simultaneously. These are the studies available to you based on the information you provided.",
-                        style = MozillaTypography.Body2
-                    )
-                }
-                itemsIndexed(state.studies) { index, study ->
-                    StudyEntry(
-                        studyOverview = study,
-                        onClick = { onStudySelected(index) },
-                        modifier = Modifier.fillParentMaxWidth()
-                    )
+                if (showEmptyStudiesListContent) {
+                    item {
+                        ErrorContent(
+                            modifier = Modifier
+                                .fillParentMaxSize(),
+                            drawable = R.drawable.meditation,
+                            title = "No studies available",
+                            message = "We are sorry to announce that there are no studies available for your location.\n\nCome back at a later date to check if any new study has been opened."
+                        )
+                    }
+                } else {
+                    item {
+                        Text(
+                            text = "Select a study to participate in",
+                            style = MozillaTypography.H3
+                        )
+                    }
+                    item {
+                        Text(
+                            text = "We may choose to run a few different studies simultaneously. These are the studies available to you based on the information you provided.",
+                            style = MozillaTypography.Body2
+                        )
+                    }
+                    itemsIndexed(state.studies) { index, study ->
+                        StudyEntry(
+                            studyOverview = study,
+                            onClick = { onStudySelected(index) },
+                            modifier = Modifier.fillParentMaxWidth()
+                        )
+                    }
                 }
             }
 
-            SecondaryButton(
-                modifier = Modifier.fillMaxWidth(),
-                text = "Next",
-                onClick = onSave
-            )
+            if (!showEmptyStudiesListContent) {
+                SecondaryButton(
+                    modifier = Modifier.fillMaxWidth(),
+                    text = "Next",
+                    onClick = onSave
+                )
+            }
         }
     }
 }
@@ -226,7 +261,8 @@ private fun StudyEntry(
         constraintSet = studyEntryConstraintSet()
     ) {
         MozillaRadioButton(
-            modifier = Modifier.layoutId("radioButton")
+            modifier = Modifier
+                .layoutId("radioButton")
                 .height(MozillaTypography.Body1.lineHeight.value.dp),
             selected = studyOverview.isSelected,
             onClick = onClick,

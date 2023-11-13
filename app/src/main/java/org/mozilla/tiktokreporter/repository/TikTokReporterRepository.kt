@@ -53,10 +53,14 @@ class TikTokReporterRepository @Inject constructor(
     suspend fun fetchStudies(): Result<List<StudyOverview>> {
         val remoteStudies = try {
             tikTokReporterService.getStudies()
-                .map {
-                    it.toStudyOverview(
-                        isSelected = it.id == selectedStudyId
-                    )
+                .mapIndexedNotNull { index, study ->
+                    val isSelected = if (selectedStudyId.isBlank()) index == 0 else study.id == selectedStudyId
+
+//                    study.formDTO?.let {
+                        study.toStudyOverview(
+                            isSelected = isSelected
+                        )
+//                    }
                 }
         } catch (e: Exception) {
             return Result.failure(e)

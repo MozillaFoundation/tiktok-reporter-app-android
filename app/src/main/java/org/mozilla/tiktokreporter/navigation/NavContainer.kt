@@ -1,11 +1,8 @@
 package org.mozilla.tiktokreporter.navigation
 
 import android.annotation.SuppressLint
-import android.util.Log
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
@@ -181,7 +178,10 @@ private fun NavGraphBuilder.addReportFormNested(
         ReportFormScreen(
             onGoToSettings = onGoToSettings,
             onGoToReportSubmittedScreen = onGoToReportSubmittedScreen,
-            onGoToStudies = onGoToStudies
+            onGoToStudies = onGoToStudies,
+            onGoBack = {
+                navController.navigateUp()
+            }
         )
     }
 }
@@ -360,6 +360,22 @@ private fun NavGraphBuilder.addStudies(
             popUpTo(0)
         }
     }
+    val onGoToEmail = {
+        val destination = NestedDestination.Email.createRoute(
+            root = Destination.Onboarding
+        )
+        navController.navigate(destination) {
+            popUpTo(0)
+        }
+    }
+    val onGoToReportForm = {
+        val destination = NestedDestination.ReportFormNested.createRoute(
+            root = Destination.ReportForm
+        )
+        navController.navigate(destination) {
+            popUpTo(0)
+        }
+    }
 
     composable(
         route = startDestination
@@ -367,6 +383,8 @@ private fun NavGraphBuilder.addStudies(
         StudiesListScreen(
             onGoToStudyOnboarding = onGoToStudyOnboarding,
             onGoToStudyTerms = onGoToStudyTerms,
+            onGoToEmail = onGoToEmail,
+            onGoToReportForm = onGoToReportForm,
             isForOnboarding = root is Destination.Onboarding,
             onNavigateBack = {
                 navController.navigateUp()

@@ -14,6 +14,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -185,7 +186,8 @@ private fun OnboardingStepInfo(
     LazyColumn(
         modifier = modifier,
         contentPadding = contentPadding,
-        verticalArrangement = Arrangement.spacedBy(MozillaDimension.S)
+        verticalArrangement = Arrangement.spacedBy(MozillaDimension.S),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
         title?.let {
             item {
@@ -218,7 +220,8 @@ private fun OnboardingStepInfo(
         imageUrl?.let {
             item {
                 AsyncImage(
-                    modifier = Modifier.padding(top = MozillaDimension.S),
+                    modifier = Modifier.fillParentMaxWidth(.6f)
+                        .padding(top = MozillaDimension.S),
                     model = ImageRequest.Builder(LocalContext.current)
                         .data(it)
                         .build(),

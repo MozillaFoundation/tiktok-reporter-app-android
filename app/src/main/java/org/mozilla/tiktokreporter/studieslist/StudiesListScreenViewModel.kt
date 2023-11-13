@@ -33,18 +33,17 @@ class StudiesListScreenViewModel @Inject constructor(
             if (studiesResult.isFailure)  {
                 // TODO: map error
                 _isLoading.update { false }
-                return@launch
-            }
-
-            val studies = studiesResult.getOrNull() ?: kotlin.run {
-                _isLoading.update { false }
                 _state.update {
                     it.copy(
-                        action = UiAction.ShowNoStudiesFound.toOneTimeEvent()
+                        action = UiAction.ShowMessage(
+                            studiesResult.exceptionOrNull()!!.message.orEmpty()
+                        ).toOneTimeEvent()
                     )
                 }
                 return@launch
             }
+
+            val studies = studiesResult.getOrNull().orEmpty()
 
             _isLoading.update { false }
             _state.update {
@@ -106,7 +105,9 @@ class StudiesListScreenViewModel @Inject constructor(
             _state.update {
                 it.copy(
                     action = if (selectedStudy.hasPolicies) UiAction.OnGoToStudyTerms.toOneTimeEvent()
-                        else UiAction.OnGoToStudyOnboarding.toOneTimeEvent()
+                        else if (selectedStudy.hasOnboarding) UiAction.OnGoToStudyOnboarding.toOneTimeEvent()
+                        else if (selectedStudy.hasEmailForm) UiAction.OnGoToEmail.toOneTimeEvent()
+                        else UiAction.OnGoToReportForm.toOneTimeEvent()
                 )
             }
         }
@@ -118,10 +119,14 @@ class StudiesListScreenViewModel @Inject constructor(
     )
 
     sealed class UiAction {
-        data object ShowNoStudiesFound : UiAction()
+        data class ShowMessage(
+            val message: String
+        ): UiAction()
         data object ShowChangeStudyWarning : UiAction()
         data object OnGoToStudyOnboarding : UiAction()
         data object OnGoToStudyTerms : UiAction()
+        data object OnGoToEmail : UiAction()
+        data object OnGoToReportForm : UiAction()
         data object OnNoStudySelected : UiAction()
     }
 }

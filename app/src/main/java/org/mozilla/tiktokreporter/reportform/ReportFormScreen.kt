@@ -1,5 +1,14 @@
 package org.mozilla.tiktokreporter.reportform
 
+import android.Manifest
+import android.content.Intent
+import android.media.projection.MediaProjectionManager
+import android.net.Uri
+import android.os.Build
+import android.provider.Settings
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -16,8 +25,14 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.PermissionStatus
+import com.google.accompanist.permissions.rememberPermissionState
+import com.google.accompanist.permissions.shouldShowRationale
+import org.mozilla.tiktokreporter.ScreenRecorderService
 import org.mozilla.tiktokreporter.common.TabModelType
 import org.mozilla.tiktokreporter.common.formcomponents.formComponentsItems
 import org.mozilla.tiktokreporter.ui.components.LoadingScreen
@@ -32,14 +47,42 @@ import org.mozilla.tiktokreporter.ui.components.dialog.DialogState
 import org.mozilla.tiktokreporter.ui.theme.MozillaColor
 import org.mozilla.tiktokreporter.ui.theme.MozillaDimension
 import org.mozilla.tiktokreporter.ui.theme.MozillaTypography
+import org.mozilla.tiktokreporter.util.onSdkVersionAndUp
 
+@OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun ReportFormScreen(
     viewModel: ReportFormScreenViewModel = hiltViewModel(),
     onGoToReportSubmittedScreen: () -> Unit,
     onGoToSettings: () -> Unit,
     onGoToStudies: () -> Unit,
+    onGoBack: () -> Unit
 ) {
+    val context = LocalContext.current
+    val mediaProjectionPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult(),
+        onResult = { result ->
+
+            if (result.resultCode == ComponentActivity.RESULT_OK) {
+                Intent(context.applicationContext, ScreenRecorderService::class.java).also {
+                    it.action = ScreenRecorderService.Actions.START.toString()
+                    it.putExtra("activityResult", result)
+
+                    context.startService(it)
+                }
+            }
+        }
+    )
+
+    val notificationsPermissionState = rememberPermissionState(permission = Manifest.permission.POST_NOTIFICATIONS)
+    val notificationsPermissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { wasGranted ->
+        if (wasGranted) {
+            mediaProjectionPermissionLauncher.launch(
+                context.getSystemService(MediaProjectionManager::class.java).createScreenCaptureIntent()
+            )
+        }
+    }
+
     DialogContainer { dialogState ->
 
         val state by viewModel.state.collectAsStateWithLifecycle()
@@ -74,7 +117,50 @@ fun ReportFormScreen(
                 },
                 onGoToSettings = onGoToSettings,
                 onStartRecording = {
+                    onSdkVersionAndUp(Build.VERSION_CODES.TIRAMISU) {
 
+                        when (notificationsPermissionState.status) {
+                            PermissionStatus.Granted -> {
+                                mediaProjectionPermissionLauncher.launch(
+                                    context.getSystemService(MediaProjectionManager::class.java).createScreenCaptureIntent()
+                                )
+                            }
+
+                            else -> {
+                                if (notificationsPermissionState.status.shouldShowRationale) {
+                                    dialogState.value = DialogState.Message(
+                                        title = "Notifications permission required",
+                                        message = "Notification permission required",
+                                        positiveButtonText = "Got it",
+                                        onPositive = {
+                                            dialogState.value = DialogState.Nothing
+                                            val intent = Intent(
+                                                Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                                                Uri.fromParts("package", context.packageName, null)
+                                            )
+                                            context.startActivity(intent)
+                                        }
+                                    )
+                                } else {
+                                    notificationsPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                                }
+                            }
+                        }
+
+
+                    } ?: mediaProjectionPermissionLauncher.launch(
+                        context.getSystemService(MediaProjectionManager::class.java).createScreenCaptureIntent()
+                    )
+
+                    viewModel.setIsRecording(true)
+                },
+                onStopRecording = {
+                    Intent(context.applicationContext, ScreenRecorderService::class.java).also {
+                        it.action = ScreenRecorderService.Actions.STOP.toString()
+                        context.startService(it)
+                    }
+
+                    viewModel.setIsRecording(false)
                 },
                 modifier = Modifier.fillMaxSize()
             )
@@ -88,9 +174,7 @@ fun ReportFormScreen(
                     positiveButtonText = "Settings",
                     onPositive = onGoToStudies,
                     negativeButtonText = "Not now",
-                    onNegative = {
-
-                    },
+                    onNegative = onGoBack,
                     onDismissRequest = { dialogState.value = DialogState.Nothing }
                 )
             }
@@ -110,6 +194,7 @@ private fun ReportFormScreenContent(
     onCancelReport: () -> Unit,
     onGoToSettings: () -> Unit,
     onStartRecording: () -> Unit,
+    onStopRecording: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     MozillaScaffold(
@@ -130,7 +215,8 @@ private fun ReportFormScreenContent(
         }
     ) { innerPadding ->
         Column(
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier
+                .fillMaxSize()
                 .padding(innerPadding)
         ) {
             LazyColumn(
@@ -153,28 +239,34 @@ private fun ReportFormScreenContent(
                                 }
                             },
                             onTabSelected = onTabSelected,
-                            selectedTabIndex = state.selectedTabIndex
+                            selectedTabIndex = state.selectedTab?.second ?: 0
                         )
                     }
 
-                    if (state.selectedTabIndex == 0) {
-                        formComponentsItems(
-                            formFields = state.formFields,
-                            onFormFieldValueChanged = onFormFieldValueChanged
-                        )
-                    } else {
-                        recordSessionItems(
-                            isRecording = state.isRecording,
-                            comments = state.recordSessionComments,
-                            onCommentsChanged = onRecordSessionCommentsChanged,
-                            onStartRecording = onStartRecording
-                        )
+                    when(state.selectedTab?.first) {
+                        TabModelType.ReportLink -> {
+                            formComponentsItems(
+                                formFields = state.formFields,
+                                onFormFieldValueChanged = onFormFieldValueChanged
+                            )
+                        }
+                        TabModelType.RecordSession -> {
+                            recordSessionItems(
+                                isRecording = state.isRecording,
+                                comments = state.recordSessionComments,
+                                onCommentsChanged = onRecordSessionCommentsChanged,
+                                onStartRecording = onStartRecording,
+                                onStopRecording = onStopRecording
+                            )
+                        }
+                        null -> Unit
                     }
                 }
             )
 
             FormButtons(
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier
+                    .fillMaxWidth()
                     .padding(
                         horizontal = MozillaDimension.M,
                         vertical = MozillaDimension.L
@@ -191,7 +283,8 @@ private fun LazyListScope.recordSessionItems(
     isRecording: Boolean,
     comments: String,
     onCommentsChanged: (String) -> Unit,
-    onStartRecording: () -> Unit
+    onStartRecording: () -> Unit,
+    onStopRecording: () -> Unit,
 ) {
     item {
         Text(
@@ -206,7 +299,7 @@ private fun LazyListScope.recordSessionItems(
             SecondaryButton(
                 modifier = Modifier.fillParentMaxWidth(),
                 text = if (isRecording) "Stop Recording" else "Record My TikTok Session",
-                onClick = onStartRecording
+                onClick = if (isRecording) onStopRecording else onStartRecording
             )
         }
     } else {

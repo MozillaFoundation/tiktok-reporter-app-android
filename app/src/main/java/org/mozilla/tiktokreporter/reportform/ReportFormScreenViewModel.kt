@@ -64,22 +64,12 @@ class ReportFormScreenViewModel @Inject constructor(
                 return@launch
             }
 
-            val studyForm = study.form ?: kotlin.run {
-                _isLoading.update { false }
-                _state.update {
-                    it.copy(
-                        action = UiAction.ShowNoFormFound.toOneTimeEvent()
-                    )
-                }
-                return@launch
-            }
-
             tikTokReporterRepository.tikTokUrl
                 .onSubscription { emit(null) }
                 .collect { tikTokUrl ->
                     _isLoading.update { false }
 
-                    val fields = studyForm.fields.toUiComponents().toMutableList().apply {
+                    val fields = study.form?.fields.orEmpty().toUiComponents().toMutableList().apply {
                         if (tikTokUrl != null) {
                             val index = this.indexOfFirst { it is FormFieldUiComponent.TextField }
                             val field = this[index] as FormFieldUiComponent.TextField
@@ -91,14 +81,18 @@ class ReportFormScreenViewModel @Inject constructor(
                     }
                     initialFormFields = fields
 
+                    val tabs = buildList {
+                        if (fields.isNotEmpty()) {
+                            add(TabModelType.ReportLink)
+                        }
+                        if (study.supportsRecording) {
+                            add(TabModelType.RecordSession)
+                        }
+                    }
                     _state.update { state ->
                         state.copy(
-                            tabs = buildList {
-                                add(TabModelType.ReportLink)
-                                if (study.supportsRecording) {
-                                    add(TabModelType.RecordSession)
-                                }
-                            },
+                            tabs = tabs,
+                            selectedTab = tabs.firstOrNull()?.to(0),
                             formFields = fields,
                             action = null
                         )
@@ -108,6 +102,16 @@ class ReportFormScreenViewModel @Inject constructor(
 
         viewModelScope.launch {
             tikTokReporterRepository.setOnboardingCompleted(true)
+        }
+    }
+
+    fun onTabSelected(tabIndex: Int) {
+        viewModelScope.launch(Dispatchers.Unconfined) {
+            _state.update {
+                it.copy(
+                    selectedTab = it.tabs.getOrNull(tabIndex)?.to(tabIndex)
+                )
+            }
         }
     }
 
@@ -155,16 +159,6 @@ class ReportFormScreenViewModel @Inject constructor(
             _state.update {
                 it.copy(
                     formFields = newFields
-                )
-            }
-        }
-    }
-
-    fun onTabSelected(tabIndex: Int) {
-        viewModelScope.launch(Dispatchers.Unconfined) {
-            _state.update {
-                it.copy(
-                    selectedTabIndex = tabIndex
                 )
             }
         }
@@ -290,9 +284,21 @@ class ReportFormScreenViewModel @Inject constructor(
         }
     }
 
+    fun setIsRecording(
+        isRecording: Boolean
+    ) {
+        viewModelScope.launch {
+            _state.update {
+                it.copy(
+                    isRecording = isRecording
+                )
+            }
+        }
+    }
+
     data class State(
         val tabs: List<TabModelType> = emptyList(),
-        val selectedTabIndex: Int = 0,
+        val selectedTab: Pair<TabModelType, Int>? = null,
         val formFields: List<FormFieldUiComponent<*>> = listOf(),
         val isRecording: Boolean = false,
         val recordSessionComments: String = "",
@@ -300,7 +306,6 @@ class ReportFormScreenViewModel @Inject constructor(
     )
 
     sealed class UiAction {
-        data object ShowNoFormFound : UiAction()
         data object GoToReportSubmittedScreen : UiAction()
         data object ShowFetchStudyError : UiAction()
         data object ShowStudyNotActive : UiAction()
