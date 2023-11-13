@@ -14,6 +14,7 @@ data class PolicyDTO(
     @Json(name = "createdAt") val createdAt: LocalDateTime,
     @Json(name = "updatedAt") val updatedAt: LocalDateTime
 ) {
+    @JsonClass(generateAdapter = false)
     enum class Type {
         PrivacyPolicy,
         TermsOfService
