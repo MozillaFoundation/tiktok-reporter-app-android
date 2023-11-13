@@ -239,23 +239,27 @@ private fun ReportFormScreenContent(
                                 }
                             },
                             onTabSelected = onTabSelected,
-                            selectedTabIndex = state.selectedTabIndex
+                            selectedTabIndex = state.selectedTab?.second ?: 0
                         )
                     }
 
-                    if (state.selectedTabIndex == 0) {
-                        formComponentsItems(
-                            formFields = state.formFields,
-                            onFormFieldValueChanged = onFormFieldValueChanged
-                        )
-                    } else {
-                        recordSessionItems(
-                            isRecording = state.isRecording,
-                            comments = state.recordSessionComments,
-                            onCommentsChanged = onRecordSessionCommentsChanged,
-                            onStartRecording = onStartRecording,
-                            onStopRecording = onStopRecording
-                        )
+                    when(state.selectedTab?.first) {
+                        TabModelType.ReportLink -> {
+                            formComponentsItems(
+                                formFields = state.formFields,
+                                onFormFieldValueChanged = onFormFieldValueChanged
+                            )
+                        }
+                        TabModelType.RecordSession -> {
+                            recordSessionItems(
+                                isRecording = state.isRecording,
+                                comments = state.recordSessionComments,
+                                onCommentsChanged = onRecordSessionCommentsChanged,
+                                onStartRecording = onStartRecording,
+                                onStopRecording = onStopRecording
+                            )
+                        }
+                        null -> Unit
                     }
                 }
             )
