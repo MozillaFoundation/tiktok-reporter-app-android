@@ -75,7 +75,8 @@ private fun NavGraphBuilder.addSplashScreen(
         } else {
             NestedDestination.AppPolicy.createRouteWithArguments(
                 root = Destination.Onboarding,
-                type = NestedDestination.AppPolicy.Type.TermsAndConditions
+                type = NestedDestination.AppPolicy.Type.TermsAndConditions,
+                isForOnboarding = true
             )
         }
 
@@ -257,7 +258,7 @@ private fun NavGraphBuilder.addSettingsNested(
         navController.navigate(destination)
     }
     val onGoToAppPolicy: (NestedDestination.AppPolicy.Type) -> Unit = { type ->
-        val destination = NestedDestination.AppPolicy.createRouteWithArguments(Destination.Settings, type)
+        val destination = NestedDestination.AppPolicy.createRouteWithArguments(Destination.Settings, type, false)
         navController.navigate(destination)
     }
     val onGoToDataHandling = {
@@ -354,7 +355,8 @@ private fun NavGraphBuilder.addStudies(
     val onGoToStudyTerms = {
         val destination = NestedDestination.AppPolicy.createRouteWithArguments(
             root = Destination.Onboarding,
-            type = NestedDestination.AppPolicy.Type.Study
+            type = NestedDestination.AppPolicy.Type.Study,
+            isForOnboarding = true
         )
         navController.navigate(destination) {
             popUpTo(0)

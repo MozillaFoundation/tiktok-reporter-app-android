@@ -31,13 +31,14 @@ class AppPolicyScreenViewModel @Inject constructor(
     private var policyType = NestedDestination.AppPolicy.Type.TermsAndConditions
 
     init {
+        val isForOnboarding = savedStateHandle.get<Boolean>("isForOnboarding") ?: true
         val type = savedStateHandle.get<String>("type").orEmpty()
         policyType = NestedDestination.AppPolicy.Type.valueOf(type)
 
         viewModelScope.launch(Dispatchers.Unconfined) {
             _isLoading.update { true }
 
-            val policies = if (policyType == NestedDestination.AppPolicy.Type.Study) {
+            val policies = if (policyType == NestedDestination.AppPolicy.Type.Study || !isForOnboarding) {
                 val selectedStudy = tikTokReporterRepository.getSelectedStudy()
 
                 if (selectedStudy.isFailure) {

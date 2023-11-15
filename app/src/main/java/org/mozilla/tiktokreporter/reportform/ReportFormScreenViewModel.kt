@@ -1,15 +1,30 @@
 package org.mozilla.tiktokreporter.reportform
 
+import android.content.Context
+import android.graphics.Bitmap
+import android.media.MediaMetadataRetriever
+import android.media.ThumbnailUtils
+import android.os.Build
+import android.os.CancellationSignal
+import android.provider.MediaStore
+import android.util.Size
+import androidx.core.net.toUri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onSubscription
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.mozilla.tiktokreporter.common.FormFieldError
 import org.mozilla.tiktokreporter.common.TabModelType
 import org.mozilla.tiktokreporter.common.FormFieldUiComponent
@@ -17,13 +32,21 @@ import org.mozilla.tiktokreporter.common.OTHER_CATEGORY_TEXT_FIELD_ID
 import org.mozilla.tiktokreporter.common.OTHER_DROP_DOWN_OPTION_ID
 import org.mozilla.tiktokreporter.common.toUiComponents
 import org.mozilla.tiktokreporter.repository.TikTokReporterRepository
-import org.mozilla.tiktokreporter.util.OneTimeEvent
-import org.mozilla.tiktokreporter.util.toOneTimeEvent
+import org.mozilla.tiktokreporter.util.Common
+import org.mozilla.tiktokreporter.util.dataStore
+import org.mozilla.tiktokreporter.util.millisToMinSecString
+import org.mozilla.tiktokreporter.util.onSdkVersionAndUp
+import org.mozilla.tiktokreporter.util.toDateString
+import org.mozilla.tiktokreporter.util.toTimeString
+import java.time.Instant
+import java.time.LocalDateTime
+import java.time.ZoneId
 import javax.inject.Inject
 
 @HiltViewModel
 class ReportFormScreenViewModel @Inject constructor(
-    private val tikTokReporterRepository: TikTokReporterRepository
+    private val tikTokReporterRepository: TikTokReporterRepository,
+    @ApplicationContext context: Context
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(State())
@@ -32,9 +55,18 @@ class ReportFormScreenViewModel @Inject constructor(
     private val _isLoading = MutableStateFlow(false)
     val isLoading = _isLoading.asStateFlow()
 
+    private val _uiAction = Channel<UiAction>()
+    val uiAction = _uiAction.receiveAsFlow()
+
     private var initialFormFields = listOf<FormFieldUiComponent<*>>()
 
+    private val mediaMetadataRetriever = MediaMetadataRetriever()
+
     init {
+        viewModelScope.launch {
+            tikTokReporterRepository.setOnboardingCompleted(true)
+        }
+
         viewModelScope.launch {
             _isLoading.update { true }
 
@@ -47,38 +79,22 @@ class ReportFormScreenViewModel @Inject constructor(
 
             val study = studyResult.getOrNull() ?: kotlin.run {
                 _isLoading.update { false }
-                _state.update {
-                    it.copy(
-                        action = UiAction.ShowFetchStudyError.toOneTimeEvent()
-                    )
-                }
+                _uiAction.send(UiAction.ShowFetchStudyError)
                 return@launch
             }
             if (!study.isActive) {
                 tikTokReporterRepository.setOnboardingCompleted(false)
-                _state.update {
-                    it.copy(
-                        action = UiAction.ShowStudyNotActive.toOneTimeEvent()
-                    )
-                }
+                _uiAction.send(UiAction.ShowStudyNotActive)
                 return@launch
             }
+
 
             tikTokReporterRepository.tikTokUrl
                 .onSubscription { emit(null) }
                 .collect { tikTokUrl ->
                     _isLoading.update { false }
 
-                    val fields = study.form?.fields.orEmpty().toUiComponents().toMutableList().apply {
-                        if (tikTokUrl != null) {
-                            val index = this.indexOfFirst { it is FormFieldUiComponent.TextField }
-                            val field = this[index] as FormFieldUiComponent.TextField
-                            this[index] = field.copy(
-                                readOnly = true,
-                                value = tikTokUrl
-                            )
-                        }
-                    }
+                    val fields = study.form?.fields.orEmpty().toUiComponents(tikTokUrl)
                     initialFormFields = fields
 
                     val tabs = buildList {
@@ -89,19 +105,82 @@ class ReportFormScreenViewModel @Inject constructor(
                             add(TabModelType.RecordSession)
                         }
                     }
+
                     _state.update { state ->
                         state.copy(
                             tabs = tabs,
                             selectedTab = tabs.firstOrNull()?.to(0),
                             formFields = fields,
-                            action = null
                         )
                     }
                 }
         }
 
         viewModelScope.launch {
-            tikTokReporterRepository.setOnboardingCompleted(true)
+            context.dataStore.data.map {
+                it[Common.VIDEO_URI_PREFERENCE_KEY]
+            }
+                .filterNotNull()
+                .collect { videoUriString ->
+                    val videoUri = videoUriString.toUri()
+
+                    var duration: Long
+                    lateinit var name: String
+                    lateinit var localDateTime: LocalDateTime
+                    withContext(Dispatchers.IO) {
+                        mediaMetadataRetriever.setDataSource(context, videoUri)
+                        duration = mediaMetadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)?.toLong() ?: 0L // ms
+
+                        context.contentResolver.query(
+                            videoUri,
+                            arrayOf(
+                                MediaStore.Video.Media.TITLE,
+                                MediaStore.Video.Media.DURATION,
+                                MediaStore.Video.Media.DATE_ADDED
+                            ),
+                            null,
+                            null
+                        )?.use {  cursor ->
+                            val titleColumn = cursor.getColumnIndex(MediaStore.Video.Media.TITLE)
+                            val dateColumn = cursor.getColumnIndex(MediaStore.Video.Media.DATE_ADDED)
+                            if (cursor.moveToFirst()) {
+                                name = cursor.getString(titleColumn)
+
+                                val date = cursor.getLong(dateColumn)
+                                val instant = Instant.ofEpochSecond(date)
+                                localDateTime = instant.atZone(ZoneId.systemDefault()).toLocalDateTime()
+                            }
+                        }
+                    }
+
+                    val thumbnail = onSdkVersionAndUp(Build.VERSION_CODES.Q) {
+                        context.contentResolver.loadThumbnail(videoUri, Size(96, 96), CancellationSignal())
+                    } ?: ThumbnailUtils.createVideoThumbnail(videoUri.path ?: "", MediaStore.Video.Thumbnails.MINI_KIND)
+
+                    _state.update { state ->
+                        state.copy(
+                            video = VideoModel(
+                                name = name,
+                                duration = duration.millisToMinSecString(),
+                                date = localDateTime.toDateString(),
+                                time = localDateTime.toTimeString(),
+                                thumbnail = thumbnail
+                            )
+                        )
+                    }
+                }
+        }
+
+        viewModelScope.launch {
+            context.dataStore.data.map {
+                it[Common.IS_RECORDING_PREFERENCE_KEY] ?: false
+            }.collect { isRecording ->
+                _state.update { state ->
+                    state.copy(
+                        isRecording = isRecording
+                    )
+                }
+            }
         }
     }
 
@@ -177,49 +256,63 @@ class ReportFormScreenViewModel @Inject constructor(
     fun onSubmitReport() {
         viewModelScope.launch(Dispatchers.Unconfined) {
 
-            _state.update {
-                it.copy(
-                    formFields = state.value.formFields.map { field ->
-                        when (field) {
-                            is FormFieldUiComponent.TextField -> field.copy(error = null)
-                            is FormFieldUiComponent.DropDown -> field.copy(error = null)
-                            is FormFieldUiComponent.Slider -> field.copy(error = null)
-                        }
+            when(state.value.selectedTab?.first) {
+                TabModelType.ReportLink -> {
+                    _state.update {
+                        it.copy(
+                            formFields = state.value.formFields.map { field ->
+                                when (field) {
+                                    is FormFieldUiComponent.TextField -> field.copy(error = null)
+                                    is FormFieldUiComponent.DropDown -> field.copy(error = null)
+                                    is FormFieldUiComponent.Slider -> field.copy(error = null)
+                                }
+                            }
+                        )
                     }
-                )
-            }
 
-            val errors: Map<Int, FormFieldError> = getFormErrors()
-            if (errors.isNotEmpty()) {
-                // invalid form, update state
+                    val errors: Map<Int, FormFieldError> = getFormErrors()
+                    if (errors.isNotEmpty()) {
+                        // invalid form, update state
 
-                val newFields = state.value.formFields.toMutableList()
-                newFields.apply {
-                    errors.forEach { (fieldIndex, error) ->
-                        val newField = when (val field = this[fieldIndex]) {
-                            is FormFieldUiComponent.TextField -> field.copy(error = error)
-                            is FormFieldUiComponent.DropDown -> field.copy(error = error)
-                            is FormFieldUiComponent.Slider -> field.copy(error = error)
+                        val newFields = state.value.formFields.toMutableList()
+                        newFields.apply {
+                            errors.forEach { (fieldIndex, error) ->
+                                val newField = when (val field = this[fieldIndex]) {
+                                    is FormFieldUiComponent.TextField -> field.copy(error = error)
+                                    is FormFieldUiComponent.DropDown -> field.copy(error = error)
+                                    is FormFieldUiComponent.Slider -> field.copy(error = error)
+                                }
+
+                                this[fieldIndex] = newField
+                            }
                         }
 
-                        this[fieldIndex] = newField
+                        _state.update {
+                            it.copy(
+                                formFields = newFields
+                            )
+                        }
+
+                        return@launch
                     }
                 }
+                TabModelType.RecordSession -> {
+                    val noVideoPresent = state.value.video == null
 
-                _state.update {
-                    it.copy(
-                        formFields = newFields
-                    )
+                    if (noVideoPresent) {
+                        _state.update { state ->
+                            state.copy(
+                                showSubmitNoVideoError = noVideoPresent
+                            )
+                        }
+
+                        return@launch
+                    }
                 }
-
-                return@launch
+                else -> Unit
             }
 
-            _state.update {
-                it.copy(
-                    action = UiAction.GoToReportSubmittedScreen.toOneTimeEvent()
-                )
-            }
+            _uiAction.send(UiAction.GoToReportSubmittedScreen)
         }
     }
 
@@ -278,19 +371,10 @@ class ReportFormScreenViewModel @Inject constructor(
         viewModelScope.launch {
             _state.update {
                 it.copy(
-                    formFields = initialFormFields
-                )
-            }
-        }
-    }
-
-    fun setIsRecording(
-        isRecording: Boolean
-    ) {
-        viewModelScope.launch {
-            _state.update {
-                it.copy(
-                    isRecording = isRecording
+                    formFields = initialFormFields,
+                    video = null,
+                    showSubmitNoVideoError = false,
+                    recordSessionComments = ""
                 )
             }
         }
@@ -302,7 +386,16 @@ class ReportFormScreenViewModel @Inject constructor(
         val formFields: List<FormFieldUiComponent<*>> = listOf(),
         val isRecording: Boolean = false,
         val recordSessionComments: String = "",
-        val action: OneTimeEvent<UiAction>? = null
+        val video: VideoModel? = null,
+        val showSubmitNoVideoError: Boolean = false
+    )
+
+    data class VideoModel(
+        val name: String,
+        val duration: String,
+        val date: String,
+        val time: String,
+        val thumbnail: Bitmap?
     )
 
     sealed class UiAction {

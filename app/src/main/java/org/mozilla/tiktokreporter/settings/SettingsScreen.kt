@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.KeyboardArrowRight
@@ -17,9 +18,12 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.mozilla.tiktokreporter.ui.components.MozillaScaffold
 import org.mozilla.tiktokreporter.ui.components.MozillaTopAppBar
 import org.mozilla.tiktokreporter.ui.theme.MozillaColor
@@ -28,6 +32,7 @@ import org.mozilla.tiktokreporter.ui.theme.MozillaTypography
 
 @Composable
 fun SettingsScreen(
+    viewModel: SettingsScreenViewModel = hiltViewModel(),
     onNavigateBack: () -> Unit,
     onGoToAppPurpose: () -> Unit,
     onGoToStudies: () -> Unit,
@@ -36,8 +41,12 @@ fun SettingsScreen(
     onGoToPrivacyPolicy: () -> Unit,
     onGoToDataHandling: () -> Unit,
 ) {
+
+    val state by viewModel.state.collectAsStateWithLifecycle()
+
     SettingsScreenContent(
         modifier = Modifier.fillMaxSize(),
+        entries = state.entries,
         onNavigateBack = onNavigateBack,
         onGoToAppPurpose = onGoToAppPurpose,
         onGoToStudies = onGoToStudies,
@@ -51,6 +60,7 @@ fun SettingsScreen(
 @Composable
 private fun SettingsScreenContent(
     modifier: Modifier = Modifier,
+    entries: List<SettingsScreenViewModel.SettingsEntry>,
     onNavigateBack: () -> Unit,
     onGoToAppPurpose: () -> Unit,
     onGoToStudies: () -> Unit,
@@ -97,47 +107,52 @@ private fun SettingsScreenContent(
                         style = MozillaTypography.H3
                     )
                 }
-                item {
-                    SettingEntry(
-                        modifier = Modifier.fillParentMaxWidth(),
-                        title = "ABOUT TIKTOK REPORTER",
-                        onClick = onGoToAppPurpose
-                    )
-                }
-                item {
-                    SettingEntry(
-                        modifier = Modifier.fillParentMaxWidth(),
-                        title = "STUDIES",
-                        onClick = onGoToStudies
-                    )
-                }
-                item {
-                    SettingEntry(
-                        modifier = Modifier.fillParentMaxWidth(),
-                        title = "EMAIL ADDRESS",
-                        onClick = onGoToEmail
-                    )
-                }
-                item {
-                    SettingEntry(
-                        modifier = Modifier.fillParentMaxWidth(),
-                        title = "TERMS & CONDITIONS",
-                        onClick = onGoToTermsAndConditions
-                    )
-                }
-                item {
-                    SettingEntry(
-                        modifier = Modifier.fillParentMaxWidth(),
-                        title = "PRIVACY POLICY",
-                        onClick = onGoToPrivacyPolicy
-                    )
-                }
-                item {
-                    SettingEntry(
-                        modifier = Modifier.fillParentMaxWidth(),
-                        title = "DATA HANDLING",
-                        onClick = onGoToDataHandling
-                    )
+
+                items(entries) { settingsEntry ->
+                    when (settingsEntry) {
+                        SettingsScreenViewModel.SettingsEntry.About -> {
+                            SettingEntry(
+                                modifier = Modifier.fillParentMaxWidth(),
+                                title = "ABOUT TIKTOK REPORTER",
+                                onClick = onGoToAppPurpose
+                            )
+                        }
+                        SettingsScreenViewModel.SettingsEntry.Studies -> {
+                            SettingEntry(
+                                modifier = Modifier.fillParentMaxWidth(),
+                                title = "STUDIES",
+                                onClick = onGoToStudies
+                            )
+                        }
+                        SettingsScreenViewModel.SettingsEntry.Email -> {
+                            SettingEntry(
+                                modifier = Modifier.fillParentMaxWidth(),
+                                title = "EMAIL ADDRESS",
+                                onClick = onGoToEmail
+                            )
+                        }
+                        SettingsScreenViewModel.SettingsEntry.Terms -> {
+                            SettingEntry(
+                                modifier = Modifier.fillParentMaxWidth(),
+                                title = "TERMS & CONDITIONS",
+                                onClick = onGoToTermsAndConditions
+                            )
+                        }
+                        SettingsScreenViewModel.SettingsEntry.Privacy -> {
+                            SettingEntry(
+                                modifier = Modifier.fillParentMaxWidth(),
+                                title = "PRIVACY POLICY",
+                                onClick = onGoToPrivacyPolicy
+                            )
+                        }
+                        SettingsScreenViewModel.SettingsEntry.DataHandling -> {
+                            SettingEntry(
+                                modifier = Modifier.fillParentMaxWidth(),
+                                title = "DATA HANDLING",
+                                onClick = onGoToDataHandling
+                            )
+                        }
+                    }
                 }
             }
         )

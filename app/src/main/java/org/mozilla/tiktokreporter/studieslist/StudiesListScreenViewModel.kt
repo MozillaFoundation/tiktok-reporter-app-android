@@ -104,7 +104,7 @@ class StudiesListScreenViewModel @Inject constructor(
             tikTokReporterRepository.selectStudy(selectedStudy.id)
             _state.update {
                 it.copy(
-                    action = if (selectedStudy.hasPolicies) UiAction.OnGoToStudyTerms.toOneTimeEvent()
+                    action = if (selectedStudy.hasTerms) UiAction.OnGoToStudyTerms.toOneTimeEvent()
                         else if (selectedStudy.hasOnboarding) UiAction.OnGoToStudyOnboarding.toOneTimeEvent()
                         else if (selectedStudy.hasEmailForm) UiAction.OnGoToEmail.toOneTimeEvent()
                         else UiAction.OnGoToReportForm.toOneTimeEvent()

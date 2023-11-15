@@ -56,11 +56,11 @@ class TikTokReporterRepository @Inject constructor(
                 .mapIndexedNotNull { index, study ->
                     val isSelected = if (selectedStudyId.isBlank()) index == 0 else study.id == selectedStudyId
 
-//                    study.formDTO?.let {
+                    study.formDTO?.let {
                         study.toStudyOverview(
                             isSelected = isSelected
                         )
-//                    }
+                    }
                 }
         } catch (e: Exception) {
             return Result.failure(e)

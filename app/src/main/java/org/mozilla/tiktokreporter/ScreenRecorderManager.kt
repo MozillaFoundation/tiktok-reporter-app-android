@@ -3,29 +3,30 @@ package org.mozilla.tiktokreporter
 import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
+import android.content.res.Configuration
 import android.hardware.display.DisplayManager
 import android.hardware.display.VirtualDisplay
+import android.media.CamcorderProfile
 import android.media.MediaRecorder
 import android.media.projection.MediaProjection
 import android.media.projection.MediaProjectionManager
+import android.net.Uri
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.provider.MediaStore
+import androidx.datastore.preferences.core.edit
 import dagger.hilt.android.qualifiers.ApplicationContext
+import org.mozilla.tiktokreporter.util.Common
+import org.mozilla.tiktokreporter.util.dataStore
 import org.mozilla.tiktokreporter.util.onSdkVersionAndUp
-import java.io.IOException
+import org.mozilla.tiktokreporter.util.videosCollection
 import javax.inject.Inject
-import javax.inject.Singleton
 
-@Singleton
+
 class ScreenRecorderManager @Inject constructor(
     @ApplicationContext private val context: Context
 ) {
-
-    private val displayMetrics = context.resources.displayMetrics
-    private val aspectRation =
-        displayMetrics.heightPixels.toDouble() / displayMetrics.widthPixels.toDouble()
 
     private var mediaProjectionManager: MediaProjectionManager =
         context.getSystemService(MediaProjectionManager::class.java)
@@ -33,29 +34,31 @@ class ScreenRecorderManager @Inject constructor(
     private var virtualDisplay: VirtualDisplay? = null
     private var mediaRecorder: MediaRecorder? = null
 
+    private var videoUri: Uri? = null
+
     private val mediaProjectionCallback = object : MediaProjection.Callback() {}
 
     private fun setupMediaProjectionAndRecorder(
         code: Int,
-        data: Intent
+        data: Intent,
+        recordingInfo: RecordingInfo
     ) {
         mediaProjection = mediaProjectionManager.getMediaProjection(code, data)
 
+        @Suppress("DEPRECATION")
         mediaRecorder = onSdkVersionAndUp(Build.VERSION_CODES.S) {
             MediaRecorder(context)
         } ?: MediaRecorder()
+
         mediaRecorder?.apply {
 
             setVideoSource(MediaRecorder.VideoSource.SURFACE)
 
             setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
             setVideoEncoder(MediaRecorder.VideoEncoder.H264)
-            setVideoSize(
-                720,
-                720.toDouble().times(aspectRation).toInt()
-            )
-            setVideoFrameRate(10) // default 30
-            setVideoEncodingBitRate(1080 * 10000)
+            setVideoSize(recordingInfo.width, recordingInfo.height)
+            setVideoFrameRate(recordingInfo.frameRate)
+            setVideoEncodingBitRate(8 * 1000 * 1000)
         }
 
         val currentTimeMillis = System.currentTimeMillis()
@@ -63,32 +66,29 @@ class ScreenRecorderManager @Inject constructor(
             put(MediaStore.Video.Media.TITLE, "TikTok Recording")
             put(MediaStore.Video.Media.DATE_ADDED, (currentTimeMillis / 1000).toInt())
             put(MediaStore.Video.Media.MIME_TYPE, "video/mp4")
-            put(MediaStore.Video.Media.DISPLAY_NAME, "$currentTimeMillis.mp4")
+            put(MediaStore.Video.Media.DISPLAY_NAME, "TikTok Recording_$currentTimeMillis.mp4")
         }
 
-        val videosCollection = onSdkVersionAndUp(Build.VERSION_CODES.Q) {
-            MediaStore.Video.Media.getContentUri(MediaStore.VOLUME_EXTERNAL)
-        } ?: MediaStore.Video.Media.EXTERNAL_CONTENT_URI
-        val videoUri = context.contentResolver.insert(videosCollection, contentValues)
+        videoUri = context.contentResolver.insert(videosCollection, contentValues) ?: return
 
-        videoUri ?: throw IOException("Couldn't create media store entry")
-
-        context.contentResolver.openFileDescriptor(videoUri, "w").use {
-            mediaRecorder?.apply {
-                setOutputFile(it?.fileDescriptor)
-                prepare()
+        context.contentResolver.openFileDescriptor(videoUri!!, "w").use {
+            it?.let {
+                mediaRecorder?.apply {
+                    setOutputFile(it.fileDescriptor)
+                    prepare()
+                }
             }
         }
 
         mediaProjection!!.registerCallback(mediaProjectionCallback, Handler(Looper.getMainLooper()))
     }
 
-    private fun setupVirtualDisplay() {
+    private fun setupVirtualDisplay(recordingInfo: RecordingInfo) {
         virtualDisplay = mediaProjection?.createVirtualDisplay(
             "ScreenCapture", /* name */
-            displayMetrics.widthPixels, /* width */
-            displayMetrics.heightPixels, /* height */
-            displayMetrics.densityDpi, /* density */
+            recordingInfo.width, /* width */
+            recordingInfo.height, /* height */
+            recordingInfo.density, /* density */
             DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR, /* flags */
             mediaRecorder?.surface, /* surface */
             null, /* callback */
@@ -100,21 +100,111 @@ class ScreenRecorderManager @Inject constructor(
         code: Int,
         data: Intent
     ) {
+        val recordingInfo = getRecordingInfo()
         if (mediaProjection == null || mediaRecorder == null)
-            setupMediaProjectionAndRecorder(code, data)
+            setupMediaProjectionAndRecorder(code, data, recordingInfo)
 
-        setupVirtualDisplay()
+        setupVirtualDisplay(recordingInfo)
         mediaRecorder?.start()
     }
 
-    fun stopRecording() {
+    suspend fun stopRecording() {
         mediaRecorder?.stop()
+        mediaRecorder?.reset()
         mediaRecorder?.release()
+
         mediaProjection?.stop()
         virtualDisplay?.release()
 
         mediaRecorder = null
         mediaProjection = null
         virtualDisplay = null
+
+        context.dataStore.edit {
+            it[Common.VIDEO_URI_PREFERENCE_KEY] = videoUri.toString()
+        }
+        videoUri = null
     }
+
+    private fun getRecordingInfo(): RecordingInfo {
+        val displayMetrics = context.resources.displayMetrics
+        val displayWidth = displayMetrics.widthPixels
+        val displayHeight = displayMetrics.heightPixels
+        val displayDensity = displayMetrics.densityDpi
+
+        val configuration = context.resources.configuration
+        val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+
+        val camcorderProfile = CamcorderProfile.get(CamcorderProfile.QUALITY_HIGH)  // TODO: check warning
+
+        val cameraWidth = camcorderProfile?.videoFrameWidth ?: -1
+        val cameraHeight = camcorderProfile?.videoFrameHeight ?: -1
+        val cameraFrameRate = camcorderProfile?.videoFrameRate ?: 30
+
+        return calculateRecordingInfo(
+            displayWidth = displayWidth,
+            displayHeight = displayHeight,
+            displayDensity = displayDensity,
+            isLandscape = isLandscape,
+            cameraWidth = cameraWidth,
+            cameraHeight = cameraHeight,
+            cameraFrameRate = cameraFrameRate
+        )
+    }
+
+    private fun calculateRecordingInfo(
+        displayWidth: Int,
+        displayHeight: Int,
+        displayDensity: Int,
+        isLandscape: Boolean,
+        cameraWidth: Int,
+        cameraHeight: Int,
+        cameraFrameRate: Int,
+        sizePercentage: Int = 100
+    ): RecordingInfo {
+        val actualDisplayWidth = displayWidth * sizePercentage / 100
+        val actualDisplayHeight = displayHeight * sizePercentage / 100
+
+        if (cameraWidth == -1 && cameraHeight == -1) {
+            return RecordingInfo(
+                width = actualDisplayWidth,
+                height = actualDisplayHeight,
+                frameRate = cameraFrameRate,
+                density = displayDensity
+            )
+        }
+
+        var frameWidth = if (isLandscape) cameraWidth else cameraHeight
+        var frameHeight = if (isLandscape) cameraHeight else cameraWidth
+
+        if (frameWidth >= actualDisplayWidth && frameHeight >= actualDisplayHeight) {
+            // Frame can hold the entire display. Use exact values.
+            return RecordingInfo(
+                width = actualDisplayWidth,
+                height = actualDisplayHeight,
+                frameRate = cameraFrameRate,
+                density = displayDensity
+            )
+        }
+
+        if (isLandscape) {
+            frameWidth = actualDisplayWidth * frameHeight / actualDisplayHeight
+        } else {
+            frameHeight = actualDisplayHeight * frameWidth / actualDisplayWidth
+        }
+
+        return RecordingInfo(
+            width = frameWidth,
+            height = frameHeight,
+            frameRate = cameraFrameRate,
+            density = displayDensity
+        )
+    }
+
+    private data class RecordingInfo(
+        val width: Int,
+        val height: Int,
+        val frameRate: Int,
+        val density: Int,
+    )
 }
