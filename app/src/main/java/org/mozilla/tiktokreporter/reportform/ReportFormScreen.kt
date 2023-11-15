@@ -299,6 +299,7 @@ private fun ReportFormScreenContent(
                             recordSessionItems(
                                 isRecording = state.isRecording,
                                 video = state.video,
+                                showSubmitNoVideoError = state.showSubmitNoVideoError,
                                 comments = state.recordSessionComments,
                                 onCommentsChanged = onRecordSessionCommentsChanged,
                                 onStartRecording = onStartRecording,
@@ -326,6 +327,7 @@ private fun ReportFormScreenContent(
 
 private fun LazyListScope.recordSessionItems(
     isRecording: Boolean,
+    showSubmitNoVideoError: Boolean,
     video: ReportFormScreenViewModel.VideoModel?,
     comments: String,
     onCommentsChanged: (String) -> Unit,
@@ -335,7 +337,10 @@ private fun LazyListScope.recordSessionItems(
     item {
         Text(
             modifier = Modifier.fillParentMaxWidth(),
-            text = "Start recording a TikTok session by pressing the button below and then go and browse TikTok. Once the recording is stopped you can submit this form.",
+            text = when {
+                video == null -> "Start recording a TikTok session by pressing the button below and then go and browse TikTok. Once the recording is stopped you can submit this form."
+                else -> "You’ve recorded a TikTok session. Fill out some information then submit the form."
+            },
             style = MozillaTypography.Body2
         )
     }
@@ -368,6 +373,16 @@ private fun LazyListScope.recordSessionItems(
                     video = video!!
                 )
             }
+        }
+    }
+
+    if (showSubmitNoVideoError) {
+        item {
+            Text(
+                text = "Create a recording in order to submit the report",
+                style = MozillaTypography.Body2,
+                color = MozillaColor.Error
+            )
         }
     }
 

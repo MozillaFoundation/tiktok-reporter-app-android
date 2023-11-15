@@ -256,44 +256,60 @@ class ReportFormScreenViewModel @Inject constructor(
     fun onSubmitReport() {
         viewModelScope.launch(Dispatchers.Unconfined) {
 
-            if (state.value.selectedTab?.first == TabModelType.ReportLink) {
-                _state.update {
-                    it.copy(
-                        formFields = state.value.formFields.map { field ->
-                            when (field) {
-                                is FormFieldUiComponent.TextField -> field.copy(error = null)
-                                is FormFieldUiComponent.DropDown -> field.copy(error = null)
-                                is FormFieldUiComponent.Slider -> field.copy(error = null)
-                            }
-                        }
-                    )
-                }
-
-                val errors: Map<Int, FormFieldError> = getFormErrors()
-                if (errors.isNotEmpty()) {
-                    // invalid form, update state
-
-                    val newFields = state.value.formFields.toMutableList()
-                    newFields.apply {
-                        errors.forEach { (fieldIndex, error) ->
-                            val newField = when (val field = this[fieldIndex]) {
-                                is FormFieldUiComponent.TextField -> field.copy(error = error)
-                                is FormFieldUiComponent.DropDown -> field.copy(error = error)
-                                is FormFieldUiComponent.Slider -> field.copy(error = error)
-                            }
-
-                            this[fieldIndex] = newField
-                        }
-                    }
-
+            when(state.value.selectedTab?.first) {
+                TabModelType.ReportLink -> {
                     _state.update {
                         it.copy(
-                            formFields = newFields
+                            formFields = state.value.formFields.map { field ->
+                                when (field) {
+                                    is FormFieldUiComponent.TextField -> field.copy(error = null)
+                                    is FormFieldUiComponent.DropDown -> field.copy(error = null)
+                                    is FormFieldUiComponent.Slider -> field.copy(error = null)
+                                }
+                            }
                         )
                     }
 
-                    return@launch
+                    val errors: Map<Int, FormFieldError> = getFormErrors()
+                    if (errors.isNotEmpty()) {
+                        // invalid form, update state
+
+                        val newFields = state.value.formFields.toMutableList()
+                        newFields.apply {
+                            errors.forEach { (fieldIndex, error) ->
+                                val newField = when (val field = this[fieldIndex]) {
+                                    is FormFieldUiComponent.TextField -> field.copy(error = error)
+                                    is FormFieldUiComponent.DropDown -> field.copy(error = error)
+                                    is FormFieldUiComponent.Slider -> field.copy(error = error)
+                                }
+
+                                this[fieldIndex] = newField
+                            }
+                        }
+
+                        _state.update {
+                            it.copy(
+                                formFields = newFields
+                            )
+                        }
+
+                        return@launch
+                    }
                 }
+                TabModelType.RecordSession -> {
+                    val noVideoPresent = state.value.video == null
+
+                    if (noVideoPresent) {
+                        _state.update { state ->
+                            state.copy(
+                                showSubmitNoVideoError = noVideoPresent
+                            )
+                        }
+
+                        return@launch
+                    }
+                }
+                else -> Unit
             }
 
             _uiAction.send(UiAction.GoToReportSubmittedScreen)
@@ -355,7 +371,10 @@ class ReportFormScreenViewModel @Inject constructor(
         viewModelScope.launch {
             _state.update {
                 it.copy(
-                    formFields = initialFormFields
+                    formFields = initialFormFields,
+                    video = null,
+                    showSubmitNoVideoError = false,
+                    recordSessionComments = ""
                 )
             }
         }
@@ -367,7 +386,8 @@ class ReportFormScreenViewModel @Inject constructor(
         val formFields: List<FormFieldUiComponent<*>> = listOf(),
         val isRecording: Boolean = false,
         val recordSessionComments: String = "",
-        val video: VideoModel? = null
+        val video: VideoModel? = null,
+        val showSubmitNoVideoError: Boolean = false
     )
 
     data class VideoModel(
