@@ -8,17 +8,19 @@ import android.hardware.display.VirtualDisplay
 import android.media.MediaRecorder
 import android.media.projection.MediaProjection
 import android.media.projection.MediaProjectionManager
+import android.net.Uri
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.provider.MediaStore
+import androidx.datastore.preferences.core.edit
 import dagger.hilt.android.qualifiers.ApplicationContext
+import org.mozilla.tiktokreporter.util.Common
+import org.mozilla.tiktokreporter.util.dataStore
 import org.mozilla.tiktokreporter.util.onSdkVersionAndUp
-import java.io.IOException
+import org.mozilla.tiktokreporter.util.videosCollection
 import javax.inject.Inject
-import javax.inject.Singleton
 
-@Singleton
 class ScreenRecorderManager @Inject constructor(
     @ApplicationContext private val context: Context
 ) {
@@ -32,6 +34,8 @@ class ScreenRecorderManager @Inject constructor(
     private var mediaProjection: MediaProjection? = null
     private var virtualDisplay: VirtualDisplay? = null
     private var mediaRecorder: MediaRecorder? = null
+
+    private var videoUri: Uri? = null
 
     private val mediaProjectionCallback = object : MediaProjection.Callback() {}
 
@@ -54,8 +58,6 @@ class ScreenRecorderManager @Inject constructor(
                 720,
                 720.toDouble().times(aspectRation).toInt()
             )
-            setVideoFrameRate(10) // default 30
-            setVideoEncodingBitRate(1080 * 10000)
         }
 
         val currentTimeMillis = System.currentTimeMillis()
@@ -63,20 +65,17 @@ class ScreenRecorderManager @Inject constructor(
             put(MediaStore.Video.Media.TITLE, "TikTok Recording")
             put(MediaStore.Video.Media.DATE_ADDED, (currentTimeMillis / 1000).toInt())
             put(MediaStore.Video.Media.MIME_TYPE, "video/mp4")
-            put(MediaStore.Video.Media.DISPLAY_NAME, "$currentTimeMillis.mp4")
+            put(MediaStore.Video.Media.DISPLAY_NAME, "TikTok Recording_$currentTimeMillis.mp4")
         }
 
-        val videosCollection = onSdkVersionAndUp(Build.VERSION_CODES.Q) {
-            MediaStore.Video.Media.getContentUri(MediaStore.VOLUME_EXTERNAL)
-        } ?: MediaStore.Video.Media.EXTERNAL_CONTENT_URI
-        val videoUri = context.contentResolver.insert(videosCollection, contentValues)
+        videoUri = context.contentResolver.insert(videosCollection, contentValues) ?: return
 
-        videoUri ?: throw IOException("Couldn't create media store entry")
-
-        context.contentResolver.openFileDescriptor(videoUri, "w").use {
-            mediaRecorder?.apply {
-                setOutputFile(it?.fileDescriptor)
-                prepare()
+        context.contentResolver.openFileDescriptor(videoUri!!, "w").use {
+            it?.let {
+                mediaRecorder?.apply {
+                    setOutputFile(it.fileDescriptor)
+                    prepare()
+                }
             }
         }
 
@@ -107,14 +106,21 @@ class ScreenRecorderManager @Inject constructor(
         mediaRecorder?.start()
     }
 
-    fun stopRecording() {
+    suspend fun stopRecording() {
         mediaRecorder?.stop()
+        mediaRecorder?.reset()
         mediaRecorder?.release()
+
         mediaProjection?.stop()
         virtualDisplay?.release()
 
         mediaRecorder = null
         mediaProjection = null
         virtualDisplay = null
+
+        context.dataStore.edit {
+            it[Common.VIDEO_URI_PREFERENCE_KEY] = videoUri.toString()
+        }
+        videoUri = null
     }
 }

@@ -9,23 +9,32 @@ import android.provider.Settings
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.PlayArrow
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
@@ -47,6 +56,8 @@ import org.mozilla.tiktokreporter.ui.components.dialog.DialogState
 import org.mozilla.tiktokreporter.ui.theme.MozillaColor
 import org.mozilla.tiktokreporter.ui.theme.MozillaDimension
 import org.mozilla.tiktokreporter.ui.theme.MozillaTypography
+import org.mozilla.tiktokreporter.util.collectWithLifecycle
+import org.mozilla.tiktokreporter.util.onSdkVersionAndDown
 import org.mozilla.tiktokreporter.util.onSdkVersionAndUp
 
 @OptIn(ExperimentalPermissionsApi::class)
@@ -74,6 +85,15 @@ fun ReportFormScreen(
         }
     )
 
+    val writeExternalStoragePermissionState = rememberPermissionState(permission = Manifest.permission.WRITE_EXTERNAL_STORAGE)
+    val writeExternalStoragePermissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { wasGranted ->
+        if (wasGranted) {
+            mediaProjectionPermissionLauncher.launch(
+                context.getSystemService(MediaProjectionManager::class.java).createScreenCaptureIntent()
+            )
+        }
+    }
+
     val notificationsPermissionState = rememberPermissionState(permission = Manifest.permission.POST_NOTIFICATIONS)
     val notificationsPermissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { wasGranted ->
         if (wasGranted) {
@@ -83,10 +103,28 @@ fun ReportFormScreen(
         }
     }
 
+    val state by viewModel.state.collectAsStateWithLifecycle()
+    val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
+
     DialogContainer { dialogState ->
 
-        val state by viewModel.state.collectAsStateWithLifecycle()
-        val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
+        viewModel.uiAction.collectWithLifecycle { action ->
+            when (action) {
+                is ReportFormScreenViewModel.UiAction.ShowStudyNotActive -> {
+                    dialogState.value = DialogState.Message(
+                        title = "Select another study",
+                        message = "The study you were participating into has ended. Please select another study to join.",
+                        positiveButtonText = "Settings",
+                        onPositive = onGoToStudies,
+                        negativeButtonText = "Not now",
+                        onNegative = onGoBack,
+                        onDismissRequest = { dialogState.value = DialogState.Nothing }
+                    )
+                }
+                is ReportFormScreenViewModel.UiAction.GoToReportSubmittedScreen -> onGoToReportSubmittedScreen()
+                else -> Unit
+            }
+        }
 
         if (isLoading) {
             LoadingScreen()
@@ -147,39 +185,46 @@ fun ReportFormScreen(
                             }
                         }
 
+                    } ?: onSdkVersionAndDown(Build.VERSION_CODES.Q) {
+                        when (writeExternalStoragePermissionState.status) {
+                            PermissionStatus.Granted -> {
+                                mediaProjectionPermissionLauncher.launch(
+                                    context.getSystemService(MediaProjectionManager::class.java).createScreenCaptureIntent()
+                                )
+                            }
 
+                            else -> {
+                                if (notificationsPermissionState.status.shouldShowRationale) {
+                                    dialogState.value = DialogState.Message(
+                                        title = "Write external storage permission required",
+                                        message = "Write external storage permission required",
+                                        positiveButtonText = "Got it",
+                                        onPositive = {
+                                            dialogState.value = DialogState.Nothing
+                                            val intent = Intent(
+                                                Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                                                Uri.fromParts("package", context.packageName, null)
+                                            )
+                                            context.startActivity(intent)
+                                        }
+                                    )
+                                } else {
+                                    writeExternalStoragePermissionLauncher.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                                }
+                            }
+                        }
                     } ?: mediaProjectionPermissionLauncher.launch(
                         context.getSystemService(MediaProjectionManager::class.java).createScreenCaptureIntent()
                     )
-
-                    viewModel.setIsRecording(true)
                 },
                 onStopRecording = {
                     Intent(context.applicationContext, ScreenRecorderService::class.java).also {
                         it.action = ScreenRecorderService.Actions.STOP.toString()
                         context.startService(it)
                     }
-
-                    viewModel.setIsRecording(false)
                 },
                 modifier = Modifier.fillMaxSize()
             )
-        }
-
-        when (state.action?.get()) {
-            is ReportFormScreenViewModel.UiAction.ShowStudyNotActive -> {
-                dialogState.value = DialogState.Message(
-                    title = "Select another study",
-                    message = "The study you were participating into has ended. Please select another study to join.",
-                    positiveButtonText = "Settings",
-                    onPositive = onGoToStudies,
-                    negativeButtonText = "Not now",
-                    onNegative = onGoBack,
-                    onDismissRequest = { dialogState.value = DialogState.Nothing }
-                )
-            }
-            is ReportFormScreenViewModel.UiAction.GoToReportSubmittedScreen -> onGoToReportSubmittedScreen()
-            else -> Unit
         }
     }
 }
@@ -253,6 +298,7 @@ private fun ReportFormScreenContent(
                         TabModelType.RecordSession -> {
                             recordSessionItems(
                                 isRecording = state.isRecording,
+                                video = state.video,
                                 comments = state.recordSessionComments,
                                 onCommentsChanged = onRecordSessionCommentsChanged,
                                 onStartRecording = onStartRecording,
@@ -279,8 +325,8 @@ private fun ReportFormScreenContent(
 }
 
 private fun LazyListScope.recordSessionItems(
-    videoAvailable: Boolean = false,
     isRecording: Boolean,
+    video: ReportFormScreenViewModel.VideoModel?,
     comments: String,
     onCommentsChanged: (String) -> Unit,
     onStartRecording: () -> Unit,
@@ -294,20 +340,34 @@ private fun LazyListScope.recordSessionItems(
         )
     }
 
-    if (!videoAvailable) {
-        item {
-            SecondaryButton(
-                modifier = Modifier.fillParentMaxWidth(),
-                text = if (isRecording) "Stop Recording" else "Record My TikTok Session",
-                onClick = if (isRecording) onStopRecording else onStartRecording
-            )
+    when {
+        video == null && !isRecording -> {
+            item {
+                SecondaryButton(
+                    modifier = Modifier.fillParentMaxWidth(),
+                    text = "Record My TikTok Session",
+                    onClick = onStartRecording
+                )
+            }
         }
-    } else {
-        item {
-            Text(
-                modifier = Modifier.fillParentMaxWidth(),
-                text = "Video thumbnail and info"
-            )
+
+        video == null && isRecording -> {
+            item {
+                SecondaryButton(
+                    modifier = Modifier.fillParentMaxWidth(),
+                    text = "Stop Recording",
+                    onClick = onStopRecording
+                )
+            }
+        }
+
+        else -> {
+            item {
+                VideoEntry(
+                    modifier = Modifier.fillParentMaxWidth(),
+                    video = video!!
+                )
+            }
         }
     }
 
@@ -320,6 +380,49 @@ private fun LazyListScope.recordSessionItems(
             maxLines = 5,
             multiline = true
         )
+    }
+}
+
+@Composable
+private fun VideoEntry(
+    modifier: Modifier = Modifier,
+    video: ReportFormScreenViewModel.VideoModel
+) {
+    val imageBitmap = video.thumbnail?.asImageBitmap()
+    Row(
+        modifier = modifier,
+        horizontalArrangement = Arrangement.spacedBy(MozillaDimension.L),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        if (imageBitmap != null) {
+            Image(
+                modifier = Modifier.size(80.dp),
+                bitmap = imageBitmap,
+                contentDescription = null
+            )
+        } else {
+            Box(
+                modifier = Modifier.size(80.dp)
+            ) {
+                Icon(
+                    modifier = Modifier
+                        .size(32.dp)
+                        .align(Alignment.Center),
+                    imageVector = Icons.Outlined.PlayArrow,
+                    contentDescription = null,
+                    tint = Color.Black
+                )
+            }
+        }
+
+        Column(
+            modifier = Modifier.weight(1f),
+            verticalArrangement = Arrangement.spacedBy(MozillaDimension.XXS)
+        ) {
+            Text(text = "Recorded Video")
+            Text(text = "Duration: ${video.duration} seconds")
+            Text(text = "Recorded on: ${video.date} at ${video.time}")
+        }
     }
 }
 

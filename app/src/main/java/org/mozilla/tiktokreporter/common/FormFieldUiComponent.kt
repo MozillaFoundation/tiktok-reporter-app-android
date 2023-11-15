@@ -153,9 +153,26 @@ fun FormField.toFormFieldComponent(): List<FormFieldUiComponent<*>>? {
     }
 }
 
-fun List<FormField>.toUiComponents(): List<FormFieldUiComponent<*>> {
-    val components = this.mapNotNull { field ->
-        field.toFormFieldComponent()
+fun List<FormField>.toUiComponents(
+    tikTokUrl: String? = null
+): List<FormFieldUiComponent<*>> {
+    val indexOfFirstTextField = this.indexOfFirst { it is FormField.TextField }
+
+    val components = this.mapIndexedNotNull { index, field ->
+        val fieldComponent = field.toFormFieldComponent()
+
+        if (tikTokUrl != null && index == indexOfFirstTextField) {
+            fieldComponent?.map { textField ->
+                textField as FormFieldUiComponent.TextField
+
+                textField.copy(
+                    readOnly = true,
+                    value = tikTokUrl
+                )
+            }
+        } else {
+            fieldComponent
+        }
     }.flatten()
 
     return components

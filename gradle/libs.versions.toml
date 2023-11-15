@@ -18,7 +18,7 @@ moshi = "1.14.0"
 hilt-android = "2.48.1"
 hilt-navigation-compose = "1.1.0"
 lifecycle-runtime = "2.6.2"
-datastore-preferences = "1.0.0"
+datastore-preferences = "1.1.0-alpha06"
 coil-compose = "2.5.0"
 accompanist = "0.33.2-alpha"
 
@@ -61,6 +61,7 @@ okhttp-logging-interceptor = { group = "com.squareup.okhttp3", name = "logging-i
 
 datastore-preferences = { group = "androidx.datastore", name = "datastore-preferences", version.ref = "datastore-preferences" }
 datastore-preferences-core = { group = "androidx.datastore", name = "datastore-preferences-core", version.ref = "datastore-preferences" }
+datastore-preferences-core-android = { group = "androidx.datastore", name = "datastore-preferences-core-android", version.ref = "datastore-preferences" }
 
 hilt-android = { module = "com.google.dagger:hilt-android", version.ref = "hilt-android" }
 hilt-android-compiler = { module = "com.google.dagger:hilt-android-compiler", version.ref = "hilt-android" }

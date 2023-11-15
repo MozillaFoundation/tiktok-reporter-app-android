@@ -1,6 +1,5 @@
 package org.mozilla.tiktokreporter.studieslist
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -88,7 +87,7 @@ fun StudiesListScreen(
                             shouldForceChange = true
                         )
                     },
-                    negativeButtonText = "No",
+                    negativeButtonText = "Cancel",
                     onNegative = {
                         dialogState.value = DialogState.Nothing
                     }
