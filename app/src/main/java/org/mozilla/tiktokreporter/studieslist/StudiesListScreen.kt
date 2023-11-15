@@ -11,7 +11,7 @@ import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
@@ -142,12 +142,12 @@ private fun StudiesListScreenContent(
             {
                 MozillaTopAppBar(
                     modifier = Modifier.fillMaxWidth(),
-                    action = {
+                    navItem = {
                         IconButton(
                             onClick = onNavigateBack
                         ) {
                             Icon(
-                                imageVector = Icons.Default.Close,
+                                imageVector = Icons.Default.ArrowBack,
                                 contentDescription = "",
                                 tint = MozillaColor.TextColor
                             )
