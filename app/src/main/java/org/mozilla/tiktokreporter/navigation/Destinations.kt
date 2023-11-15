@@ -27,7 +27,7 @@ sealed class NestedDestination(
     data object SplashScreenNested: NestedDestination("splashScreenNested")
 
 
-    data object AppPolicy: NestedDestination("appPolicy/{type}") {
+    data object AppPolicy: NestedDestination("appPolicy/{type}/{isForOnboarding}") {
         enum class Type {
             TermsAndConditions,
             PrivacyPolicy,
@@ -38,22 +38,29 @@ sealed class NestedDestination(
             navArgument("type") {
                 type = NavType.StringType
                 nullable = false
+            },
+            navArgument("isForOnboarding") {
+                type = NavType.BoolType
+                nullable = false
             }
         )
 
         data class Args(
-            val type: Type
+            val type: Type,
+            val isForOnboarding: Boolean
         )
 
         fun createRouteWithArguments(
             root: Destination,
-            type: Type
-        ): String = "${root.route}/appPolicy/${type.name}"
+            type: Type,
+            isForOnboarding: Boolean,
+        ): String = "${root.route}/appPolicy/${type.name}/${isForOnboarding}"
 
         fun parseArguments(
             backStackEntry: NavBackStackEntry
         ): Args = Args(
-            type = Type.valueOf(backStackEntry.arguments?.getString("type").orEmpty())
+            type = Type.valueOf(backStackEntry.arguments?.getString("type").orEmpty()),
+            isForOnboarding = backStackEntry.arguments?.getBoolean("isForOnboarding") ?: true
         )
     }
     data object Studies: NestedDestination("studies")

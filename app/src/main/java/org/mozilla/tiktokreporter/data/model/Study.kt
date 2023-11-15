@@ -1,5 +1,6 @@
 package org.mozilla.tiktokreporter.data.model
 
+import org.mozilla.tiktokreporter.data.remote.response.PolicyDTO
 import org.mozilla.tiktokreporter.data.remote.response.StudyDTO
 
 data class StudyOverview(
@@ -10,7 +11,7 @@ data class StudyOverview(
     val isSelected: Boolean,
     val hasOnboarding: Boolean = false,
     val hasEmailForm: Boolean = false,
-    val hasPolicies: Boolean = false
+    val hasTerms: Boolean = false
 )
 
 fun StudyDTO.toStudyOverview(
@@ -24,7 +25,7 @@ fun StudyDTO.toStudyOverview(
         isSelected = isSelected,
         hasOnboarding = onboardingDTO != null,
         hasEmailForm = onboardingDTO?.formDTO != null,
-        hasPolicies = policyDTOs.isNotEmpty()
+        hasTerms = policyDTOs.any { it.type == PolicyDTO.Type.TermsOfService }
     )
 }
 
