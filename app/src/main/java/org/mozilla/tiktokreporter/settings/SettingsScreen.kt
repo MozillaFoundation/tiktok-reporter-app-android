@@ -21,9 +21,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import org.mozilla.tiktokreporter.R
 import org.mozilla.tiktokreporter.ui.components.MozillaScaffold
 import org.mozilla.tiktokreporter.ui.components.MozillaTopAppBar
 import org.mozilla.tiktokreporter.ui.theme.MozillaColor
@@ -113,42 +115,42 @@ private fun SettingsScreenContent(
                         SettingsScreenViewModel.SettingsEntry.About -> {
                             SettingEntry(
                                 modifier = Modifier.fillParentMaxWidth(),
-                                title = "ABOUT TIKTOK REPORTER",
+                                title = stringResource(id = R.string.about_tik_tok_reporter).uppercase(),
                                 onClick = onGoToAppPurpose
                             )
                         }
                         SettingsScreenViewModel.SettingsEntry.Studies -> {
                             SettingEntry(
                                 modifier = Modifier.fillParentMaxWidth(),
-                                title = "STUDIES",
+                                title = stringResource(id = R.string.studies).uppercase(),
                                 onClick = onGoToStudies
                             )
                         }
                         SettingsScreenViewModel.SettingsEntry.Email -> {
                             SettingEntry(
                                 modifier = Modifier.fillParentMaxWidth(),
-                                title = "EMAIL ADDRESS",
+                                title = stringResource(id = R.string.email_address).uppercase(),
                                 onClick = onGoToEmail
                             )
                         }
                         SettingsScreenViewModel.SettingsEntry.Terms -> {
                             SettingEntry(
                                 modifier = Modifier.fillParentMaxWidth(),
-                                title = "TERMS & CONDITIONS",
+                                title = stringResource(id = R.string.terms_and_conditions).uppercase(),
                                 onClick = onGoToTermsAndConditions
                             )
                         }
                         SettingsScreenViewModel.SettingsEntry.Privacy -> {
                             SettingEntry(
                                 modifier = Modifier.fillParentMaxWidth(),
-                                title = "PRIVACY POLICY",
+                                title = stringResource(id = R.string.privacy_policy).uppercase(),
                                 onClick = onGoToPrivacyPolicy
                             )
                         }
                         SettingsScreenViewModel.SettingsEntry.DataHandling -> {
                             SettingEntry(
                                 modifier = Modifier.fillParentMaxWidth(),
-                                title = "DATA HANDLING",
+                                title = stringResource(id = R.string.data_handling).uppercase(),
                                 onClick = onGoToDataHandling
                             )
                         }

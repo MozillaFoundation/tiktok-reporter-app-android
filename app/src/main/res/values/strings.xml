@@ -1,3 +1,65 @@
 <resources>
-    <string name="app_name">TikTokReporter</string>
+    <string name="app_name">TikTok Reporter</string>
+
+    <string name="i_agree">I Agree</string>
+    <string name="i_disagree">I Disagree</string>
+
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
+    <string name="got_it">Got it</string>
+    <string name="cancel">Cancel</string>
+    <string name="next">Next</string>
+    <string name="skip">Skip</string>
+    <string name="back">Back</string>
+    <string name="settings">Settings</string>
+    <string name="not_now">Not now</string>
+    <string name="delete">Delete</string>
+    <string name="keep">Keep</string>
+    <string name="report_link">Report a link</string>
+    <string name="record_session">Record a session</string>
+    <string name="text_field_label_comments_optional">Comments (optional)</string>
+    <string name="start_recording_session">Start recording a TikTok session by pressing the button below and then go and browse TikTok. Once the recording is stopped you can submit this form.</string>
+    <string name="recording_session_available">You’ve recorded a TikTok session. Fill out some information then submit the form.</string>
+    <string name="button_record_tiktok_session">Record My TikTok Session</string>
+    <string name="button_stop_recording">Record My TikTok Session</string>
+    <string name="report_submitted">Thank you!\nReport submitted.</string>
+    <string name="button_im_done">I\'m done</string>
+    <string name="report_copy_go_to">To receive a copy of your report on your email and to get follow up information about our study, go to </string>
+    <string name="about_tik_tok_reporter">About TikTok Reporter</string>
+    <string name="studies">Studies</string>
+    <string name="email_address">Email address</string>
+    <string name="terms_and_conditions">Terms &amp; conditions</string>
+    <string name="privacy_policy">Privacy policy</string>
+    <string name="data_handling">Data handling</string>
+
+
+
+    <string name="studies_list_title">Select a study to participate in</string>
+    <string name="studies_list_subtitle">We may choose to run a few different studies simultaneously. These are the studies available to you based on the information you provided.</string>
+
+    <string name="dialog_title_review_terms_and_conditions">Review the terms &amp; conditions</string>
+    <string name="dialog_message_review_terms_and_conditions">Please read these terms and conditions carefully before using TikTok Reporter</string>
+
+    <string name="dialog_title_change_study">Change study</string>
+    <string name="dialog_message_change_study">Are you sure you want to enroll in another study?</string>
+
+    <string name="dialog_title_inactive_study">Select another study</string>
+    <string name="dialog_message_inactive_study">The study you were participating into has ended. Please select another study to join.</string>
+
+    <string name="dialog_title_cancel_report">Cancel report?</string>
+    <string name="dialog_message_cancel_report">Are you sure you want to cancel the report? All the data entered will be deleted.</string>
+
+    <string name="dialog_title_notification_permission">Notifications permission required</string>
+    <string name="dialog_message_notification_permission">Notification permission required</string>
+
+    <string name="dialog_title_write_external_storage_permission">Write external storage permission required</string>
+    <string name="dialog_message_write_external_storage_permission">Write external storage permission required</string>
+
+
+
+    <string name="error_title_no_studies_available">No studies available</string>
+    <string name="error_message_no_studies_available">We are sorry to announce that there are no studies available for your location.\n\nCome back at a later date to check if any new study has been opened.</string>
+    <string name="error_message_no_recording_available">Create a recording in order to submit the report.</string>
+    <string name="error_message_empty_field">This field cannot be empty.</string>
+    <string name="error_message_empty_category">Please suggest a category.</string>
 </resources>

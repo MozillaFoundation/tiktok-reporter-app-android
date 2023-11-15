@@ -7,6 +7,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import org.mozilla.tiktokreporter.R
 import org.mozilla.tiktokreporter.common.FormFieldError
 import org.mozilla.tiktokreporter.common.FormFieldUiComponent
 import org.mozilla.tiktokreporter.ui.components.MozillaTextField
@@ -48,8 +50,8 @@ fun FormTextField(
                 readOnly = field.readOnly,
                 errorText = field.error?.let {
                     when (it) {
-                        FormFieldError.Empty -> "This field cannot be empty"
-                        FormFieldError.EmptyCategory -> "Please suggest a category"
+                        FormFieldError.Empty -> stringResource(id = R.string.error_message_empty_field)
+                        FormFieldError.EmptyCategory -> stringResource(id = R.string.error_message_empty_category)
                     }
                 }
             )

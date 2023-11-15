@@ -18,12 +18,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import kotlinx.coroutines.launch
+import org.mozilla.tiktokreporter.R
 import org.mozilla.tiktokreporter.data.model.OnboardingStep
 import org.mozilla.tiktokreporter.ui.components.LoadingScreen
 import org.mozilla.tiktokreporter.ui.components.MozillaScaffold
@@ -92,7 +94,7 @@ private fun StudyOnboardingScreenContent(
                 nextButton = {
                     PrimaryButton(
                         modifier = Modifier.fillMaxWidth(),
-                        text = "Next",
+                        text = stringResource(id = R.string.next),
                         onClick = {
                             if (!pagerState.canScrollForward) {
                                 onNextScreen()
@@ -110,7 +112,7 @@ private fun StudyOnboardingScreenContent(
                     if (pagerState.canScrollBackward) {
                         SecondaryButton(
                             modifier = Modifier.fillMaxWidth(),
-                            text = "Back",
+                            text = stringResource(id = R.string.back),
                             onClick = {
                                 scope.launch {
                                     pagerState.animateScrollToPage(page = page - 1)
@@ -123,7 +125,7 @@ private fun StudyOnboardingScreenContent(
                     if (pagerState.canScrollForward) {
                         SecondaryButton(
                             modifier = Modifier.fillMaxWidth(),
-                            text = "Skip",
+                            text = stringResource(id = R.string.skip),
                             onClick = onNextScreen
                         )
                     }
@@ -220,7 +222,8 @@ private fun OnboardingStepInfo(
         imageUrl?.let {
             item {
                 AsyncImage(
-                    modifier = Modifier.fillParentMaxWidth(.6f)
+                    modifier = Modifier
+                        .fillParentMaxWidth(.6f)
                         .padding(top = MozillaDimension.S),
                     model = ImageRequest.Builder(LocalContext.current)
                         .data(it)

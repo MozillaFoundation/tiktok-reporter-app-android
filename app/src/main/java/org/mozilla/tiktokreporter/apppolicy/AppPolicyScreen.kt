@@ -19,8 +19,10 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import org.mozilla.tiktokreporter.R
 import org.mozilla.tiktokreporter.ui.components.LoadingScreen
 import org.mozilla.tiktokreporter.ui.components.MozillaScaffold
 import org.mozilla.tiktokreporter.ui.components.MozillaTopAppBar
@@ -51,6 +53,8 @@ fun AppPolicyScreen(
         when (val action = state.action?.get()) {
             AppPolicyScreenViewModel.UiAction.OnGoToStudies -> onGoToStudies()
             AppPolicyScreenViewModel.UiAction.OnGoToStudyOnboarding -> onGoToStudyOnboarding()
+
+            // TODO: replace with general error screen
             is AppPolicyScreenViewModel.UiAction.ShowMessage -> {
                 dialogState.value = DialogState.Message(
                     title = "Alert",
@@ -74,10 +78,10 @@ fun AppPolicyScreen(
                 onAgree = viewModel::acceptTerms,
                 onDisagree = if (isForOnboarding) {
                     {
-                        dialogState.value = DialogState.Message(
-                            title = "Review the terms & conditions",
-                            message = "Please read these terms and conditions carefully before using TikTok Reporter",
-                            negativeButtonText = "Got it",
+                        dialogState.value = DialogState.MessageRes(
+                            title = R.string.dialog_title_review_terms_and_conditions,
+                            message = R.string.dialog_message_review_terms_and_conditions,
+                            negativeButtonText = R.string.got_it,
                             onNegative = {
                                 dialogState.value = DialogState.Nothing
                             },
@@ -180,7 +184,7 @@ private fun AppPolicyScreenContent(
                     agreeButton = {
                         PrimaryButton(
                             modifier = Modifier.fillMaxWidth(),
-                            text = "I Agree",
+                            text = stringResource(id = R.string.i_agree),
                             onClick = onAgree,
                             enabled = buttonsEnabled
                         )
@@ -188,7 +192,7 @@ private fun AppPolicyScreenContent(
                     disagreeButton = {
                         SecondaryButton(
                             modifier = Modifier.fillMaxWidth(),
-                            text = "I Disagree",
+                            text = stringResource(id = R.string.i_disagree),
                             onClick = onDisagree,
                             enabled = buttonsEnabled
                         )

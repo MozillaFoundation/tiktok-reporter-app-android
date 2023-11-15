@@ -77,16 +77,7 @@ class StudiesListScreenViewModel @Inject constructor(
     ) {
         viewModelScope.launch(Dispatchers.Unconfined) {
 
-            val selectedStudy = state.value.studies.firstOrNull { it.isSelected }
-            if (selectedStudy == null) {
-                _state.update {
-                    it.copy(
-                        action = UiAction.OnNoStudySelected.toOneTimeEvent()
-                    )
-                }
-
-                return@launch
-            }
+            val selectedStudy = state.value.studies.first { it.isSelected }
 
             if (!isForOnboarding && !shouldForceChange) {
                 val action = if (selectedStudy.id != tikTokReporterRepository.selectedStudyId) {
@@ -127,6 +118,5 @@ class StudiesListScreenViewModel @Inject constructor(
         data object OnGoToStudyTerms : UiAction()
         data object OnGoToEmail : UiAction()
         data object OnGoToReportForm : UiAction()
-        data object OnNoStudySelected : UiAction()
     }
 }

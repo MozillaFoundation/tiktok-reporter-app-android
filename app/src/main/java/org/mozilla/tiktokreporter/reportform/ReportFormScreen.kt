@@ -34,6 +34,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -41,6 +42,7 @@ import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.PermissionStatus
 import com.google.accompanist.permissions.rememberPermissionState
 import com.google.accompanist.permissions.shouldShowRationale
+import org.mozilla.tiktokreporter.R
 import org.mozilla.tiktokreporter.ScreenRecorderService
 import org.mozilla.tiktokreporter.common.TabModelType
 import org.mozilla.tiktokreporter.common.formcomponents.formComponentsItems
@@ -111,12 +113,12 @@ fun ReportFormScreen(
         viewModel.uiAction.collectWithLifecycle { action ->
             when (action) {
                 is ReportFormScreenViewModel.UiAction.ShowStudyNotActive -> {
-                    dialogState.value = DialogState.Message(
-                        title = "Select another study",
-                        message = "The study you were participating into has ended. Please select another study to join.",
-                        positiveButtonText = "Settings",
+                    dialogState.value = DialogState.MessageRes(
+                        title = R.string.dialog_title_inactive_study,
+                        message = R.string.dialog_message_inactive_study,
+                        positiveButtonText = R.string.settings,
                         onPositive = onGoToStudies,
-                        negativeButtonText = "Not now",
+                        negativeButtonText = R.string.not_now,
                         onNegative = onGoBack,
                         onDismissRequest = { dialogState.value = DialogState.Nothing }
                     )
@@ -136,15 +138,15 @@ fun ReportFormScreen(
                 onTabSelected = viewModel::onTabSelected,
                 onSubmitReport = viewModel::onSubmitReport,
                 onCancelReport = {
-                    dialogState.value = DialogState.Message(
-                        title = "Cancel report?",
-                        message = "Are you sure you want to cancel the report? All the data entered will be deleted.",
-                        positiveButtonText = "Delete",
+                    dialogState.value = DialogState.MessageRes(
+                        title = R.string.dialog_title_cancel_report,
+                        message = R.string.dialog_message_cancel_report,
+                        positiveButtonText = R.string.delete,
                         onPositive = {
                             viewModel.onCancelReport()
                             dialogState.value = DialogState.Nothing
                         },
-                        negativeButtonText = "Keep",
+                        negativeButtonText = R.string.keep,
                         onNegative = {
                             dialogState.value = DialogState.Nothing
                         },
@@ -166,10 +168,10 @@ fun ReportFormScreen(
 
                             else -> {
                                 if (notificationsPermissionState.status.shouldShowRationale) {
-                                    dialogState.value = DialogState.Message(
-                                        title = "Notifications permission required",
-                                        message = "Notification permission required",
-                                        positiveButtonText = "Got it",
+                                    dialogState.value = DialogState.MessageRes(
+                                        title = R.string.dialog_title_notification_permission,
+                                        message = R.string.dialog_message_notification_permission,
+                                        positiveButtonText = R.string.settings,
                                         onPositive = {
                                             dialogState.value = DialogState.Nothing
                                             val intent = Intent(
@@ -195,10 +197,10 @@ fun ReportFormScreen(
 
                             else -> {
                                 if (notificationsPermissionState.status.shouldShowRationale) {
-                                    dialogState.value = DialogState.Message(
-                                        title = "Write external storage permission required",
-                                        message = "Write external storage permission required",
-                                        positiveButtonText = "Got it",
+                                    dialogState.value = DialogState.MessageRes(
+                                        title = R.string.dialog_title_write_external_storage_permission,
+                                        message = R.string.dialog_message_write_external_storage_permission,
+                                        positiveButtonText = R.string.got_it,
                                         onPositive = {
                                             dialogState.value = DialogState.Nothing
                                             val intent = Intent(
@@ -279,8 +281,8 @@ private fun ReportFormScreenContent(
                             modifier = modifier,
                             tabs = state.tabs.map {
                                 when (it) {
-                                    TabModelType.ReportLink -> "Report a Link"
-                                    TabModelType.RecordSession -> "Record a session"
+                                    TabModelType.ReportLink -> stringResource(id = R.string.report_link)
+                                    TabModelType.RecordSession -> stringResource(id = R.string.record_session)
                                 }
                             },
                             onTabSelected = onTabSelected,
@@ -338,8 +340,8 @@ private fun LazyListScope.recordSessionItems(
         Text(
             modifier = Modifier.fillParentMaxWidth(),
             text = when {
-                video == null -> "Start recording a TikTok session by pressing the button below and then go and browse TikTok. Once the recording is stopped you can submit this form."
-                else -> "You’ve recorded a TikTok session. Fill out some information then submit the form."
+                video == null -> stringResource(id = R.string.start_recording_session)
+                else -> stringResource(id = R.string.recording_session_available)
             },
             style = MozillaTypography.Body2
         )
@@ -350,7 +352,7 @@ private fun LazyListScope.recordSessionItems(
             item {
                 SecondaryButton(
                     modifier = Modifier.fillParentMaxWidth(),
-                    text = "Record My TikTok Session",
+                    text = stringResource(id = R.string.button_record_tiktok_session),
                     onClick = onStartRecording
                 )
             }
@@ -360,7 +362,7 @@ private fun LazyListScope.recordSessionItems(
             item {
                 SecondaryButton(
                     modifier = Modifier.fillParentMaxWidth(),
-                    text = "Stop Recording",
+                    text = stringResource(id = R.string.button_stop_recording),
                     onClick = onStopRecording
                 )
             }
@@ -379,7 +381,7 @@ private fun LazyListScope.recordSessionItems(
     if (showSubmitNoVideoError) {
         item {
             Text(
-                text = "Create a recording in order to submit the report",
+                text = stringResource(id = R.string.error_message_no_recording_available),
                 style = MozillaTypography.Body2,
                 color = MozillaColor.Error
             )
@@ -391,7 +393,7 @@ private fun LazyListScope.recordSessionItems(
             modifier = Modifier.fillParentMaxWidth(),
             text = comments,
             onTextChanged = onCommentsChanged,
-            label = "Comments (optional)",
+            label = stringResource(id = R.string.text_field_label_comments_optional),
             maxLines = 5,
             multiline = true
         )
