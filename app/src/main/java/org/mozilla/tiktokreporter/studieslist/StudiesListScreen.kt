@@ -18,6 +18,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.constraintlayout.compose.ConstraintLayout
@@ -63,6 +64,7 @@ fun StudiesListScreen(
             StudiesListScreenViewModel.UiAction.OnGoToStudyTerms -> onGoToStudyTerms()
             StudiesListScreenViewModel.UiAction.OnGoToEmail -> onGoToEmail()
             StudiesListScreenViewModel.UiAction.OnGoToReportForm -> onGoToReportForm()
+            // TODO: replace with general error screen
             is StudiesListScreenViewModel.UiAction.ShowMessage -> {
                 dialogState.value = DialogState.Message(
                     title = "Alert",
@@ -78,28 +80,19 @@ fun StudiesListScreen(
             }
             StudiesListScreenViewModel.UiAction.ShowChangeStudyWarning -> {
                 dialogState.value = DialogState.Message(
-                    title = "Change study",
-                    message = "Are you sure you want to enroll in another study?",
-                    positiveButtonText = "Yes",
+                    title = stringResource(id = R.string.dialog_title_change_study),
+                    message = stringResource(id = R.string.dialog_message_change_study),
+                    positiveButtonText = stringResource(id = R.string.yes),
                     onPositive = {
                         viewModel.onSave(
                             isForOnboarding = isForOnboarding,
                             shouldForceChange = true
                         )
                     },
-                    negativeButtonText = "Cancel",
+                    negativeButtonText = stringResource(id = R.string.cancel),
                     onNegative = {
                         dialogState.value = DialogState.Nothing
                     }
-                )
-            }
-            StudiesListScreenViewModel.UiAction.OnNoStudySelected -> {
-                dialogState.value = DialogState.Message(
-                    title = "No study selected",
-                    message = "Please choose a study to participate in.",
-                    positiveButtonText = "Got it",
-                    onPositive = { dialogState.value = DialogState.Nothing },
-                    onDismissRequest = { dialogState.value = DialogState.Nothing }
                 )
             }
             else -> Unit
@@ -176,20 +169,20 @@ private fun StudiesListScreenContent(
                             modifier = Modifier
                                 .fillParentMaxSize(),
                             drawable = R.drawable.meditation,
-                            title = "No studies available",
-                            message = "We are sorry to announce that there are no studies available for your location.\n\nCome back at a later date to check if any new study has been opened."
+                            title = stringResource(id = R.string.error_title_no_studies_available),
+                            message = stringResource(id = R.string.error_message_no_studies_available)
                         )
                     }
                 } else {
                     item {
                         Text(
-                            text = "Select a study to participate in",
+                            text = stringResource(id = R.string.studies_list_title),
                             style = MozillaTypography.H3
                         )
                     }
                     item {
                         Text(
-                            text = "We may choose to run a few different studies simultaneously. These are the studies available to you based on the information you provided.",
+                            text = stringResource(id = R.string.studies_list_subtitle),
                             style = MozillaTypography.Body2
                         )
                     }

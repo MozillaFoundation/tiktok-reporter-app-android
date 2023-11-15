@@ -1,11 +1,13 @@
 package org.mozilla.tiktokreporter.ui.components.dialog
 
+import androidx.annotation.StringRes
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 
 @Composable
 fun DialogContainer(
@@ -32,6 +34,20 @@ fun DialogContainer(
             )
         }
 
+        is DialogState.MessageRes -> {
+            MozillaDialog(
+                onDismissRequest = {
+                    dialogData.onDismissRequest()
+                },
+                title = stringResource(id = dialogData.title),
+                message = dialogData.message?.let { stringResource(id = it) } ?: "",
+                confirmButtonText = dialogData.positiveButtonText?.let { stringResource(id = it) },
+                onConfirm = dialogData.onPositive,
+                cancelButtonText = dialogData.negativeButtonText?.let { stringResource(id = it) },
+                onCancel = dialogData.onNegative
+            )
+        }
+
         else  -> Unit
     }
 
@@ -50,6 +66,16 @@ sealed class DialogState {
         val positiveButtonText: String? = null,
         val onPositive: (() -> Unit)? = null,
         val negativeButtonText: String? = null,
+        val onNegative: (() -> Unit)? = null,
+        val onDismissRequest: () -> Unit = { },
+    ) : DialogState()
+
+    data class MessageRes(
+        @StringRes val title: Int,
+        @StringRes val message: Int? = null,
+        @StringRes val positiveButtonText: Int? = null,
+        val onPositive: (() -> Unit)? = null,
+        @StringRes val negativeButtonText: Int? = null,
         val onNegative: (() -> Unit)? = null,
         val onDismissRequest: () -> Unit = { },
     ) : DialogState()
