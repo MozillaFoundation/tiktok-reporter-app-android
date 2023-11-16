@@ -369,6 +369,8 @@ class ReportFormScreenViewModel @Inject constructor(
 
     fun onCancelReport() {
         viewModelScope.launch {
+            tikTokReporterRepository.cancelReport()
+
             _state.update {
                 it.copy(
                     formFields = initialFormFields,

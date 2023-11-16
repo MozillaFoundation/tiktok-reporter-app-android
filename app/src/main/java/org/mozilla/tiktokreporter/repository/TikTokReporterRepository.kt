@@ -1,6 +1,7 @@
 package org.mozilla.tiktokreporter.repository
 
 import android.content.Context
+import androidx.datastore.preferences.core.edit
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -14,6 +15,7 @@ import org.mozilla.tiktokreporter.data.model.toStudyDetails
 import org.mozilla.tiktokreporter.data.model.toStudyOverview
 import org.mozilla.tiktokreporter.data.remote.TikTokReporterService
 import org.mozilla.tiktokreporter.util.Common
+import org.mozilla.tiktokreporter.util.dataStore
 import org.mozilla.tiktokreporter.util.sharedPreferences
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -120,6 +122,12 @@ class TikTokReporterRepository @Inject constructor(
     suspend fun saveUserEmail(email: String) {
         withContext(Dispatchers.IO) {
             userEmail = email
+        }
+    }
+
+    suspend fun cancelReport() {
+        context.dataStore.edit {
+            it.remove(Common.VIDEO_URI_PREFERENCE_KEY)
         }
     }
 }

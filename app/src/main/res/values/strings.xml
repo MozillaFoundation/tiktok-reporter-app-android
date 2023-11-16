@@ -21,7 +21,7 @@
     <string name="start_recording_session">Start recording a TikTok session by pressing the button below and then go and browse TikTok. Once the recording is stopped you can submit this form.</string>
     <string name="recording_session_available">You’ve recorded a TikTok session. Fill out some information then submit the form.</string>
     <string name="button_record_tiktok_session">Record My TikTok Session</string>
-    <string name="button_stop_recording">Record My TikTok Session</string>
+    <string name="button_stop_recording">Stop Recording</string>
     <string name="report_submitted">Thank you!\nReport submitted.</string>
     <string name="button_im_done">I\'m done</string>
     <string name="report_copy_go_to">To receive a copy of your report on your email and to get follow up information about our study, go to </string>
