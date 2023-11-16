@@ -25,11 +25,14 @@ class SettingsScreenViewModel @Inject constructor(
 
             settingsEntries.add(SettingsEntry.About)
             settingsEntries.add(SettingsEntry.Studies)
-            settingsEntries.add(SettingsEntry.Email)
 
             val studyRes = tikTokReporterRepository.getSelectedStudy()
             if (studyRes.isSuccess) {
                 val study = studyRes.getOrNull()!!
+
+                if (study.onboarding?.form != null) {
+                    settingsEntries.add(SettingsEntry.Email)
+                }
 
                 var hasTerms = false
                 var hasPrivacyPolicy = false
