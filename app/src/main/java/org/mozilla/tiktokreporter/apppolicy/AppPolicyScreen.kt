@@ -33,6 +33,7 @@ import org.mozilla.tiktokreporter.ui.components.dialog.DialogState
 import org.mozilla.tiktokreporter.ui.theme.MozillaColor
 import org.mozilla.tiktokreporter.ui.theme.MozillaDimension
 import org.mozilla.tiktokreporter.ui.theme.MozillaTypography
+import org.mozilla.tiktokreporter.util.collectWithLifecycle
 import org.mozilla.tiktokreporter.util.emptyCallback
 
 @Composable
@@ -49,24 +50,6 @@ fun AppPolicyScreen(
 
         val state by viewModel.state.collectAsStateWithLifecycle()
         val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
-
-        when (val action = state.action?.get()) {
-            AppPolicyScreenViewModel.UiAction.OnGoToStudies -> onGoToStudies()
-            AppPolicyScreenViewModel.UiAction.OnGoToStudyOnboarding -> onGoToStudyOnboarding()
-
-            // TODO: replace with general error screen
-            is AppPolicyScreenViewModel.UiAction.ShowMessage -> {
-                dialogState.value = DialogState.Message(
-                    title = "Alert",
-                    message = action.message,
-                    positiveButtonText = "Got it",
-                    onPositive = { dialogState.value = DialogState.Nothing },
-                    onDismissRequest = { dialogState.value = DialogState.Nothing }
-                )
-            }
-            AppPolicyScreenViewModel.UiAction.ShowNoPolicyFound -> Unit
-            null -> Unit
-        }
 
         if (isLoading) {
             LoadingScreen()
@@ -93,6 +76,25 @@ fun AppPolicyScreen(
                 } else emptyCallback,
                 modifier = Modifier.fillMaxSize()
             )
+        }
+
+        viewModel.uiAction.collectWithLifecycle { action ->
+            when (action) {
+                AppPolicyScreenViewModel.UiAction.OnGoToStudies -> onGoToStudies()
+                AppPolicyScreenViewModel.UiAction.OnGoToStudyOnboarding -> onGoToStudyOnboarding()
+
+                // TODO: replace with general error screen
+                is AppPolicyScreenViewModel.UiAction.ShowMessage -> {
+                    dialogState.value = DialogState.Message(
+                        title = "Alert",
+                        message = action.message,
+                        positiveButtonText = "Got it",
+                        onPositive = { dialogState.value = DialogState.Nothing },
+                        onDismissRequest = { dialogState.value = DialogState.Nothing }
+                    )
+                }
+                AppPolicyScreenViewModel.UiAction.ShowNoPolicyFound -> Unit
+            }
         }
     }
 }
