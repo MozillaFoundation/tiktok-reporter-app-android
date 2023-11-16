@@ -199,7 +199,7 @@ private fun StudiesListScreenContent(
             if (!showEmptyStudiesListContent) {
                 SecondaryButton(
                     modifier = Modifier.fillMaxWidth(),
-                    text = "Next",
+                    text = stringResource(id = R.string.next),
                     onClick = onSave
                 )
             }

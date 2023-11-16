@@ -12,8 +12,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import org.mozilla.tiktokreporter.R
 import org.mozilla.tiktokreporter.ui.theme.MozillaColor
 import org.mozilla.tiktokreporter.ui.theme.MozillaDimension
 import org.mozilla.tiktokreporter.ui.theme.MozillaTypography
@@ -35,7 +37,7 @@ fun LoadingScreen() {
         )
         Spacer(modifier = Modifier.height(MozillaDimension.L))
         Text(
-            text = "Loading TikTok Reporter...",
+            text = stringResource(R.string.loading_tiktok_reporter),
             style = MozillaTypography.H5
         )
     }

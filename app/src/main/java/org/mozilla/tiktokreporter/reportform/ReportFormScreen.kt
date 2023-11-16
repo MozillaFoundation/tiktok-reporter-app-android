@@ -436,9 +436,9 @@ private fun VideoEntry(
             modifier = Modifier.weight(1f),
             verticalArrangement = Arrangement.spacedBy(MozillaDimension.XXS)
         ) {
-            Text(text = "Recorded Video")
-            Text(text = "Duration: ${video.duration} seconds")
-            Text(text = "Recorded on: ${video.date} at ${video.time}")
+            Text(text = stringResource(id = R.string.label_recorded_video))
+            Text(text = stringResource(id = R.string.duration_seconds, video.duration))
+            Text(text = stringResource(id = R.string.recorded_on_at, video.date, video.time))
         }
     }
 }
@@ -456,7 +456,7 @@ private fun FormButtons(
         onSubmitReport?.let {
             PrimaryButton(
                 modifier = Modifier.fillMaxWidth(),
-                text = "Submit Report",
+                text = stringResource(R.string.button_submit_report),
                 onClick = it,
                 isPrimaryVariant = true
             )
@@ -464,7 +464,7 @@ private fun FormButtons(
         onCancelReport?.let {
             SecondaryButton(
                 modifier = Modifier.fillMaxWidth(),
-                text = "Cancel Report",
+                text = stringResource(R.string.button_cancel_report),
                 onClick = it
             )
         }
