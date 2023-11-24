@@ -19,7 +19,7 @@
     <string name="report_link">Report a link</string>
     <string name="record_session">Record a session</string>
     <string name="text_field_label_comments_optional">Comments (optional)</string>
-    <string name="start_recording_session">To start screen recording, tap the button below. Then, open your TikTok app and record your session while you scroll the FYP. To stop recording, press the timer. You’ll be asked to share more information and submit this form.</string>
+    <string name="start_recording_session">To start screen recording, tap the button below. Then, open your TikTok app and record your session while you scroll the FYP. To stop recording, press the “Stop Recording” button. You’ll be asked to share more information and submit this form.</string>
     <string name="recording_session_available">You’ve recorded a TikTok session. Fill out some information then submit the form.</string>
     <string name="button_record_tiktok_session">Record My TikTok Session</string>
     <string name="button_stop_recording">Stop Recording</string>
@@ -67,6 +67,7 @@
     <string name="error_message_empty_field">This field cannot be empty.</string>
     <string name="error_message_empty_category">Please suggest a category.</string>
     <string name="save">Save</string>
+    <string name="done_editing">I\'m done editing</string>
     <string name="button_download_my_data">Download My Data</string>
     <string name="button_delete_my_data">Delete My Data</string>
     <string name="label_recorded_video">Recorded Video</string>

@@ -1,5 +1,6 @@
 package org.mozilla.tiktokreporter.navigation
 
+import org.mozilla.tiktokreporter.editvideo.EditVideoScreen
 import android.annotation.SuppressLint
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Scaffold
@@ -148,6 +149,7 @@ private fun NavGraphBuilder.addReportForm(
     ) {
         addReportFormNested(navController)
         addReportSubmittedNested(navController)
+        addEditVideoNested(navController)
     }
 }
 
@@ -175,11 +177,16 @@ private fun NavGraphBuilder.addReportFormNested(
                 }
             }
         }
+        val onGoToEditVideo = {
+            val destination = NestedDestination.EditVideo.createRoute(Destination.ReportForm)
+            navController.navigate(destination)
+        }
 
         ReportFormScreen(
             onGoToSettings = onGoToSettings,
             onGoToReportSubmittedScreen = onGoToReportSubmittedScreen,
             onGoToStudies = onGoToStudies,
+            onGoToEditVideo = onGoToEditVideo,
             onGoBack = {
                 navController.navigateUp()
             }
@@ -204,6 +211,19 @@ private fun NavGraphBuilder.addReportSubmittedNested(
                     }
                 }
             }
+        )
+    }
+}
+
+private fun NavGraphBuilder.addEditVideoNested(
+    navController: NavController
+) {
+    val startDestination = NestedDestination.EditVideo.createRoute(Destination.ReportForm)
+    composable(
+        route = startDestination
+    ) {
+        EditVideoScreen(
+            onNavigateBack = { navController.navigateUp() }
         )
     }
 }
@@ -300,6 +320,8 @@ private fun NavGraphBuilder.addAboutApp(
         )
     }
 }
+
+
 
 private fun NavGraphBuilder.addTermsAndConditions(
     navController: NavController,

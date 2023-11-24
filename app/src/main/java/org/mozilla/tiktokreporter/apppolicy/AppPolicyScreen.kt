@@ -33,7 +33,7 @@ import org.mozilla.tiktokreporter.ui.components.dialog.DialogState
 import org.mozilla.tiktokreporter.ui.theme.MozillaColor
 import org.mozilla.tiktokreporter.ui.theme.MozillaDimension
 import org.mozilla.tiktokreporter.ui.theme.MozillaTypography
-import org.mozilla.tiktokreporter.util.collectWithLifecycle
+import org.mozilla.tiktokreporter.util.CollectWithLifecycle
 import org.mozilla.tiktokreporter.util.emptyCallback
 
 @Composable
@@ -78,7 +78,7 @@ fun AppPolicyScreen(
             )
         }
 
-        viewModel.uiAction.collectWithLifecycle { action ->
+        CollectWithLifecycle(viewModel.uiAction) { action ->
             when (action) {
                 AppPolicyScreenViewModel.UiAction.OnGoToStudies -> onGoToStudies()
                 AppPolicyScreenViewModel.UiAction.OnGoToStudyOnboarding -> onGoToStudyOnboarding()

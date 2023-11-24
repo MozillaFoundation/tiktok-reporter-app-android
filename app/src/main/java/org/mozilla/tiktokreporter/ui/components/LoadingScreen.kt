@@ -28,12 +28,8 @@ fun LoadingScreen() {
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        CircularProgressIndicator(
-            modifier = Modifier.size(80.dp),
-            color = MozillaColor.Red,
-            strokeWidth = 8.dp,
-            trackColor = MozillaColor.Divider,
-            strokeCap = StrokeCap.Round
+        MozillaProgressIndicator(
+            modifier = Modifier.size(80.dp)
         )
         Spacer(modifier = Modifier.height(MozillaDimension.L))
         Text(
@@ -51,4 +47,17 @@ private fun LoadingScreenPrev() {
     TikTokReporterTheme {
         LoadingScreen()
     }
+}
+
+@Composable
+fun MozillaProgressIndicator(
+    modifier: Modifier = Modifier,
+) {
+    CircularProgressIndicator(
+        modifier = modifier,
+        color = MozillaColor.Red,
+        strokeWidth = 8.dp,
+        trackColor = MozillaColor.Divider,
+        strokeCap = StrokeCap.Round
+    )
 }

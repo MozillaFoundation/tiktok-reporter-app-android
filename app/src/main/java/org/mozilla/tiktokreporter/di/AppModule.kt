@@ -1,11 +1,17 @@
 package org.mozilla.tiktokreporter.di
 
+import android.content.Context
+import androidx.media3.common.Player
+import androidx.media3.exoplayer.ExoPlayer
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.adapters.PolymorphicJsonAdapterFactory
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
+import dagger.hilt.android.components.ViewModelComponent
+import dagger.hilt.android.qualifiers.ApplicationContext
+import dagger.hilt.android.scopes.ViewModelScoped
 import dagger.hilt.components.SingletonComponent
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
@@ -19,8 +25,8 @@ import retrofit2.converter.moshi.MoshiConverterFactory
 import java.util.concurrent.TimeUnit
 import javax.inject.Singleton
 
-@InstallIn(SingletonComponent::class)
 @Module
+@InstallIn(SingletonComponent::class)
 object AppModule {
 
     @Provides
@@ -61,5 +67,19 @@ object AppModule {
             .baseUrl(BuildConfig.BASE_URL)
             .build()
             .create(TikTokReporterService::class.java)
+    }
+}
+
+@Module
+@InstallIn(ViewModelComponent::class)
+object ViewModelModule {
+
+    @Provides
+    @ViewModelScoped
+    fun providePlayer(
+        @ApplicationContext context: Context
+    ): Player {
+        return ExoPlayer.Builder(context)
+            .build()
     }
 }

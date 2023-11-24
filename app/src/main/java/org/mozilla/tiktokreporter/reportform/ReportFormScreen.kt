@@ -10,6 +10,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -58,7 +59,7 @@ import org.mozilla.tiktokreporter.ui.components.dialog.DialogState
 import org.mozilla.tiktokreporter.ui.theme.MozillaColor
 import org.mozilla.tiktokreporter.ui.theme.MozillaDimension
 import org.mozilla.tiktokreporter.ui.theme.MozillaTypography
-import org.mozilla.tiktokreporter.util.collectWithLifecycle
+import org.mozilla.tiktokreporter.util.CollectWithLifecycle
 import org.mozilla.tiktokreporter.util.onSdkVersionAndDown
 import org.mozilla.tiktokreporter.util.onSdkVersionAndUp
 
@@ -69,6 +70,7 @@ fun ReportFormScreen(
     onGoToReportSubmittedScreen: () -> Unit,
     onGoToSettings: () -> Unit,
     onGoToStudies: () -> Unit,
+    onGoToEditVideo: () -> Unit,
     onGoBack: () -> Unit
 ) {
     val context = LocalContext.current
@@ -110,7 +112,7 @@ fun ReportFormScreen(
 
     DialogContainer { dialogState ->
 
-        viewModel.uiAction.collectWithLifecycle { action ->
+        CollectWithLifecycle(viewModel.uiAction) { action ->
             when (action) {
                 is ReportFormScreenViewModel.UiAction.ShowStudyNotActive -> {
                     dialogState.value = DialogState.MessageRes(
@@ -225,6 +227,7 @@ fun ReportFormScreen(
                         context.startService(it)
                     }
                 },
+                onGoToEditVideo = onGoToEditVideo,
                 modifier = Modifier.fillMaxSize()
             )
         }
@@ -242,6 +245,7 @@ private fun ReportFormScreenContent(
     onGoToSettings: () -> Unit,
     onStartRecording: () -> Unit,
     onStopRecording: () -> Unit,
+    onGoToEditVideo: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     MozillaScaffold(
@@ -305,7 +309,8 @@ private fun ReportFormScreenContent(
                                 comments = state.recordSessionComments,
                                 onCommentsChanged = onRecordSessionCommentsChanged,
                                 onStartRecording = onStartRecording,
-                                onStopRecording = onStopRecording
+                                onStopRecording = onStopRecording,
+                                onGoToEditVideo = onGoToEditVideo
                             )
                         }
                         null -> Unit
@@ -335,6 +340,7 @@ private fun LazyListScope.recordSessionItems(
     onCommentsChanged: (String) -> Unit,
     onStartRecording: () -> Unit,
     onStopRecording: () -> Unit,
+    onGoToEditVideo: () -> Unit
 ) {
     item {
         Text(
@@ -372,7 +378,8 @@ private fun LazyListScope.recordSessionItems(
             item {
                 VideoEntry(
                     modifier = Modifier.fillParentMaxWidth(),
-                    video = video!!
+                    video = video!!,
+                    onGoToEditVideo = onGoToEditVideo
                 )
             }
         }
@@ -403,7 +410,8 @@ private fun LazyListScope.recordSessionItems(
 @Composable
 private fun VideoEntry(
     modifier: Modifier = Modifier,
-    video: ReportFormScreenViewModel.VideoModel
+    video: ReportFormScreenViewModel.VideoModel,
+    onGoToEditVideo: () -> Unit
 ) {
     val imageBitmap = video.thumbnail?.asImageBitmap()
     Row(
@@ -413,7 +421,10 @@ private fun VideoEntry(
     ) {
         if (imageBitmap != null) {
             Image(
-                modifier = Modifier.size(80.dp),
+                modifier = Modifier.size(80.dp)
+                    .clickable {
+                        onGoToEditVideo()
+                    },
                 bitmap = imageBitmap,
                 contentDescription = null
             )
