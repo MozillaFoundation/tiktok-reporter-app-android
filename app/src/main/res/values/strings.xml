@@ -11,6 +11,7 @@
     <string name="next">Next</string>
     <string name="skip">Skip</string>
     <string name="back">Back</string>
+    <string name="sign_up_for_updates">Sign up for updates</string>
     <string name="settings">Settings</string>
     <string name="not_now">Not now</string>
     <string name="delete">Delete</string>
@@ -18,19 +19,20 @@
     <string name="report_link">Report a link</string>
     <string name="record_session">Record a session</string>
     <string name="text_field_label_comments_optional">Comments (optional)</string>
-    <string name="start_recording_session">Start recording a TikTok session by pressing the button below and then go and browse TikTok. Once the recording is stopped you can submit this form.</string>
+    <string name="start_recording_session">To start screen recording, tap the button below. Then, open your TikTok app and record your session while you scroll the FYP. To stop recording, press the “Stop Recording” button. You’ll be asked to share more information and submit this form.</string>
     <string name="recording_session_available">You’ve recorded a TikTok session. Fill out some information then submit the form.</string>
     <string name="button_record_tiktok_session">Record My TikTok Session</string>
     <string name="button_stop_recording">Stop Recording</string>
     <string name="report_submitted">Thank you!\nReport submitted.</string>
     <string name="button_im_done">I\'m done</string>
     <string name="report_copy_go_to">To receive a copy of your report on your email and to get follow up information about our study, go to </string>
-    <string name="about_tik_tok_reporter">About TikTok Reporter</string>
+    <string name="about">About</string>
     <string name="studies">Studies</string>
     <string name="email_address">Email address</string>
     <string name="terms_and_conditions">Terms &amp; conditions</string>
     <string name="privacy_policy">Privacy policy</string>
     <string name="data_handling">Data handling</string>
+    <string name="about_app_content">"TikTok Reporter" serves as a vital tool in an ongoing sociological study, seeking to understand the broader implications of content shared on TikTok. By reporting harmful videos, users contribute to a wealth of data that will be instrumental in identifying and addressing the social issues, influences, and trends within the platform.\n\nJoin us in shaping the future of digital interaction by participating in this sociological study through “TikTok Reporter” Your reports make a difference in the quest to foster a safer, more informed, and socially conscious digital environment.\n\nAnonymous Reporting: SocialSafeguard ensures users can report troubling TikTok content discreetly, preserving their privacy.\n\nCategorization: Users can categorize the type of harm observed in videos, such as bullying, misinformation, hate speech, or other sociological factors.\n\nCommentary: The app allows users to provide context and insights, fostering a deeper understanding of the content’s impact.\n\nData Collection: Reports are collated into a comprehensive database, allowing sociologists to analyze and identify trends and patterns.</string>
 
 
 
@@ -50,16 +52,28 @@
     <string name="dialog_message_cancel_report">Are you sure you want to cancel the report? All the data entered will be deleted.</string>
 
     <string name="dialog_title_notification_permission">Notifications permission required</string>
-    <string name="dialog_message_notification_permission">Notification permission required</string>
+    <string name="dialog_message_notification_permission">Enable notifications to record your TikTok session. Please grant permission in your device settings.</string>
 
     <string name="dialog_title_write_external_storage_permission">Write external storage permission required</string>
     <string name="dialog_message_write_external_storage_permission">Write external storage permission required</string>
 
 
 
+    <string name="error_title_general">Oops! Something went wrong</string>
+    <string name="error_message_general">The system doesn\'t seem to respond. Our cat must have been chewing the wires again.\n\nPlease forgive Tom and try again later.</string>
     <string name="error_title_no_studies_available">No studies available</string>
     <string name="error_message_no_studies_available">We are sorry to announce that there are no studies available for your location.\n\nCome back at a later date to check if any new study has been opened.</string>
     <string name="error_message_no_recording_available">Create a recording in order to submit the report.</string>
     <string name="error_message_empty_field">This field cannot be empty.</string>
     <string name="error_message_empty_category">Please suggest a category.</string>
+    <string name="save">Save</string>
+    <string name="done_editing">I\'m done editing</string>
+    <string name="button_download_my_data">Download My Data</string>
+    <string name="button_delete_my_data">Delete My Data</string>
+    <string name="label_recorded_video">Recorded Video</string>
+    <string name="duration_seconds">Duration: %1$s seconds</string>
+    <string name="recorded_on_at">Recorded on: %1$s at %2$s</string>
+    <string name="button_submit_report">Submit Report</string>
+    <string name="button_cancel_report">Cancel Report</string>
+    <string name="loading_tiktok_reporter">Loading TikTok Reporter…</string>
 </resources>

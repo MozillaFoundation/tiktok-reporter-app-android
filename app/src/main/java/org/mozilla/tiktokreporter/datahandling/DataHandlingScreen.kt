@@ -14,7 +14,9 @@ import androidx.compose.runtime.Composable
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
+import org.mozilla.tiktokreporter.R
 import org.mozilla.tiktokreporter.ui.components.LoadingScreen
 import org.mozilla.tiktokreporter.ui.components.MozillaScaffold
 import org.mozilla.tiktokreporter.ui.components.MozillaTopAppBar
@@ -74,13 +76,13 @@ fun DataHandlingScreen(
                 ) {
                     SecondaryButton(
                         modifier = Modifier.fillMaxWidth(),
-                        text = "Download My Data",
+                        text = stringResource(R.string.button_download_my_data),
                         onClick = viewModel::downloadData
                     )
 
                     SecondaryButton(
                         modifier = Modifier.fillMaxWidth(),
-                        text = "Delete My Data",
+                        text = stringResource(R.string.button_delete_my_data),
                         onClick = viewModel::deleteData
                     )
                 }

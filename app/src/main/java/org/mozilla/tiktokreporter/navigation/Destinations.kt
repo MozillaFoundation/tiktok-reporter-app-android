@@ -98,6 +98,7 @@ sealed class NestedDestination(
         )
     }
     data object ReportSubmittedNested: NestedDestination("reportSubmitted")
+    data object EditVideo: NestedDestination("editVideo")
     data object SettingsNested: NestedDestination("settingsHome")
 
 }

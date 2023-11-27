@@ -16,7 +16,9 @@ import androidx.compose.runtime.Composable
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
+import org.mozilla.tiktokreporter.R
 import org.mozilla.tiktokreporter.common.formcomponents.formComponentsItems
 import org.mozilla.tiktokreporter.ui.components.LoadingScreen
 import org.mozilla.tiktokreporter.ui.components.MozillaScaffold
@@ -114,7 +116,7 @@ private fun EmailScreenContent(
                     item {
                         Text(
                             modifier = Modifier.fillMaxWidth(),
-                            text = "Your e-mail",
+                            text = stringResource(R.string.sign_up_for_updates),
                             style = MozillaTypography.H3
                         )
                     }
@@ -136,7 +138,7 @@ private fun EmailScreenContent(
                     if (isForOnboarding) {
                         PrimaryButton(
                             modifier = Modifier.fillMaxWidth(),
-                            text = "Next",
+                            text = stringResource(id = R.string.next),
                             onClick = onSaveEmail
                         )
                     }
@@ -144,7 +146,7 @@ private fun EmailScreenContent(
                 skipButton = {
                     SecondaryButton(
                         modifier = Modifier.fillMaxWidth(),
-                        text = if (isForOnboarding) "Skip" else "Save",
+                        text = if (isForOnboarding) stringResource(id = R.string.skip) else stringResource(id = R.string.save),
                         onClick = if (isForOnboarding) onNextScreen else onSaveEmail
                     )
                 }

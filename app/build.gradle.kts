@@ -80,14 +80,19 @@ dependencies {
     implementation(libs.compose.ui.graphics)
     implementation(libs.compose.ui.tooling)
     implementation(libs.compose.ui.tooling.preview)
+    implementation(libs.compose.ui.util)
     implementation(libs.compose.material3)
     implementation(libs.compose.constraintlayout)
 
+    implementation(libs.coil.compose)
+    implementation(libs.coil.video)
+    implementation(libs.navigation.compose)
     implementation(libs.accompanist.permissions)
 
-    implementation(libs.coil.compose)
-
-    implementation(libs.navigation.compose)
+    implementation(libs.media3.common)
+    implementation(libs.media3.ui)
+    implementation(libs.media3.exoplayer)
+    implementation(libs.media3.transformer)
 
     implementation(libs.retrofit)
     implementation(libs.retrofit.converter.moshi)

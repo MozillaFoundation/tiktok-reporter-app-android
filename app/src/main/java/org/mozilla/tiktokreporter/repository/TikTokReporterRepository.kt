@@ -29,10 +29,9 @@ class TikTokReporterRepository @Inject constructor(
         private set
     var selectedStudyId by context.sharedPreferences(name = Common.PREFERENCES_SELECTED_STUDY_KEY, defaultValue = "")
         private set
-    var onboardingCompleted by context.sharedPreferences(name = Common.PREFERENCES_ONBOARDING_COMPLETED_KEY, defaultValue = false)
-        private set
-    var termsAccepted by context.sharedPreferences(name = Common.PREFERENCES_TERMS_ACCEPTED_KEY, defaultValue = false)
-        private set
+
+    private var onboardingCompleted by context.sharedPreferences(name = Common.PREFERENCES_ONBOARDING_COMPLETED_KEY, defaultValue = false)
+    private var termsAccepted by context.sharedPreferences(name = Common.PREFERENCES_TERMS_ACCEPTED_KEY, defaultValue = false)
 
     private var selectedStudy: StudyDetails? = null
 
@@ -55,14 +54,15 @@ class TikTokReporterRepository @Inject constructor(
     suspend fun fetchStudies(): Result<List<StudyOverview>> {
         val remoteStudies = try {
             tikTokReporterService.getStudies()
-                .mapIndexedNotNull { index, study ->
+                .mapNotNull { study ->
+                    study.formDTO?.let { study }
+                }
+                .mapIndexed { index, study ->
                     val isSelected = if (selectedStudyId.isBlank()) index == 0 else study.id == selectedStudyId
 
-                    study.formDTO?.let {
-                        study.toStudyOverview(
-                            isSelected = isSelected
-                        )
-                    }
+                    study.toStudyOverview(
+                        isSelected = isSelected
+                    )
                 }
         } catch (e: Exception) {
             return Result.failure(e)

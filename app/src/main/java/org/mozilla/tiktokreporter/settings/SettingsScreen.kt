@@ -115,7 +115,7 @@ private fun SettingsScreenContent(
                         SettingsScreenViewModel.SettingsEntry.About -> {
                             SettingEntry(
                                 modifier = Modifier.fillParentMaxWidth(),
-                                title = stringResource(id = R.string.about_tik_tok_reporter).uppercase(),
+                                title = stringResource(id = R.string.about).uppercase(),
                                 onClick = onGoToAppPurpose
                             )
                         }
