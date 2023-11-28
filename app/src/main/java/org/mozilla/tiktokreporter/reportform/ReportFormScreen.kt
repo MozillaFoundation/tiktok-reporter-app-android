@@ -10,7 +10,6 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -378,8 +377,15 @@ private fun LazyListScope.recordSessionItems(
             item {
                 VideoEntry(
                     modifier = Modifier.fillParentMaxWidth(),
-                    video = video!!,
-                    onGoToEditVideo = onGoToEditVideo
+                    video = video!!
+                )
+            }
+
+            item {
+                SecondaryButton(
+                    modifier = Modifier.fillParentMaxWidth(),
+                    text = stringResource(id = R.string.button_trim_recording),
+                    onClick = onGoToEditVideo
                 )
             }
         }
@@ -411,7 +417,6 @@ private fun LazyListScope.recordSessionItems(
 private fun VideoEntry(
     modifier: Modifier = Modifier,
     video: ReportFormScreenViewModel.VideoModel,
-    onGoToEditVideo: () -> Unit
 ) {
     val imageBitmap = video.thumbnail?.asImageBitmap()
     Row(
@@ -421,10 +426,7 @@ private fun VideoEntry(
     ) {
         if (imageBitmap != null) {
             Image(
-                modifier = Modifier.size(80.dp)
-                    .clickable {
-                        onGoToEditVideo()
-                    },
+                modifier = Modifier.size(80.dp),
                 bitmap = imageBitmap,
                 contentDescription = null
             )

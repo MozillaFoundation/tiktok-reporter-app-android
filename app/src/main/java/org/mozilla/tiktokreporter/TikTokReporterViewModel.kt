@@ -7,12 +7,11 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.launch
-import org.mozilla.tiktokreporter.repository.TikTokReporterRepository
 import org.mozilla.tiktokreporter.util.dataStore
 import javax.inject.Inject
 
 @HiltViewModel
-class MainViewModel @Inject constructor(
+class TikTokReporterViewModel @Inject constructor(
     private val tikTokReporterRepository: TikTokReporterRepository,
     @ApplicationContext context: Context
 ): ViewModel() {

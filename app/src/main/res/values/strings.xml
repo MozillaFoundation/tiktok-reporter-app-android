@@ -67,6 +67,7 @@
     <string name="error_message_empty_field">This field cannot be empty.</string>
     <string name="error_message_empty_category">Please suggest a category.</string>
     <string name="save">Save</string>
+    <string name="button_trim_recording">Trim Recording</string>
     <string name="done_editing">I\'m done editing</string>
     <string name="button_download_my_data">Download My Data</string>
     <string name="button_delete_my_data">Delete My Data</string>
