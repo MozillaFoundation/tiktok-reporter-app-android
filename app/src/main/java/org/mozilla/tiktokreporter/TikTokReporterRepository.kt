@@ -1,4 +1,4 @@
-package org.mozilla.tiktokreporter.repository
+package org.mozilla.tiktokreporter
 
 import android.content.Context
 import androidx.datastore.preferences.core.edit

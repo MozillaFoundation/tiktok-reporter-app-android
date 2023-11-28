@@ -13,7 +13,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.mozilla.tiktokreporter.data.model.Policy
 import org.mozilla.tiktokreporter.navigation.NestedDestination
-import org.mozilla.tiktokreporter.repository.TikTokReporterRepository
+import org.mozilla.tiktokreporter.TikTokReporterRepository
 import javax.inject.Inject
 
 @HiltViewModel

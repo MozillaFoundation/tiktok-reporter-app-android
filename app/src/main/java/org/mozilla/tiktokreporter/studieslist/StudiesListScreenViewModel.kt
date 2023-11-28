@@ -9,7 +9,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.mozilla.tiktokreporter.data.model.StudyOverview
-import org.mozilla.tiktokreporter.repository.TikTokReporterRepository
+import org.mozilla.tiktokreporter.TikTokReporterRepository
 import org.mozilla.tiktokreporter.util.OneTimeEvent
 import org.mozilla.tiktokreporter.util.toOneTimeEvent
 import javax.inject.Inject

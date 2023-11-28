@@ -19,12 +19,12 @@ import org.mozilla.tiktokreporter.util.Common
 import org.mozilla.tiktokreporter.util.sharedPreferences
 
 @AndroidEntryPoint
-class MainActivity : ComponentActivity() {
+class TikTokReporterActivity : ComponentActivity() {
 
     private val onboardingCompleted by sharedPreferences(Common.PREFERENCES_ONBOARDING_COMPLETED_KEY, false)
     private val termsAccepted by sharedPreferences(Common.PREFERENCES_TERMS_ACCEPTED_KEY, false)
 
-    private val mainViewModel: MainViewModel by viewModels()
+    private val tikTokReporterViewModel: TikTokReporterViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -57,6 +57,6 @@ class MainActivity : ComponentActivity() {
 
     private fun handleNewIntent(intent: Intent?) {
         val data = intent?.extras?.getString(Intent.EXTRA_TEXT)
-        mainViewModel.onTikTokLinkShared(data)
+        tikTokReporterViewModel.onTikTokLinkShared(data)
     }
 }

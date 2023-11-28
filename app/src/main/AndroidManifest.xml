@@ -17,7 +17,7 @@
         android:maxSdkVersion="29" />
 
     <application
-        android:name=".MozillaApp"
+        android:name=".TikTokReporterApp"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
@@ -30,7 +30,7 @@
         tools:targetApi="33">
 
         <activity
-            android:name=".MainActivity"
+            android:name=".TikTokReporterActivity"
             android:exported="true"
             android:launchMode="singleInstance"
             android:screenOrientation="sensorPortrait">

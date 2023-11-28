@@ -7,7 +7,7 @@ import android.content.Context
 import dagger.hilt.android.HiltAndroidApp
 
 @HiltAndroidApp
-class MozillaApp: Application() {
+class TikTokReporterApp: Application() {
     override fun onCreate() {
         super.onCreate()
 

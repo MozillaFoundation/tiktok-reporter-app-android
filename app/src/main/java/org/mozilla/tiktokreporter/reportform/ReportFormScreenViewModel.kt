@@ -31,7 +31,7 @@ import org.mozilla.tiktokreporter.common.FormFieldUiComponent
 import org.mozilla.tiktokreporter.common.OTHER_CATEGORY_TEXT_FIELD_ID
 import org.mozilla.tiktokreporter.common.OTHER_DROP_DOWN_OPTION_ID
 import org.mozilla.tiktokreporter.common.toUiComponents
-import org.mozilla.tiktokreporter.repository.TikTokReporterRepository
+import org.mozilla.tiktokreporter.TikTokReporterRepository
 import org.mozilla.tiktokreporter.util.Common
 import org.mozilla.tiktokreporter.util.dataStore
 import org.mozilla.tiktokreporter.util.millisToMinSecString
