@@ -17,7 +17,6 @@ import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.transformer.Composition
 import androidx.media3.transformer.ExportException
 import androidx.media3.transformer.ExportResult
-import androidx.media3.transformer.TransformationRequest
 import androidx.media3.transformer.Transformer
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -66,9 +65,7 @@ class EditVideoScreenViewModel @Inject constructor(
 
         transformerListener = object : Transformer.Listener {
             override fun onCompleted(composition: Composition, exportResult: ExportResult) {
-                println("onCompleted - ${tempEditedVideoFile?.absolutePath}")
                 onTransformerFinished()
-
                 super.onCompleted(composition, exportResult)
             }
 
@@ -77,23 +74,11 @@ class EditVideoScreenViewModel @Inject constructor(
                 exportResult: ExportResult,
                 exportException: ExportException
             ) {
-                println("onError - $exportResult")
                 exportException.printStackTrace()
-
+                viewModelScope.launch {
+                    _uiAction.send(UiAction.ShowError(exportException.message.orEmpty()))
+                }
                 super.onError(composition, exportResult, exportException)
-            }
-
-            override fun onFallbackApplied(
-                composition: Composition,
-                originalTransformationRequest: TransformationRequest,
-                fallbackTransformationRequest: TransformationRequest
-            ) {
-                println("onFallbackApplied")
-                super.onFallbackApplied(
-                    composition,
-                    originalTransformationRequest,
-                    fallbackTransformationRequest
-                )
             }
         }
         transformer = Transformer.Builder(context)
@@ -195,8 +180,8 @@ class EditVideoScreenViewModel @Inject constructor(
                 put(MediaStore.Video.Media.MIME_TYPE, "video/mp4")
                 put(MediaStore.Video.Media.DISPLAY_NAME, "TikTok Recording_$currentTimeMillis.mp4")
             }
-            val editedVideoUri = context.contentResolver.insert(videosCollection, contentValues) ?: return@launch
 
+            val editedVideoUri = context.contentResolver.insert(videosCollection, contentValues) ?: return@launch
             withContext(Dispatchers.IO) {
                 context.contentResolver.openOutputStream(editedVideoUri, "w").use { outputStream ->
                     outputStream?.let {
@@ -205,19 +190,16 @@ class EditVideoScreenViewModel @Inject constructor(
                         }
                     }
                 }
+                context.dataStore.edit {
+                    it[Common.VIDEO_URI_PREFERENCE_KEY] = editedVideoUri.toString()
+                }
+
+                tempEditedVideoFile?.delete()
+                tempEditedVideoFile = null
             }
 
-            context.dataStore.edit {
-                it[Common.VIDEO_URI_PREFERENCE_KEY] = editedVideoUri.toString()
-            }
-
-            tempEditedVideoFile?.delete()
-            tempEditedVideoFile = null
-
-            viewModelScope.launch {
-                _isLoading.update { false }
-                _uiAction.send(UiAction.NavigateBack)
-            }
+            _isLoading.update { false }
+            _uiAction.send(UiAction.NavigateBack)
         }
     }
 
@@ -237,5 +219,8 @@ class EditVideoScreenViewModel @Inject constructor(
 
     sealed class UiAction {
         data object NavigateBack : UiAction()
+        data class ShowError(
+            val message: String
+        ): UiAction()
     }
 }

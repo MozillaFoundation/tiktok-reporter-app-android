@@ -1,6 +1,7 @@
 package org.mozilla.tiktokreporter
 
 import android.Manifest
+import android.app.Notification
 import android.app.PendingIntent
 import android.app.Service
 import android.content.Intent
@@ -39,10 +40,16 @@ class ScreenRecorderService : Service() {
     private val job = SupervisorJob()
     private val scope = CoroutineScope(Dispatchers.IO + job)
 
+    private lateinit var notification: Notification
+
     override fun onBind(p0: Intent?): IBinder? = null
 
+    override fun onCreate() {
+        super.onCreate()
+        notification = createNotification()
+    }
+
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        val notification = createNotification()
 
         when (intent?.action) {
             Actions.START.toString() -> {

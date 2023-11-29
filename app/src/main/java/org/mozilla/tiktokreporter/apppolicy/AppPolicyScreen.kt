@@ -23,6 +23,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.mozilla.tiktokreporter.R
+import org.mozilla.tiktokreporter.TikTokReporterError
 import org.mozilla.tiktokreporter.ui.components.LoadingScreen
 import org.mozilla.tiktokreporter.ui.components.MozillaScaffold
 import org.mozilla.tiktokreporter.ui.components.MozillaTopAppBar
@@ -34,7 +35,7 @@ import org.mozilla.tiktokreporter.ui.theme.MozillaColor
 import org.mozilla.tiktokreporter.ui.theme.MozillaDimension
 import org.mozilla.tiktokreporter.ui.theme.MozillaTypography
 import org.mozilla.tiktokreporter.util.CollectWithLifecycle
-import org.mozilla.tiktokreporter.util.emptyCallback
+import org.mozilla.tiktokreporter.util.UiText
 
 @Composable
 fun AppPolicyScreen(
@@ -59,12 +60,12 @@ fun AppPolicyScreen(
                 isForOnboarding = isForOnboarding,
                 onNavigateBack = onNavigateBack,
                 onAgree = viewModel::acceptTerms,
-                onDisagree = if (isForOnboarding) {
-                    {
-                        dialogState.value = DialogState.MessageRes(
-                            title = R.string.dialog_title_review_terms_and_conditions,
-                            message = R.string.dialog_message_review_terms_and_conditions,
-                            negativeButtonText = R.string.got_it,
+                onDisagree = {
+                    if (isForOnboarding) {
+                        dialogState.value = DialogState.MessageDialog(
+                            title = UiText.StringResource(R.string.dialog_title_review_terms_and_conditions),
+                            message = UiText.StringResource(R.string.dialog_message_review_terms_and_conditions),
+                            negativeButtonText = UiText.StringResource(R.string.got_it),
                             onNegative = {
                                 dialogState.value = DialogState.Nothing
                             },
@@ -73,7 +74,7 @@ fun AppPolicyScreen(
                             }
                         )
                     }
-                } else emptyCallback,
+                },
                 modifier = Modifier.fillMaxSize()
             )
         }
@@ -83,15 +84,20 @@ fun AppPolicyScreen(
                 AppPolicyScreenViewModel.UiAction.OnGoToStudies -> onGoToStudies()
                 AppPolicyScreenViewModel.UiAction.OnGoToStudyOnboarding -> onGoToStudyOnboarding()
 
-                // TODO: replace with general error screen
-                is AppPolicyScreenViewModel.UiAction.ShowMessage -> {
-                    dialogState.value = DialogState.Message(
-                        title = "Alert",
-                        message = action.message,
-                        positiveButtonText = "Got it",
-                        onPositive = { dialogState.value = DialogState.Nothing },
-                        onDismissRequest = { dialogState.value = DialogState.Nothing }
-                    )
+                is AppPolicyScreenViewModel.UiAction.ShowError -> {
+
+                    when (action.error) {
+                        // internet connection / server unresponsive / server error
+                        is TikTokReporterError.NetworkError, is TikTokReporterError.ServerError, is TikTokReporterError.UnknownError -> {
+                            dialogState.value = DialogState.ErrorDialog(
+                                title = UiText.StringResource(R.string.error_title_general),
+                                message = UiText.StringResource(R.string.error_message_general),
+                                drawable = R.drawable.error_cat,
+                                actionText = UiText.StringResource(R.string.button_refresh),
+                                action = { } // TODO: refresh
+                            )
+                        }
+                    }
                 }
                 AppPolicyScreenViewModel.UiAction.ShowNoPolicyFound -> Unit
             }

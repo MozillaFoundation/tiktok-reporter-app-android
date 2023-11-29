@@ -9,9 +9,7 @@ import android.provider.Settings
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -22,28 +20,35 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.PlayArrow
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import coil.ImageLoader
+import coil.compose.AsyncImage
+import coil.decode.VideoFrameDecoder
+import coil.request.ImageRequest
+import coil.request.videoFramePercent
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.PermissionStatus
 import com.google.accompanist.permissions.rememberPermissionState
 import com.google.accompanist.permissions.shouldShowRationale
 import org.mozilla.tiktokreporter.R
 import org.mozilla.tiktokreporter.ScreenRecorderService
+import org.mozilla.tiktokreporter.TikTokReporterError
 import org.mozilla.tiktokreporter.common.TabModelType
 import org.mozilla.tiktokreporter.common.formcomponents.formComponentsItems
 import org.mozilla.tiktokreporter.ui.components.LoadingScreen
@@ -59,6 +64,7 @@ import org.mozilla.tiktokreporter.ui.theme.MozillaColor
 import org.mozilla.tiktokreporter.ui.theme.MozillaDimension
 import org.mozilla.tiktokreporter.ui.theme.MozillaTypography
 import org.mozilla.tiktokreporter.util.CollectWithLifecycle
+import org.mozilla.tiktokreporter.util.UiText
 import org.mozilla.tiktokreporter.util.onSdkVersionAndDown
 import org.mozilla.tiktokreporter.util.onSdkVersionAndUp
 
@@ -72,7 +78,27 @@ fun ReportFormScreen(
     onGoToEditVideo: () -> Unit,
     onGoBack: () -> Unit
 ) {
+
     val context = LocalContext.current
+
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            when (event) {
+                Lifecycle.Event.ON_RESUME -> {
+                    viewModel.checkVideoExists(context)
+                }
+
+                else -> Unit
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
+    }
+
     val mediaProjectionPermissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult(),
         onResult = { result ->
@@ -88,23 +114,30 @@ fun ReportFormScreen(
         }
     )
 
-    val writeExternalStoragePermissionState = rememberPermissionState(permission = Manifest.permission.WRITE_EXTERNAL_STORAGE)
-    val writeExternalStoragePermissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { wasGranted ->
-        if (wasGranted) {
-            mediaProjectionPermissionLauncher.launch(
-                context.getSystemService(MediaProjectionManager::class.java).createScreenCaptureIntent()
-            )
+    val writeExternalStoragePermissionState =
+        rememberPermissionState(permission = Manifest.permission.WRITE_EXTERNAL_STORAGE)
+    val writeExternalStoragePermissionLauncher =
+        rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { wasGranted ->
+            if (wasGranted) {
+                mediaProjectionPermissionLauncher.launch(
+                    context.getSystemService(MediaProjectionManager::class.java)
+                        .createScreenCaptureIntent()
+                )
+            }
         }
-    }
 
-    val notificationsPermissionState = rememberPermissionState(permission = Manifest.permission.POST_NOTIFICATIONS)
-    val notificationsPermissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { wasGranted ->
-        if (wasGranted) {
-            mediaProjectionPermissionLauncher.launch(
-                context.getSystemService(MediaProjectionManager::class.java).createScreenCaptureIntent()
-            )
-        }
+    val notificationsPermissionState = onSdkVersionAndUp(Build.VERSION_CODES.TIRAMISU) {
+        rememberPermissionState(permission = Manifest.permission.POST_NOTIFICATIONS)
     }
+    val notificationsPermissionLauncher =
+        rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { wasGranted ->
+            if (wasGranted) {
+                mediaProjectionPermissionLauncher.launch(
+                    context.getSystemService(MediaProjectionManager::class.java)
+                        .createScreenCaptureIntent()
+                )
+            }
+        }
 
     val state by viewModel.state.collectAsStateWithLifecycle()
     val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
@@ -114,18 +147,42 @@ fun ReportFormScreen(
         CollectWithLifecycle(viewModel.uiAction) { action ->
             when (action) {
                 is ReportFormScreenViewModel.UiAction.ShowStudyNotActive -> {
-                    dialogState.value = DialogState.MessageRes(
-                        title = R.string.dialog_title_inactive_study,
-                        message = R.string.dialog_message_inactive_study,
-                        positiveButtonText = R.string.settings,
+                    dialogState.value = DialogState.MessageDialog(
+                        title = UiText.StringResource(R.string.dialog_title_inactive_study),
+                        message = UiText.StringResource(R.string.dialog_message_inactive_study),
+                        positiveButtonText = UiText.StringResource(R.string.settings),
                         onPositive = onGoToStudies,
-                        negativeButtonText = R.string.not_now,
+                        negativeButtonText = UiText.StringResource(R.string.not_now),
                         onNegative = onGoBack,
                         onDismissRequest = { dialogState.value = DialogState.Nothing }
                     )
                 }
-                is ReportFormScreenViewModel.UiAction.GoToReportSubmittedScreen -> onGoToReportSubmittedScreen()
-                else -> Unit
+
+                ReportFormScreenViewModel.UiAction.GoToReportSubmittedScreen -> onGoToReportSubmittedScreen()
+                is ReportFormScreenViewModel.UiAction.ShowError -> {
+                    when (action.error) {
+                        // internet connection / server unresponsive / server error
+                        is TikTokReporterError.NetworkError, is TikTokReporterError.ServerError, is TikTokReporterError.UnknownError -> {
+                            dialogState.value = DialogState.ErrorDialog(
+                                title = UiText.StringResource(R.string.error_title_general),
+                                message = UiText.StringResource(R.string.error_message_general),
+                                drawable = R.drawable.error_cat,
+                                actionText = UiText.StringResource(R.string.button_refresh),
+                                action = { } // TODO: refresh
+                            )
+                        }
+                    }
+                }
+
+                ReportFormScreenViewModel.UiAction.ShowFetchStudyError -> {
+                    dialogState.value = DialogState.ErrorDialog(
+                        title = UiText.StringResource(R.string.error_title_general),
+                        message = UiText.StringResource(R.string.error_message_general),
+                        drawable = R.drawable.error_cat,
+                        actionText = UiText.StringResource(R.string.button_refresh),
+                        action = { } // TODO: refresh
+                    )
+                }
             }
         }
 
@@ -139,15 +196,15 @@ fun ReportFormScreen(
                 onTabSelected = viewModel::onTabSelected,
                 onSubmitReport = viewModel::onSubmitReport,
                 onCancelReport = {
-                    dialogState.value = DialogState.MessageRes(
-                        title = R.string.dialog_title_cancel_report,
-                        message = R.string.dialog_message_cancel_report,
-                        positiveButtonText = R.string.delete,
+                    dialogState.value = DialogState.MessageDialog(
+                        title = UiText.StringResource(R.string.dialog_title_cancel_report),
+                        message = UiText.StringResource(R.string.dialog_message_cancel_report),
+                        positiveButtonText = UiText.StringResource(R.string.delete),
                         onPositive = {
                             viewModel.onCancelReport()
                             dialogState.value = DialogState.Nothing
                         },
-                        negativeButtonText = R.string.keep,
+                        negativeButtonText = UiText.StringResource(R.string.keep),
                         onNegative = {
                             dialogState.value = DialogState.Nothing
                         },
@@ -160,19 +217,20 @@ fun ReportFormScreen(
                 onStartRecording = {
                     onSdkVersionAndUp(Build.VERSION_CODES.TIRAMISU) {
 
-                        when (notificationsPermissionState.status) {
+                        when (notificationsPermissionState?.status) {
                             PermissionStatus.Granted -> {
                                 mediaProjectionPermissionLauncher.launch(
-                                    context.getSystemService(MediaProjectionManager::class.java).createScreenCaptureIntent()
+                                    context.getSystemService(MediaProjectionManager::class.java)
+                                        .createScreenCaptureIntent()
                                 )
                             }
 
                             else -> {
-                                if (notificationsPermissionState.status.shouldShowRationale) {
-                                    dialogState.value = DialogState.MessageRes(
-                                        title = R.string.dialog_title_notification_permission,
-                                        message = R.string.dialog_message_notification_permission,
-                                        positiveButtonText = R.string.settings,
+                                if (notificationsPermissionState?.status?.shouldShowRationale == true) {
+                                    dialogState.value = DialogState.MessageDialog(
+                                        title = UiText.StringResource(R.string.dialog_title_notification_permission),
+                                        message = UiText.StringResource(R.string.dialog_message_notification_permission),
+                                        positiveButtonText = UiText.StringResource(R.string.settings),
                                         onPositive = {
                                             dialogState.value = DialogState.Nothing
                                             val intent = Intent(
@@ -192,16 +250,17 @@ fun ReportFormScreen(
                         when (writeExternalStoragePermissionState.status) {
                             PermissionStatus.Granted -> {
                                 mediaProjectionPermissionLauncher.launch(
-                                    context.getSystemService(MediaProjectionManager::class.java).createScreenCaptureIntent()
+                                    context.getSystemService(MediaProjectionManager::class.java)
+                                        .createScreenCaptureIntent()
                                 )
                             }
 
                             else -> {
-                                if (notificationsPermissionState.status.shouldShowRationale) {
-                                    dialogState.value = DialogState.MessageRes(
-                                        title = R.string.dialog_title_write_external_storage_permission,
-                                        message = R.string.dialog_message_write_external_storage_permission,
-                                        positiveButtonText = R.string.got_it,
+                                if (notificationsPermissionState?.status?.shouldShowRationale == true) {
+                                    dialogState.value = DialogState.MessageDialog(
+                                        title = UiText.StringResource(R.string.dialog_title_write_external_storage_permission),
+                                        message = UiText.StringResource(R.string.dialog_message_write_external_storage_permission),
+                                        positiveButtonText = UiText.StringResource(R.string.got_it),
                                         onPositive = {
                                             dialogState.value = DialogState.Nothing
                                             val intent = Intent(
@@ -217,7 +276,8 @@ fun ReportFormScreen(
                             }
                         }
                     } ?: mediaProjectionPermissionLauncher.launch(
-                        context.getSystemService(MediaProjectionManager::class.java).createScreenCaptureIntent()
+                        context.getSystemService(MediaProjectionManager::class.java)
+                            .createScreenCaptureIntent()
                     )
                 },
                 onStopRecording = {
@@ -293,13 +353,14 @@ private fun ReportFormScreenContent(
                         )
                     }
 
-                    when(state.selectedTab?.first) {
+                    when (state.selectedTab?.first) {
                         TabModelType.ReportLink -> {
                             formComponentsItems(
                                 formFields = state.formFields,
                                 onFormFieldValueChanged = onFormFieldValueChanged
                             )
                         }
+
                         TabModelType.RecordSession -> {
                             recordSessionItems(
                                 isRecording = state.isRecording,
@@ -312,6 +373,7 @@ private fun ReportFormScreenContent(
                                 onGoToEditVideo = onGoToEditVideo
                             )
                         }
+
                         null -> Unit
                     }
                 }
@@ -342,12 +404,11 @@ private fun LazyListScope.recordSessionItems(
     onGoToEditVideo: () -> Unit
 ) {
     item {
+        val text = if (video == null) stringResource(id = R.string.start_recording_session)
+        else stringResource(id = R.string.recording_session_available)
         Text(
             modifier = Modifier.fillParentMaxWidth(),
-            text = when {
-                video == null -> stringResource(id = R.string.start_recording_session)
-                else -> stringResource(id = R.string.recording_session_available)
-            },
+            text = text,
             style = MozillaTypography.Body2
         )
     }
@@ -418,32 +479,25 @@ private fun VideoEntry(
     modifier: Modifier = Modifier,
     video: ReportFormScreenViewModel.VideoModel,
 ) {
-    val imageBitmap = video.thumbnail?.asImageBitmap()
+    val context = LocalContext.current
     Row(
         modifier = modifier,
         horizontalArrangement = Arrangement.spacedBy(MozillaDimension.L),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        if (imageBitmap != null) {
-            Image(
-                modifier = Modifier.size(80.dp),
-                bitmap = imageBitmap,
-                contentDescription = null
-            )
-        } else {
-            Box(
-                modifier = Modifier.size(80.dp)
-            ) {
-                Icon(
-                    modifier = Modifier
-                        .size(32.dp)
-                        .align(Alignment.Center),
-                    imageVector = Icons.Outlined.PlayArrow,
-                    contentDescription = null,
-                    tint = Color.Black
-                )
-            }
-        }
+        AsyncImage(
+            model = ImageRequest.Builder(context)
+                .data(video.uri)
+                .videoFramePercent(.5)
+                .build(),
+            imageLoader = ImageLoader.Builder(context)
+                .components {
+                    add(VideoFrameDecoder.Factory())
+                }
+                .build(),
+            contentDescription = null,
+            modifier = Modifier.size(80.dp),
+        )
 
         Column(
             modifier = Modifier.weight(1f),

@@ -4,14 +4,16 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import org.mozilla.tiktokreporter.TikTokReporterError
 import org.mozilla.tiktokreporter.data.model.StudyOverview
 import org.mozilla.tiktokreporter.TikTokReporterRepository
-import org.mozilla.tiktokreporter.util.OneTimeEvent
-import org.mozilla.tiktokreporter.util.toOneTimeEvent
+import org.mozilla.tiktokreporter.toTikTokReporterError
 import javax.inject.Inject
 
 @HiltViewModel
@@ -25,21 +27,19 @@ class StudiesListScreenViewModel @Inject constructor(
     private val _isLoading = MutableStateFlow(false)
     val isLoading = _isLoading.asStateFlow()
 
+    private val _uiAction = Channel<UiAction>()
+    val uiAction = _uiAction.receiveAsFlow()
+
     init {
         viewModelScope.launch(Dispatchers.Unconfined) {
             _isLoading.update { true }
 
             val studiesResult = tikTokReporterRepository.fetchStudies()
             if (studiesResult.isFailure)  {
-                // TODO: map error
                 _isLoading.update { false }
-                _state.update {
-                    it.copy(
-                        action = UiAction.ShowMessage(
-                            studiesResult.exceptionOrNull()!!.message.orEmpty()
-                        ).toOneTimeEvent()
-                    )
-                }
+                _uiAction.send(
+                    UiAction.ShowError(studiesResult.exceptionOrNull()!!.toTikTokReporterError())
+                )
                 return@launch
             }
 
@@ -48,7 +48,6 @@ class StudiesListScreenViewModel @Inject constructor(
             _isLoading.update { false }
             _state.update {
                 it.copy(
-                    action = null,
                     studies = studies
                 )
             }
@@ -76,42 +75,34 @@ class StudiesListScreenViewModel @Inject constructor(
         shouldForceChange: Boolean
     ) {
         viewModelScope.launch(Dispatchers.Unconfined) {
-
             val selectedStudy = state.value.studies.first { it.isSelected }
 
+            // settings screen - initial study change (before dialog confirmation)
             if (!isForOnboarding && !shouldForceChange) {
-                val action = if (selectedStudy.id != tikTokReporterRepository.selectedStudyId) {
-                    UiAction.ShowChangeStudyWarning.toOneTimeEvent<UiAction>()
-                } else null
-
-                _state.update {
-                    it.copy(
-                        action = action
-                    )
+                if (selectedStudy.id != tikTokReporterRepository.selectedStudyId) {
+                    _uiAction.send(UiAction.ShowChangeStudyWarning)
                 }
+
                 return@launch
             }
 
             tikTokReporterRepository.selectStudy(selectedStudy.id)
-            _state.update {
-                it.copy(
-                    action = if (selectedStudy.hasTerms) UiAction.OnGoToStudyTerms.toOneTimeEvent()
-                        else if (selectedStudy.hasOnboarding) UiAction.OnGoToStudyOnboarding.toOneTimeEvent()
-                        else if (selectedStudy.hasEmailForm) UiAction.OnGoToEmail.toOneTimeEvent()
-                        else UiAction.OnGoToReportForm.toOneTimeEvent()
-                )
-            }
+            _uiAction.send(
+                if (selectedStudy.hasTerms) UiAction.OnGoToStudyTerms
+                else if (selectedStudy.hasOnboarding) UiAction.OnGoToStudyOnboarding
+                else if (selectedStudy.hasEmailForm) UiAction.OnGoToEmail
+                else UiAction.OnGoToReportForm
+            )
         }
     }
 
     data class State(
-        val studies: List<StudyOverview> = emptyList(),
-        val action: OneTimeEvent<UiAction>? = null
+        val studies: List<StudyOverview> = emptyList()
     )
 
     sealed class UiAction {
-        data class ShowMessage(
-            val message: String
+        data class ShowError(
+            val error: TikTokReporterError
         ): UiAction()
         data object ShowChangeStudyWarning : UiAction()
         data object OnGoToStudyOnboarding : UiAction()

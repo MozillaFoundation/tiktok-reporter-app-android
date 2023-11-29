@@ -19,6 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import org.mozilla.tiktokreporter.R
+import org.mozilla.tiktokreporter.TikTokReporterError
 import org.mozilla.tiktokreporter.common.formcomponents.formComponentsItems
 import org.mozilla.tiktokreporter.ui.components.LoadingScreen
 import org.mozilla.tiktokreporter.ui.components.MozillaScaffold
@@ -26,9 +27,12 @@ import org.mozilla.tiktokreporter.ui.components.MozillaTopAppBar
 import org.mozilla.tiktokreporter.ui.components.PrimaryButton
 import org.mozilla.tiktokreporter.ui.components.SecondaryButton
 import org.mozilla.tiktokreporter.ui.components.dialog.DialogContainer
+import org.mozilla.tiktokreporter.ui.components.dialog.DialogState
 import org.mozilla.tiktokreporter.ui.theme.MozillaColor
 import org.mozilla.tiktokreporter.ui.theme.MozillaDimension
 import org.mozilla.tiktokreporter.ui.theme.MozillaTypography
+import org.mozilla.tiktokreporter.util.CollectWithLifecycle
+import org.mozilla.tiktokreporter.util.UiText
 
 @Composable
 fun EmailScreen(
@@ -37,19 +41,37 @@ fun EmailScreen(
     onNextScreen: () -> Unit,
     onNavigateBack: () -> Unit
 ) {
-    DialogContainer { _ ->
+    DialogContainer { dialogState ->
 
         val state by viewModel.state.collectAsStateWithLifecycle()
         val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
 
-        when (state.action?.get()) {
-            EmailScreenViewModel.UiAction.GoToReportForm -> onNextScreen()
-            EmailScreenViewModel.UiAction.EmailSaved -> {
-                if (isForOnboarding) onNextScreen()
-                else onNavigateBack()
+        CollectWithLifecycle(
+            flow = viewModel.uiAction,
+            onCollect = { action ->
+                when (action) {
+                    EmailScreenViewModel.UiAction.GoToReportForm -> onNextScreen()
+                    EmailScreenViewModel.UiAction.EmailSaved -> {
+                        if (isForOnboarding) onNextScreen()
+                        else onNavigateBack()
+                    }
+                    is EmailScreenViewModel.UiAction.ShowError -> {
+                        when (action.error) {
+                            // internet connection / server unresponsive / server error
+                            is TikTokReporterError.NetworkError, is TikTokReporterError.ServerError, is TikTokReporterError.UnknownError -> {
+                                dialogState.value = DialogState.ErrorDialog(
+                                    title = UiText.StringResource(R.string.error_title_general),
+                                    message = UiText.StringResource(R.string.error_message_general),
+                                    drawable = R.drawable.error_cat,
+                                    actionText = UiText.StringResource(R.string.button_refresh),
+                                    action = { } // TODO: refresh
+                                )
+                            }
+                        }
+                    }
+                }
             }
-            else -> Unit
-        }
+        )
 
         if (isLoading) {
             LoadingScreen()

@@ -26,15 +26,19 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import kotlinx.coroutines.launch
 import org.mozilla.tiktokreporter.R
+import org.mozilla.tiktokreporter.TikTokReporterError
 import org.mozilla.tiktokreporter.data.model.OnboardingStep
 import org.mozilla.tiktokreporter.ui.components.LoadingScreen
 import org.mozilla.tiktokreporter.ui.components.MozillaScaffold
 import org.mozilla.tiktokreporter.ui.components.PrimaryButton
 import org.mozilla.tiktokreporter.ui.components.SecondaryButton
 import org.mozilla.tiktokreporter.ui.components.dialog.DialogContainer
+import org.mozilla.tiktokreporter.ui.components.dialog.DialogState
 import org.mozilla.tiktokreporter.ui.theme.MozillaColor
 import org.mozilla.tiktokreporter.ui.theme.MozillaDimension
 import org.mozilla.tiktokreporter.ui.theme.MozillaTypography
+import org.mozilla.tiktokreporter.util.CollectWithLifecycle
+import org.mozilla.tiktokreporter.util.UiText
 
 @Composable
 fun StudyOnboardingScreen(
@@ -43,10 +47,33 @@ fun StudyOnboardingScreen(
 ) {
     DialogContainer(
         modifier = Modifier.fillMaxSize()
-    ) { _ ->
+    ) { dialogState ->
 
         val state by viewModel.state.collectAsStateWithLifecycle()
         val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
+
+        CollectWithLifecycle(
+            flow = viewModel.uiAction,
+            onCollect = { action ->
+                when (action) {
+                    StudyOnboardingScreenViewModel.UiAction.GoToReportForm -> onNextScreen()
+                    is StudyOnboardingScreenViewModel.UiAction.ShowError -> {
+                        when (action.error) {
+                            // internet connection / server unresponsive / server error
+                            is TikTokReporterError.NetworkError, is TikTokReporterError.ServerError, is TikTokReporterError.UnknownError -> {
+                                dialogState.value = DialogState.ErrorDialog(
+                                    title = UiText.StringResource(R.string.error_title_general),
+                                    message = UiText.StringResource(R.string.error_message_general),
+                                    drawable = R.drawable.error_cat,
+                                    actionText = UiText.StringResource(R.string.button_refresh),
+                                    action = { } // TODO: refresh
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        )
 
         if (isLoading) {
             LoadingScreen()

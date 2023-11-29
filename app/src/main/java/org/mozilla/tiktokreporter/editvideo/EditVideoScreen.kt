@@ -95,6 +95,9 @@ fun EditVideoScreen(
             onCollect = { action ->
                 when (action) {
                     EditVideoScreenViewModel.UiAction.NavigateBack -> onNavigateBack()
+                    is EditVideoScreenViewModel.UiAction.ShowError -> {
+
+                    }
                 }
             }
         )

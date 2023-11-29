@@ -103,6 +103,7 @@ dependencies {
     implementation(libs.datastore.preferences.core)
 
     implementation(libs.moshi)
+    implementation(libs.androidx.documentfile)
     ksp(libs.moshi.kotlin.codegen)
     implementation(libs.moshi.adapters)
     implementation(libs.moshi.kotlin)
