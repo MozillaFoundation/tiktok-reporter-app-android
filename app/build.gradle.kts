@@ -5,6 +5,8 @@ plugins {
     alias(libs.plugins.ksp)
     alias(libs.plugins.kapt)
     alias(libs.plugins.hilt)
+    alias(libs.plugins.jetbrains.python)
+    alias(libs.plugins.glean)
 }
 
 android {
@@ -111,6 +113,9 @@ dependencies {
     implementation(libs.hilt.android)
     kapt(libs.hilt.android.compiler)
     implementation(libs.hilt.navigation.compose)
+
+    implementation(libs.glean)
+    implementation(libs.mozilla.components.service.glean)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.test.ext.junit)
