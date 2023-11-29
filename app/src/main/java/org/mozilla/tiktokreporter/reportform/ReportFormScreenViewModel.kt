@@ -5,6 +5,8 @@ import android.media.MediaMetadataRetriever
 import android.net.Uri
 import android.provider.MediaStore
 import androidx.core.net.toUri
+import androidx.datastore.preferences.core.edit
+import androidx.documentfile.provider.DocumentFile
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -36,7 +38,6 @@ import org.mozilla.tiktokreporter.util.millisToMinSecString
 import org.mozilla.tiktokreporter.util.toDateString
 import org.mozilla.tiktokreporter.util.toTimeString
 import java.time.Instant
-import java.time.LocalDateTime
 import java.time.ZoneId
 import javax.inject.Inject
 
@@ -122,13 +123,7 @@ class ReportFormScreenViewModel @Inject constructor(
                 .collect { videoUriString ->
                     val videoUri = videoUriString.toUri()
 
-                    var duration: Long
-                    lateinit var name: String
-                    lateinit var localDateTime: LocalDateTime
                     withContext(Dispatchers.IO) {
-                        mediaMetadataRetriever.setDataSource(context, videoUri)
-                        duration = mediaMetadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)?.toLong() ?: 0L // ms
-
                         context.contentResolver.query(
                             videoUri,
                             arrayOf(
@@ -138,40 +133,57 @@ class ReportFormScreenViewModel @Inject constructor(
                             ),
                             null,
                             null
-                        )?.use {  cursor ->
+                        )?.use { cursor ->
                             val titleColumn = cursor.getColumnIndex(MediaStore.Video.Media.TITLE)
                             val dateColumn = cursor.getColumnIndex(MediaStore.Video.Media.DATE_ADDED)
+
                             if (cursor.moveToFirst()) {
-                                name = cursor.getString(titleColumn)
+
+                                mediaMetadataRetriever.setDataSource(context, videoUri)
+                                val duration = mediaMetadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)?.toLong() ?: 0L // ms
+
+                                val name = cursor.getString(titleColumn)
 
                                 val date = cursor.getLong(dateColumn)
                                 val instant = Instant.ofEpochSecond(date)
-                                localDateTime = instant.atZone(ZoneId.systemDefault()).toLocalDateTime()
-                            }
-                        }
-                    }
+                                val localDateTime = instant.atZone(ZoneId.systemDefault()).toLocalDateTime()
 
-                    _state.update { state ->
-                        state.copy(
-                            video = VideoModel(
-                                name = name,
-                                duration = duration.millisToMinSecString(),
-                                date = localDateTime.toDateString(),
-                                time = localDateTime.toTimeString(),
-                                uri = videoUri
+                                _state.update { state ->
+                                    state.copy(
+                                        video = VideoModel(
+                                            name = name,
+                                            duration = duration.millisToMinSecString(),
+                                            date = localDateTime.toDateString(),
+                                            time = localDateTime.toTimeString(),
+                                            uri = videoUri
+                                        )
+                                    )
+                                }
+
+                            } else {
+                                // ok uri - no entry found
+                                _state.update { state ->
+                                    state.copy(
+                                        video = null
+                                    )
+                                }
+                            }
+                        } ?: _state.update { state ->
+                            state.copy(
+                                video = null
                             )
-                        )
+                        }
                     }
                 }
         }
 
         viewModelScope.launch {
             context.dataStore.data.map {
-                it[Common.IS_RECORDING_PREFERENCE_KEY] ?: false
+                it[Common.IS_RECORDING_PREFERENCE_KEY]
             }.collect { isRecording ->
                 _state.update { state ->
                     state.copy(
-                        isRecording = isRecording
+                        isRecording = isRecording ?: false
                     )
                 }
             }
@@ -250,7 +262,7 @@ class ReportFormScreenViewModel @Inject constructor(
     fun onSubmitReport() {
         viewModelScope.launch(Dispatchers.Unconfined) {
 
-            when(state.value.selectedTab?.first) {
+            when (state.value.selectedTab?.first) {
                 TabModelType.ReportLink -> {
                     _state.update {
                         it.copy(
@@ -290,6 +302,7 @@ class ReportFormScreenViewModel @Inject constructor(
                         return@launch
                     }
                 }
+
                 TabModelType.RecordSession -> {
                     val noVideoPresent = state.value.video == null
 
@@ -303,6 +316,7 @@ class ReportFormScreenViewModel @Inject constructor(
                         return@launch
                     }
                 }
+
                 else -> Unit
             }
 
@@ -376,6 +390,27 @@ class ReportFormScreenViewModel @Inject constructor(
         }
     }
 
+    fun checkVideoExists(context: Context) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val uri = _state.value.video?.uri ?: return@launch
+
+            val file = DocumentFile.fromSingleUri(context, uri)
+            if (file == null || !file.exists()) {
+                _state.update { state ->
+                    state.copy(
+                        video = null
+                    )
+                }
+
+                context.dataStore.edit {
+                    it.remove(Common.VIDEO_URI_PREFERENCE_KEY)
+                    it.remove(Common.IS_RECORDING_PREFERENCE_KEY)
+                }
+            }
+        }
+
+    }
+
     data class State(
         val tabs: List<TabModelType> = emptyList(),
         val selectedTab: Pair<TabModelType, Int>? = null,
@@ -400,6 +435,6 @@ class ReportFormScreenViewModel @Inject constructor(
         data object ShowStudyNotActive : UiAction()
         data class ShowError(
             val error: TikTokReporterError
-        ): UiAction()
+        ) : UiAction()
     }
 }

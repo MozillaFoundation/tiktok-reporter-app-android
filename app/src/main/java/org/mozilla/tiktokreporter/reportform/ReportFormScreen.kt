@@ -25,13 +25,17 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.ImageLoader
 import coil.compose.AsyncImage
@@ -74,7 +78,27 @@ fun ReportFormScreen(
     onGoToEditVideo: () -> Unit,
     onGoBack: () -> Unit
 ) {
+
     val context = LocalContext.current
+
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            when (event) {
+                Lifecycle.Event.ON_RESUME -> {
+                    viewModel.checkVideoExists(context)
+                }
+
+                else -> Unit
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
+    }
+
     val mediaProjectionPermissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult(),
         onResult = { result ->
@@ -102,8 +126,9 @@ fun ReportFormScreen(
             }
         }
 
-    val notificationsPermissionState =
+    val notificationsPermissionState = onSdkVersionAndUp(Build.VERSION_CODES.TIRAMISU) {
         rememberPermissionState(permission = Manifest.permission.POST_NOTIFICATIONS)
+    }
     val notificationsPermissionLauncher =
         rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { wasGranted ->
             if (wasGranted) {
@@ -148,6 +173,7 @@ fun ReportFormScreen(
                         }
                     }
                 }
+
                 ReportFormScreenViewModel.UiAction.ShowFetchStudyError -> {
                     dialogState.value = DialogState.ErrorDialog(
                         title = UiText.StringResource(R.string.error_title_general),
@@ -191,7 +217,7 @@ fun ReportFormScreen(
                 onStartRecording = {
                     onSdkVersionAndUp(Build.VERSION_CODES.TIRAMISU) {
 
-                        when (notificationsPermissionState.status) {
+                        when (notificationsPermissionState?.status) {
                             PermissionStatus.Granted -> {
                                 mediaProjectionPermissionLauncher.launch(
                                     context.getSystemService(MediaProjectionManager::class.java)
@@ -200,7 +226,7 @@ fun ReportFormScreen(
                             }
 
                             else -> {
-                                if (notificationsPermissionState.status.shouldShowRationale) {
+                                if (notificationsPermissionState?.status?.shouldShowRationale == true) {
                                     dialogState.value = DialogState.MessageDialog(
                                         title = UiText.StringResource(R.string.dialog_title_notification_permission),
                                         message = UiText.StringResource(R.string.dialog_message_notification_permission),
@@ -230,7 +256,7 @@ fun ReportFormScreen(
                             }
 
                             else -> {
-                                if (notificationsPermissionState.status.shouldShowRationale) {
+                                if (notificationsPermissionState?.status?.shouldShowRationale == true) {
                                     dialogState.value = DialogState.MessageDialog(
                                         title = UiText.StringResource(R.string.dialog_title_write_external_storage_permission),
                                         message = UiText.StringResource(R.string.dialog_message_write_external_storage_permission),
@@ -378,12 +404,11 @@ private fun LazyListScope.recordSessionItems(
     onGoToEditVideo: () -> Unit
 ) {
     item {
+        val text = if (video == null) stringResource(id = R.string.start_recording_session)
+        else stringResource(id = R.string.recording_session_available)
         Text(
             modifier = Modifier.fillParentMaxWidth(),
-            text = when {
-                video == null -> stringResource(id = R.string.start_recording_session)
-                else -> stringResource(id = R.string.recording_session_available)
-            },
+            text = text,
             style = MozillaTypography.Body2
         )
     }
