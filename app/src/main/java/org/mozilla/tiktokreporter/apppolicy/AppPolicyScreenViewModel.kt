@@ -11,9 +11,11 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import org.mozilla.tiktokreporter.TikTokReporterError
 import org.mozilla.tiktokreporter.data.model.Policy
 import org.mozilla.tiktokreporter.navigation.NestedDestination
 import org.mozilla.tiktokreporter.TikTokReporterRepository
+import org.mozilla.tiktokreporter.toTikTokReporterError
 import javax.inject.Inject
 
 @HiltViewModel
@@ -46,10 +48,9 @@ class AppPolicyScreenViewModel @Inject constructor(
                     val selectedStudy = tikTokReporterRepository.getSelectedStudy()
 
                     if (selectedStudy.isFailure) {
-                        // TODO: map error
-                        val err = selectedStudy.exceptionOrNull()!!
+                        val error = selectedStudy.exceptionOrNull()!!.toTikTokReporterError()
                         _isLoading.update { false }
-                        _uiAction.send(UiAction.ShowMessage(err.message.orEmpty()))
+                        _uiAction.send(UiAction.ShowError(error))
                         return@launch
                     }
 
@@ -58,11 +59,9 @@ class AppPolicyScreenViewModel @Inject constructor(
 
                     val policyResult = tikTokReporterRepository.getAppPolicies()
                     if (policyResult.isFailure) {
-                        // TODO: map error
-                        val err = policyResult.exceptionOrNull()!!
+                        val error = policyResult.exceptionOrNull()!!.toTikTokReporterError()
                         _isLoading.update { false }
-                        _uiAction.send(UiAction.ShowMessage(err.message.orEmpty()))
-
+                        _uiAction.send(UiAction.ShowError(error))
                         return@launch
                     }
 
@@ -77,7 +76,11 @@ class AppPolicyScreenViewModel @Inject constructor(
                 }
             } ?: kotlin.run {
                 _isLoading.update { false }
-                _uiAction.send(UiAction.ShowNoPolicyFound)
+
+                val uiAction = if (policyType == NestedDestination.AppPolicy.Type.Study) UiAction.OnGoToStudyOnboarding
+                else UiAction.OnGoToStudies
+                _uiAction.send(uiAction)
+
                 return@launch
             }
 
@@ -89,7 +92,6 @@ class AppPolicyScreenViewModel @Inject constructor(
                     content = policy.text,
                 )
             }
-
         }
     }
 
@@ -115,8 +117,8 @@ class AppPolicyScreenViewModel @Inject constructor(
         data object ShowNoPolicyFound : UiAction()
         data object OnGoToStudyOnboarding : UiAction()
         data object OnGoToStudies : UiAction()
-        data class ShowMessage(
-            val message: String
+        data class ShowError(
+            val error: TikTokReporterError
         ) : UiAction()
     }
 }

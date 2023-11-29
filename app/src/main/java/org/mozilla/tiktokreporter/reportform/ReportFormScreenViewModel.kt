@@ -1,13 +1,9 @@
 package org.mozilla.tiktokreporter.reportform
 
 import android.content.Context
-import android.graphics.Bitmap
 import android.media.MediaMetadataRetriever
-import android.media.ThumbnailUtils
-import android.os.Build
-import android.os.CancellationSignal
+import android.net.Uri
 import android.provider.MediaStore
-import android.util.Size
 import androidx.core.net.toUri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -25,6 +21,7 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.mozilla.tiktokreporter.TikTokReporterError
 import org.mozilla.tiktokreporter.common.FormFieldError
 import org.mozilla.tiktokreporter.common.TabModelType
 import org.mozilla.tiktokreporter.common.FormFieldUiComponent
@@ -32,10 +29,10 @@ import org.mozilla.tiktokreporter.common.OTHER_CATEGORY_TEXT_FIELD_ID
 import org.mozilla.tiktokreporter.common.OTHER_DROP_DOWN_OPTION_ID
 import org.mozilla.tiktokreporter.common.toUiComponents
 import org.mozilla.tiktokreporter.TikTokReporterRepository
+import org.mozilla.tiktokreporter.toTikTokReporterError
 import org.mozilla.tiktokreporter.util.Common
 import org.mozilla.tiktokreporter.util.dataStore
 import org.mozilla.tiktokreporter.util.millisToMinSecString
-import org.mozilla.tiktokreporter.util.onSdkVersionAndUp
 import org.mozilla.tiktokreporter.util.toDateString
 import org.mozilla.tiktokreporter.util.toTimeString
 import java.time.Instant
@@ -72,8 +69,9 @@ class ReportFormScreenViewModel @Inject constructor(
 
             val studyResult = tikTokReporterRepository.getSelectedStudy()
             if (studyResult.isFailure) {
-                // TODO: map error
                 _isLoading.update { false }
+                val error = studyResult.exceptionOrNull()!!.toTikTokReporterError()
+                _uiAction.send(UiAction.ShowError(error))
                 return@launch
             }
 
@@ -153,10 +151,6 @@ class ReportFormScreenViewModel @Inject constructor(
                         }
                     }
 
-                    val thumbnail = onSdkVersionAndUp(Build.VERSION_CODES.Q) {
-                        context.contentResolver.loadThumbnail(videoUri, Size(96, 96), CancellationSignal())
-                    } ?: ThumbnailUtils.createVideoThumbnail(videoUri.path ?: "", MediaStore.Video.Thumbnails.MINI_KIND)
-
                     _state.update { state ->
                         state.copy(
                             video = VideoModel(
@@ -164,7 +158,7 @@ class ReportFormScreenViewModel @Inject constructor(
                                 duration = duration.millisToMinSecString(),
                                 date = localDateTime.toDateString(),
                                 time = localDateTime.toTimeString(),
-                                thumbnail = thumbnail
+                                uri = videoUri
                             )
                         )
                     }
@@ -397,12 +391,15 @@ class ReportFormScreenViewModel @Inject constructor(
         val duration: String,
         val date: String,
         val time: String,
-        val thumbnail: Bitmap?
+        val uri: Uri
     )
 
     sealed class UiAction {
         data object GoToReportSubmittedScreen : UiAction()
         data object ShowFetchStudyError : UiAction()
         data object ShowStudyNotActive : UiAction()
+        data class ShowError(
+            val error: TikTokReporterError
+        ): UiAction()
     }
 }

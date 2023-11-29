@@ -28,6 +28,7 @@ import androidx.constraintlayout.compose.layoutId
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.mozilla.tiktokreporter.R
+import org.mozilla.tiktokreporter.TikTokReporterError
 import org.mozilla.tiktokreporter.common.ErrorContent
 import org.mozilla.tiktokreporter.data.model.StudyOverview
 import org.mozilla.tiktokreporter.ui.components.LoadingScreen
@@ -41,6 +42,8 @@ import org.mozilla.tiktokreporter.ui.theme.MozillaColor
 import org.mozilla.tiktokreporter.ui.theme.MozillaDimension
 import org.mozilla.tiktokreporter.ui.theme.MozillaTypography
 import org.mozilla.tiktokreporter.ui.theme.TikTokReporterTheme
+import org.mozilla.tiktokreporter.util.CollectWithLifecycle
+import org.mozilla.tiktokreporter.util.UiText
 
 @Composable
 fun StudiesListScreen(
@@ -59,44 +62,49 @@ fun StudiesListScreen(
         val state by viewModel.state.collectAsStateWithLifecycle()
         val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
 
-        when (val action = state.action?.get()) {
-            StudiesListScreenViewModel.UiAction.OnGoToStudyOnboarding -> onGoToStudyOnboarding()
-            StudiesListScreenViewModel.UiAction.OnGoToStudyTerms -> onGoToStudyTerms()
-            StudiesListScreenViewModel.UiAction.OnGoToEmail -> onGoToEmail()
-            StudiesListScreenViewModel.UiAction.OnGoToReportForm -> onGoToReportForm()
-            // TODO: replace with general error screen
-            is StudiesListScreenViewModel.UiAction.ShowMessage -> {
-                dialogState.value = DialogState.Message(
-                    title = "Alert",
-                    message = action.message,
-                    positiveButtonText = "Got it",
-                    onPositive = {
-                        dialogState.value = DialogState.Nothing
-                    },
-                    onDismissRequest = {
-                        dialogState.value = DialogState.Nothing
+        CollectWithLifecycle(
+            flow = viewModel.uiAction,
+            onCollect = { action ->
+                when (action) {
+                    StudiesListScreenViewModel.UiAction.OnGoToStudyOnboarding -> onGoToStudyOnboarding()
+                    StudiesListScreenViewModel.UiAction.OnGoToStudyTerms -> onGoToStudyTerms()
+                    StudiesListScreenViewModel.UiAction.OnGoToEmail -> onGoToEmail()
+                    StudiesListScreenViewModel.UiAction.OnGoToReportForm -> onGoToReportForm()
+
+                    is StudiesListScreenViewModel.UiAction.ShowError -> {
+                        when (action.error) {
+                            // internet connection / server unresponsive / server error
+                            is TikTokReporterError.NetworkError, is TikTokReporterError.ServerError, is TikTokReporterError.UnknownError -> {
+                                dialogState.value = DialogState.ErrorDialog(
+                                    title = UiText.StringResource(R.string.error_title_general),
+                                    message = UiText.StringResource(R.string.error_message_general),
+                                    drawable = R.drawable.error_cat,
+                                    actionText = UiText.StringResource(R.string.button_refresh),
+                                    action = { } // TODO: refresh
+                                )
+                            }
+                        }
                     }
-                )
-            }
-            StudiesListScreenViewModel.UiAction.ShowChangeStudyWarning -> {
-                dialogState.value = DialogState.Message(
-                    title = stringResource(id = R.string.dialog_title_change_study),
-                    message = stringResource(id = R.string.dialog_message_change_study),
-                    positiveButtonText = stringResource(id = R.string.yes),
-                    onPositive = {
-                        viewModel.onSave(
-                            isForOnboarding = isForOnboarding,
-                            shouldForceChange = true
+                    StudiesListScreenViewModel.UiAction.ShowChangeStudyWarning -> {
+                        dialogState.value = DialogState.MessageDialog(
+                            title = UiText.StringResource(R.string.dialog_title_change_study),
+                            message = UiText.StringResource(R.string.dialog_message_change_study),
+                            positiveButtonText = UiText.StringResource(R.string.yes),
+                            onPositive = {
+                                viewModel.onSave(
+                                    isForOnboarding = isForOnboarding,
+                                    shouldForceChange = true
+                                )
+                            },
+                            negativeButtonText = UiText.StringResource(R.string.cancel),
+                            onNegative = {
+                                dialogState.value = DialogState.Nothing
+                            }
                         )
-                    },
-                    negativeButtonText = stringResource(id = R.string.cancel),
-                    onNegative = {
-                        dialogState.value = DialogState.Nothing
                     }
-                )
+                }
             }
-            else -> Unit
-        }
+        )
 
         if (isLoading) {
             LoadingScreen()

@@ -4,16 +4,18 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import org.mozilla.tiktokreporter.TikTokReporterError
 import org.mozilla.tiktokreporter.common.FormFieldUiComponent
 import org.mozilla.tiktokreporter.common.toUiComponents
 import org.mozilla.tiktokreporter.TikTokReporterRepository
-import org.mozilla.tiktokreporter.util.OneTimeEvent
-import org.mozilla.tiktokreporter.util.toOneTimeEvent
+import org.mozilla.tiktokreporter.toTikTokReporterError
 import javax.inject.Inject
 
 @HiltViewModel
@@ -27,25 +29,24 @@ class EmailScreenViewModel @Inject constructor(
     private val _isLoading = MutableStateFlow(false)
     val isLoading = _isLoading.asStateFlow()
 
+    private val _uiAction = Channel<UiAction>()
+    val uiAction = _uiAction.receiveAsFlow()
+
     init {
         viewModelScope.launch {
             _isLoading.update { true }
 
             val studyResult = tikTokReporterRepository.getSelectedStudy()
             if (studyResult.isFailure) {
-                // TODO: map error
                 _isLoading.update { false }
+                val error = studyResult.exceptionOrNull()!!.toTikTokReporterError()
+                _uiAction.send(UiAction.ShowError(error))
                 return@launch
             }
 
             val onboardingForm = studyResult.getOrNull()?.onboarding?.form ?: kotlin.run {
                 _isLoading.update { false }
-                _state.update {
-                    it.copy(
-                        action = UiAction.GoToReportForm.toOneTimeEvent()
-                    )
-                }
-
+                _uiAction.send(UiAction.GoToReportForm)
                 return@launch
             }
 
@@ -62,8 +63,7 @@ class EmailScreenViewModel @Inject constructor(
             _isLoading.update { false }
             _state.update { state ->
                 state.copy(
-                    formFields = fields,
-                    action = null
+                    formFields = fields
                 )
             }
         }
@@ -111,21 +111,19 @@ class EmailScreenViewModel @Inject constructor(
 
             tikTokReporterRepository.saveUserEmail(email)
 
-            _state.update { state ->
-                state.copy(
-                    action = UiAction.EmailSaved.toOneTimeEvent()
-                )
-            }
+            _uiAction.send(UiAction.EmailSaved)
         }
     }
 
     data class State(
-        val formFields: List<FormFieldUiComponent<*>> = emptyList(),
-        val action: OneTimeEvent<UiAction>? = null
+        val formFields: List<FormFieldUiComponent<*>> = emptyList()
     )
 
     sealed class UiAction {
         data object GoToReportForm: UiAction()
         data object EmailSaved: UiAction()
+        data class ShowError(
+            val error: TikTokReporterError
+        ): UiAction()
     }
 }
