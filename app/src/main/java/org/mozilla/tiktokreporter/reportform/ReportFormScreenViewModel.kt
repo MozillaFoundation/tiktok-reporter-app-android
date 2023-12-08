@@ -35,8 +35,10 @@ import org.mozilla.tiktokreporter.common.OTHER_DROP_DOWN_OPTION_ID
 import org.mozilla.tiktokreporter.common.toUiComponents
 import org.mozilla.tiktokreporter.TikTokReporterRepository
 import org.mozilla.tiktokreporter.data.model.GleanFormItem
-import org.mozilla.tiktokreporter.data.model.GleanFormRequest
+import org.mozilla.tiktokreporter.data.model.GleanReportLinkFormRequest
+import org.mozilla.tiktokreporter.data.model.GleanRecordSessionFormRequest
 import org.mozilla.tiktokreporter.data.model.StudyDetails
+import org.mozilla.tiktokreporter.data.remote.response.UploadedRecordingDTO
 import org.mozilla.tiktokreporter.data.remote.response.toFormFieldDTO
 import org.mozilla.tiktokreporter.toTikTokReporterError
 import org.mozilla.tiktokreporter.util.Common
@@ -205,17 +207,19 @@ class ReportFormScreenViewModel @Inject constructor(
 
         viewModelScope.launch {
             context.dataStore.data.map {
-                it[Common.DATASTORE_KEY_RECORDING_NAME]
+                it[Common.DATASTORE_KEY_RECORDING_UPLOADED] ?: false
             }
                 .filterNotNull()
-                .collect { recordingName ->
-                    submitRecordedSessionForm(
-                        recordingName = recordingName
-                    )
+                .collect { recordingUploaded ->
+                    val recordingInfo = tikTokReporterRepository.uploadedRecording
+                    if (recordingUploaded && recordingInfo != null) {
+                        submitRecordedSessionForm(recordingInfo)
 
-                    context.dataStore.edit {
-                        it.remove(Common.DATASTORE_KEY_RECORDING_NAME)
+                        context.dataStore.edit {
+                            it.remove(Common.DATASTORE_KEY_RECORDING_UPLOADED)
+                        }
                     }
+
                 }
         }
     }
@@ -375,10 +379,16 @@ class ReportFormScreenViewModel @Inject constructor(
     }
 
     private suspend fun submitRecordedSessionForm(
-        recordingName: String
+        uploadedRecordingDTO: UploadedRecordingDTO
     ) {
-        // TODO: serialize form and submit to glean
-        val serializedForm = serializeRecordSessionForm()
+        withContext(Dispatchers.Unconfined) {
+            val serializedForm = serializeRecordSessionForm(uploadedRecordingDTO)
+
+            val studyUUID = UUID.fromString(state.value.studyDetails?.id)
+            TiktokReport.identifier.set(studyUUID)
+            TiktokReport.screenRecording.set(serializedForm)
+            Pings.tiktokReport.submit()
+        }
 
         onCancelReport()
         _uiAction.send(UiAction.StopUploadRecordingService)
@@ -486,10 +496,10 @@ class ReportFormScreenViewModel @Inject constructor(
             }
         }
 
-        val jsonAdapter = moshi.adapter(GleanFormRequest::class.java)
+        val jsonAdapter = moshi.adapter(GleanReportLinkFormRequest::class.java)
 
         return jsonAdapter.toJson(
-            GleanFormRequest(
+            GleanReportLinkFormRequest(
                 id = study?.form?.id ?: UUID.randomUUID().toString(),
                 name = study?.form?.name ?: "",
                 items = gleanFields
@@ -497,9 +507,16 @@ class ReportFormScreenViewModel @Inject constructor(
         )
     }
 
-    private fun serializeRecordSessionForm(): String {
-
-        return ""
+    private fun serializeRecordSessionForm(
+        recordingInfo: UploadedRecordingDTO
+    ): String {
+        val jsonAdapter = moshi.adapter(GleanRecordSessionFormRequest::class.java)
+        return jsonAdapter.toJson(
+            GleanRecordSessionFormRequest(
+                recordingInfo = recordingInfo,
+                comments = state.value.recordSessionComments
+            )
+        )
     }
 
     data class State(
@@ -507,6 +524,7 @@ class ReportFormScreenViewModel @Inject constructor(
         val tabs: List<TabModelType> = emptyList(),
         val selectedTab: Pair<TabModelType, Int>? = null,
         val formFields: List<FormFieldUiComponent<*>> = listOf(),
+
         val isRecording: Boolean = false,
         val recordSessionComments: String = "",
         val video: VideoModel? = null,

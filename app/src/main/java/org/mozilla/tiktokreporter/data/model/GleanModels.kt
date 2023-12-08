@@ -12,14 +12,14 @@ data class GleanFormItem(
 )
 
 @JsonClass(generateAdapter = true)
-data class GleanFormRequest(
+data class GleanReportLinkFormRequest(
     @Json(name = "id") val id: String,
     @Json(name = "name") val name: String,
     @Json(name = "items") val items: List<GleanFormItem>,
 )
 
 @JsonClass(generateAdapter = true)
-data class GleanRecordSessionRequest(
+data class GleanRecordSessionFormRequest(
     @Json(name = "recordingInfo") val recordingInfo: UploadedRecordingDTO,
     @Json(name = "comments") val comments: String?
 )

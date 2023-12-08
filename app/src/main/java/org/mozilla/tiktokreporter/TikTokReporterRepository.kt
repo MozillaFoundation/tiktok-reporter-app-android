@@ -52,6 +52,7 @@ class TikTokReporterRepository @Inject constructor(
     )
 
     private var selectedStudy: StudyDetails? = null
+    var uploadedRecording: UploadedRecordingDTO? = null
 
     private val _tikTokUrl = MutableSharedFlow<String?>(1)
     val tikTokUrl = _tikTokUrl.asSharedFlow()
@@ -162,7 +163,7 @@ class TikTokReporterRepository @Inject constructor(
                     it.copyTo(file.outputStream())
                 } ?: return@withContext Result.failure(Exception("Open input stream failure"))
 
-                val response = tikTokReporterService.uploadRecording(
+                uploadedRecording = tikTokReporterService.uploadRecording(
                     file = MultipartBody.Part.createFormData(
                         name = "file",
                         filename = file.name,
@@ -173,10 +174,10 @@ class TikTokReporterRepository @Inject constructor(
                 file.delete()
 
                 context.dataStore.edit {
-                    it[Common.DATASTORE_KEY_RECORDING_NAME] = response.name
+                    it[Common.DATASTORE_KEY_RECORDING_UPLOADED] = true
                 }
 
-                return@withContext Result.success(response)
+                return@withContext Result.success(uploadedRecording!!)
             } catch (e: Exception) {
                 return@withContext Result.failure(e)
             }
