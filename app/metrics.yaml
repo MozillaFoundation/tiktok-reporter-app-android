@@ -41,12 +41,29 @@ tiktok_report:
     data_reviews:
       - A link to the data review
     data_sensitivity:
-      - highly_sensitive
+      - stored_content
     notification_emails:
       - jessed@mozillafoundation.org
     expires: never
 
   email:
+    type: text
+    send_in_pings:
+      - tiktok-report
+    description: |
+      Some description about what this contains. This is a json dump
+      of the "fields" in the example I was given.
+    bugs:
+      - A link to the bug/ticket for the implementation
+    data_reviews:
+      - A link to the data review
+    data_sensitivity:
+      - highly_sensitive
+    notification_emails:
+      - jessed@mozillafoundation.org
+    expires: never
+
+  screen_recording:
     type: text
     send_in_pings:
       - tiktok-report

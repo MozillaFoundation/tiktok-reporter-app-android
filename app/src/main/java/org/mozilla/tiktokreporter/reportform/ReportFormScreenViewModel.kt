@@ -24,6 +24,8 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.mozilla.tiktokreporter.GleanMetrics.Pings
+import org.mozilla.tiktokreporter.GleanMetrics.TiktokReport
 import org.mozilla.tiktokreporter.TikTokReporterError
 import org.mozilla.tiktokreporter.common.FormFieldError
 import org.mozilla.tiktokreporter.common.TabModelType
@@ -34,6 +36,7 @@ import org.mozilla.tiktokreporter.common.toUiComponents
 import org.mozilla.tiktokreporter.TikTokReporterRepository
 import org.mozilla.tiktokreporter.data.model.GleanFormItem
 import org.mozilla.tiktokreporter.data.model.GleanFormRequest
+import org.mozilla.tiktokreporter.data.model.StudyDetails
 import org.mozilla.tiktokreporter.data.remote.response.toFormFieldDTO
 import org.mozilla.tiktokreporter.toTikTokReporterError
 import org.mozilla.tiktokreporter.util.Common
@@ -43,6 +46,7 @@ import org.mozilla.tiktokreporter.util.toDateString
 import org.mozilla.tiktokreporter.util.toTimeString
 import java.time.Instant
 import java.time.ZoneId
+import java.util.UUID
 import javax.inject.Inject
 
 @HiltViewModel
@@ -112,6 +116,7 @@ class ReportFormScreenViewModel @Inject constructor(
 
                     _state.update { state ->
                         state.copy(
+                            studyDetails = study,
                             tabs = tabs,
                             selectedTab = tabs.firstOrNull()?.to(0),
                             formFields = fields,
@@ -354,14 +359,15 @@ class ReportFormScreenViewModel @Inject constructor(
     }
 
     private suspend fun submitReportLinkForm() {
-        // TODO: serialize form and submit to glean
 
-        val serializedForm = serializeReportLinkForm()
+        withContext(Dispatchers.Unconfined) {
+            val serializedForm = serializeReportLinkForm()
 
-//        TopLevel.identifier.set(UUID.randomUUID())
-//        TopLevel.name.set("name")
-//        TopLevel.fields.set("stringified json of the form")
-//        Pings.tiktokReport.submit()
+            val studyUUID = UUID.fromString(state.value.studyDetails?.id)
+            TiktokReport.identifier.set(studyUUID)
+            TiktokReport.fields.set(serializedForm)
+            Pings.tiktokReport.submit()
+        }
 
         onCancelReport()
         _uiAction.send(UiAction.GoToReportSubmittedScreen)
@@ -466,10 +472,10 @@ class ReportFormScreenViewModel @Inject constructor(
 
     }
 
-    private suspend fun serializeReportLinkForm(): String {
+    private fun serializeReportLinkForm(): String {
 
-        val selectedStudy = tikTokReporterRepository.getSelectedStudy().getOrNull()!!
-        val gleanFields = selectedStudy.form?.fields.orEmpty().mapNotNull { formField ->
+        val study = state.value.studyDetails
+        val gleanFields = study?.form?.fields.orEmpty().mapNotNull { formField ->
             val uiFormFieldValue = state.value.formFields.firstOrNull { uiFormField -> uiFormField.id == formField.id }?.value
 
             uiFormFieldValue?.let {
@@ -480,13 +486,12 @@ class ReportFormScreenViewModel @Inject constructor(
             }
         }
 
-
         val jsonAdapter = moshi.adapter(GleanFormRequest::class.java)
 
         return jsonAdapter.toJson(
             GleanFormRequest(
-                id = selectedStudy.id,
-                name = selectedStudy.name,
+                id = study?.form?.id ?: UUID.randomUUID().toString(),
+                name = study?.form?.name ?: "",
                 items = gleanFields
             )
         )
@@ -498,6 +503,7 @@ class ReportFormScreenViewModel @Inject constructor(
     }
 
     data class State(
+        val studyDetails: StudyDetails? = null,
         val tabs: List<TabModelType> = emptyList(),
         val selectedTab: Pair<TabModelType, Int>? = null,
         val formFields: List<FormFieldUiComponent<*>> = listOf(),
