@@ -17,4 +17,3 @@ tiktok-report:
     - A link to the data review
   notification_emails:
     - jessed@mozillafoundation.org
-#  expires: never

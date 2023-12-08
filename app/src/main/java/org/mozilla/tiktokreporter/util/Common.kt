@@ -32,8 +32,9 @@ object Common {
     const val PREFERENCES_ONBOARDING_COMPLETED_KEY = "onboarding_completed"
     const val PREFERENCES_SELECTED_STUDY_KEY = "selected_study"
     const val PREFERENCES_USER_EMAIL_KEY = "user_email"
-    val IS_RECORDING_PREFERENCE_KEY = booleanPreferencesKey("is_recording")
-    val VIDEO_URI_PREFERENCE_KEY = stringPreferencesKey("video_uri")
+    val DATASTORE_KEY_IS_RECORDING = booleanPreferencesKey("is_recording")
+    val DATASTORE_KEY_VIDEO_URI = stringPreferencesKey("video_uri")
+    val DATASTORE_KEY_RECORDING_NAME = stringPreferencesKey("recording_name")
 }
 
 

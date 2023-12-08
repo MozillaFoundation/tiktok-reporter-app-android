@@ -121,7 +121,7 @@ class ScreenRecorderManager @Inject constructor(
         virtualDisplay = null
 
         context.dataStore.edit {
-            it[Common.VIDEO_URI_PREFERENCE_KEY] = videoUri.toString()
+            it[Common.DATASTORE_KEY_VIDEO_URI] = videoUri.toString()
         }
         videoUri = null
     }

@@ -117,7 +117,7 @@ class ReportFormScreenViewModel @Inject constructor(
 
         viewModelScope.launch {
             context.dataStore.data.map {
-                it[Common.VIDEO_URI_PREFERENCE_KEY]
+                it[Common.DATASTORE_KEY_VIDEO_URI]
             }
                 .filterNotNull()
                 .collect { videoUriString ->
@@ -179,7 +179,7 @@ class ReportFormScreenViewModel @Inject constructor(
 
         viewModelScope.launch {
             context.dataStore.data.map {
-                it[Common.IS_RECORDING_PREFERENCE_KEY]
+                it[Common.DATASTORE_KEY_IS_RECORDING]
             }.collect { isRecording ->
                 _state.update { state ->
                     state.copy(
@@ -187,6 +187,22 @@ class ReportFormScreenViewModel @Inject constructor(
                     )
                 }
             }
+        }
+
+        viewModelScope.launch {
+            context.dataStore.data.map {
+                it[Common.DATASTORE_KEY_RECORDING_NAME]
+            }
+                .filterNotNull()
+                .collect { recordingName ->
+                    submitRecordedSessionForm(
+                        recordingName = recordingName
+                    )
+
+                    context.dataStore.edit {
+                        it.remove(Common.DATASTORE_KEY_RECORDING_NAME)
+                    }
+                }
         }
     }
 
@@ -262,6 +278,8 @@ class ReportFormScreenViewModel @Inject constructor(
     fun onSubmitReport() {
         viewModelScope.launch(Dispatchers.Unconfined) {
 
+            _isLoading.update { true }
+
             when (state.value.selectedTab?.first) {
                 TabModelType.ReportLink -> {
                     _state.update {
@@ -301,27 +319,45 @@ class ReportFormScreenViewModel @Inject constructor(
 
                         return@launch
                     }
+
+                    submitReportLinkForm()
                 }
 
                 TabModelType.RecordSession -> {
-                    val noVideoPresent = state.value.video == null
-
-                    if (noVideoPresent) {
+                    if (state.value.video == null) {
                         _state.update { state ->
                             state.copy(
-                                showSubmitNoVideoError = noVideoPresent
+                                showSubmitNoVideoError = true
                             )
                         }
 
                         return@launch
                     }
+
+                    _uiAction.send(UiAction.StartUploadRecordingService(state.value.video!!.uri))
                 }
 
                 else -> Unit
             }
-
-            _uiAction.send(UiAction.GoToReportSubmittedScreen)
         }
+    }
+
+    private suspend fun submitReportLinkForm() {
+        // TODO: serialize form and submit to glean
+
+        onCancelReport()
+        _uiAction.send(UiAction.GoToReportSubmittedScreen)
+        _isLoading.update { false }
+    }
+
+    private suspend fun submitRecordedSessionForm(
+        recordingName: String
+    ) {
+        // TODO: serialize form and submit to glean
+
+        onCancelReport()
+        _uiAction.send(UiAction.StopUploadRecordingService)
+        _isLoading.update { false }
     }
 
     /**
@@ -403,8 +439,8 @@ class ReportFormScreenViewModel @Inject constructor(
                 }
 
                 context.dataStore.edit {
-                    it.remove(Common.VIDEO_URI_PREFERENCE_KEY)
-                    it.remove(Common.IS_RECORDING_PREFERENCE_KEY)
+                    it.remove(Common.DATASTORE_KEY_VIDEO_URI)
+                    it.remove(Common.DATASTORE_KEY_IS_RECORDING)
                 }
             }
         }
@@ -433,6 +469,11 @@ class ReportFormScreenViewModel @Inject constructor(
         data object GoToReportSubmittedScreen : UiAction()
         data object ShowFetchStudyError : UiAction()
         data object ShowStudyNotActive : UiAction()
+        data class StartUploadRecordingService(
+            val recordingUri: Uri
+        ) : UiAction()
+
+        data object StopUploadRecordingService : UiAction()
         data class ShowError(
             val error: TikTokReporterError
         ) : UiAction()

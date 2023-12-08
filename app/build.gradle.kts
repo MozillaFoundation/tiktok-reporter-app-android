@@ -105,7 +105,6 @@ dependencies {
     implementation(libs.datastore.preferences.core)
 
     implementation(libs.moshi)
-    implementation(libs.androidx.documentfile)
     ksp(libs.moshi.kotlin.codegen)
     implementation(libs.moshi.adapters)
     implementation(libs.moshi.kotlin)
@@ -114,6 +113,7 @@ dependencies {
     kapt(libs.hilt.android.compiler)
     implementation(libs.hilt.navigation.compose)
 
+    implementation(libs.androidx.documentfile)
     implementation(libs.glean)
     implementation(libs.mozilla.components.service.glean)
 

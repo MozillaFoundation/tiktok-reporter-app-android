@@ -8,6 +8,7 @@
 
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PROJECTION"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC"/>
 
     <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"
@@ -49,6 +50,9 @@
 
         <service android:name=".ScreenRecorderService"
             android:foregroundServiceType="mediaProjection"/>
+
+        <service android:name=".UploadRecordingService"
+            android:foregroundServiceType="dataSync"/>
 
     </application>
 

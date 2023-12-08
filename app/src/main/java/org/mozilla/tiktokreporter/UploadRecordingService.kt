@@ -9,24 +9,23 @@ import android.content.pm.PackageManager
 import android.content.pm.ServiceInfo
 import android.os.Build
 import android.os.IBinder
-import androidx.activity.result.ActivityResult
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
-import androidx.datastore.preferences.core.edit
+import androidx.core.net.toUri
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
-import org.mozilla.tiktokreporter.util.Common
-import org.mozilla.tiktokreporter.util.dataStore
 import org.mozilla.tiktokreporter.util.onSdkVersionAndUp
-import org.mozilla.tiktokreporter.util.parcelable
 import javax.inject.Inject
 
 @AndroidEntryPoint
-class ScreenRecorderService : Service() {
+class UploadRecordingService : Service() {
+
+    @Inject
+    lateinit var tikTokReporterRepository: TikTokReporterRepository
 
     enum class Actions {
         START,
@@ -34,15 +33,12 @@ class ScreenRecorderService : Service() {
         STOP
     }
 
-    @Inject
-    lateinit var screenRecorderManager: ScreenRecorderManager
-
     private val job = SupervisorJob()
     private val scope = CoroutineScope(Dispatchers.IO + job)
 
     private lateinit var notification: Notification
 
-    override fun onBind(p0: Intent?): IBinder? = null
+    override fun onBind(intent: Intent?): IBinder? = null
 
     override fun onCreate() {
         super.onCreate()
@@ -53,29 +49,22 @@ class ScreenRecorderService : Service() {
 
         when (intent?.action) {
             Actions.START.toString() -> {
-                val activityResult = intent.parcelable<ActivityResult>("activityResult")
+                val recordingUri = intent.getStringExtra("recordingUri")
 
-                if (activityResult != null) {
-
+                recordingUri?.let {
                     onSdkVersionAndUp(Build.VERSION_CODES.Q) {
                         startForeground(
-                            1,
+                            2,
                             notification,
-                            ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PROJECTION
+                            ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC
                         )
-                    } ?: startForeground(1, notification)
-
+                    } ?: startForeground(2, notification)
 
                     scope.launch {
-                        screenRecorderManager.startRecording(
-                            code = activityResult.resultCode,
-                            data = activityResult.data ?: Intent()
-                        )
-                        this@ScreenRecorderService.dataStore.edit {
-                            it[Common.DATASTORE_KEY_IS_RECORDING] = true
-                        }
+                        tikTokReporterRepository.uploadRecording(recordingUri.toUri())
                     }
                 }
+
             }
 
             Actions.SHOW_NOTIFICATION.toString() -> {
@@ -86,21 +75,13 @@ class ScreenRecorderService : Service() {
                             Manifest.permission.POST_NOTIFICATIONS
                         ) == PackageManager.PERMISSION_GRANTED
                     ) {
-                        notify(1, notification)
+                        notify(2, notification)
                     }
                 }
             }
 
             Actions.STOP.toString() -> {
-                scope.launch {
-                    screenRecorderManager.stopRecording()
-
-                    this@ScreenRecorderService.dataStore.edit {
-                        it[Common.DATASTORE_KEY_IS_RECORDING] = false
-                    }
-
-                    this@ScreenRecorderService.stopSelf()
-                }
+                stopSelf()
             }
         }
 
@@ -110,34 +91,16 @@ class ScreenRecorderService : Service() {
     private fun getDeleteIntent() = PendingIntent.getService(
         applicationContext,
         1,
-        Intent(applicationContext, ScreenRecorderService::class.java).apply {
+        Intent(applicationContext, UploadRecordingService::class.java).apply {
             action = Actions.SHOW_NOTIFICATION.toString()
         },
         PendingIntent.FLAG_IMMUTABLE
     )
-    private fun getStopRecordingIntent() = PendingIntent.getService(
-        applicationContext,
-        2,
-        Intent(applicationContext, ScreenRecorderService::class.java).apply {
-            action = Actions.STOP.toString()
-        },
-        PendingIntent.FLAG_IMMUTABLE
-    )
-    private fun createNotification() = NotificationCompat.Builder(this, "screen_recording_channel")
+
+    private fun createNotification() = NotificationCompat.Builder(this, "uploading_file_channel")
         .setSmallIcon(R.drawable.ic_launcher_foreground)
-        .setContentTitle("Screen recording...")
-        .setContentText("TikTokRecorder started screen recording.")
+        .setContentTitle("Uploading recording...")
         .setOngoing(true)
         .setDeleteIntent(getDeleteIntent())
-        .addAction(
-            R.drawable.ic_launcher_foreground,
-            "Stop recording",
-            getStopRecordingIntent()
-        )
         .build()
-
-    override fun onDestroy() {
-        job.cancel()
-        super.onDestroy()
-    }
 }

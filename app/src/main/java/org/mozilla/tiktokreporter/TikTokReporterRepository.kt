@@ -1,12 +1,16 @@
 package org.mozilla.tiktokreporter
 
 import android.content.Context
+import android.net.Uri
 import androidx.datastore.preferences.core.edit
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.withContext
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.MultipartBody
+import okhttp3.RequestBody.Companion.asRequestBody
 import org.mozilla.tiktokreporter.data.model.Policy
 import org.mozilla.tiktokreporter.data.model.StudyDetails
 import org.mozilla.tiktokreporter.data.model.StudyOverview
@@ -14,9 +18,11 @@ import org.mozilla.tiktokreporter.data.model.toPolicy
 import org.mozilla.tiktokreporter.data.model.toStudyDetails
 import org.mozilla.tiktokreporter.data.model.toStudyOverview
 import org.mozilla.tiktokreporter.data.remote.TikTokReporterService
+import org.mozilla.tiktokreporter.data.remote.response.UploadedRecordingDTO
 import org.mozilla.tiktokreporter.util.Common
 import org.mozilla.tiktokreporter.util.dataStore
 import org.mozilla.tiktokreporter.util.sharedPreferences
+import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -25,13 +31,25 @@ class TikTokReporterRepository @Inject constructor(
     private val tikTokReporterService: TikTokReporterService,
     @ApplicationContext private val context: Context
 ) {
-    var userEmail by context.sharedPreferences(name = Common.PREFERENCES_USER_EMAIL_KEY, defaultValue = "")
+    var userEmail by context.sharedPreferences(
+        name = Common.PREFERENCES_USER_EMAIL_KEY,
+        defaultValue = ""
+    )
         private set
-    var selectedStudyId by context.sharedPreferences(name = Common.PREFERENCES_SELECTED_STUDY_KEY, defaultValue = "")
+    var selectedStudyId by context.sharedPreferences(
+        name = Common.PREFERENCES_SELECTED_STUDY_KEY,
+        defaultValue = ""
+    )
         private set
 
-    private var onboardingCompleted by context.sharedPreferences(name = Common.PREFERENCES_ONBOARDING_COMPLETED_KEY, defaultValue = false)
-    private var termsAccepted by context.sharedPreferences(name = Common.PREFERENCES_TERMS_ACCEPTED_KEY, defaultValue = false)
+    private var onboardingCompleted by context.sharedPreferences(
+        name = Common.PREFERENCES_ONBOARDING_COMPLETED_KEY,
+        defaultValue = false
+    )
+    private var termsAccepted by context.sharedPreferences(
+        name = Common.PREFERENCES_TERMS_ACCEPTED_KEY,
+        defaultValue = false
+    )
 
     private var selectedStudy: StudyDetails? = null
 
@@ -58,7 +76,8 @@ class TikTokReporterRepository @Inject constructor(
                     study.formDTO?.let { study }
                 }
                 .mapIndexed { index, study ->
-                    val isSelected = if (selectedStudyId.isBlank()) index == 0 else study.id == selectedStudyId
+                    val isSelected =
+                        if (selectedStudyId.isBlank()) index == 0 else study.id == selectedStudyId
 
                     study.toStudyOverview(
                         isSelected = isSelected
@@ -71,7 +90,7 @@ class TikTokReporterRepository @Inject constructor(
         return Result.success(remoteStudies)
     }
 
-    suspend fun fetchStudyById(studyId: String): Result<StudyDetails> {
+    private suspend fun fetchStudyById(studyId: String): Result<StudyDetails> {
         val remoteStudy = try {
             tikTokReporterService.getStudyById(studyId)
         } catch (e: Exception) {
@@ -109,6 +128,7 @@ class TikTokReporterRepository @Inject constructor(
             termsAccepted = true
         }
     }
+
     suspend fun setOnboardingCompleted(isCompleted: Boolean) {
         withContext(Dispatchers.IO) {
             onboardingCompleted = isCompleted
@@ -127,7 +147,39 @@ class TikTokReporterRepository @Inject constructor(
 
     suspend fun cancelReport() {
         context.dataStore.edit {
-            it.remove(Common.VIDEO_URI_PREFERENCE_KEY)
+            it.remove(Common.DATASTORE_KEY_VIDEO_URI)
+        }
+    }
+
+    suspend fun uploadRecording(
+        recordingUri: Uri
+    ): Result<UploadedRecordingDTO> {
+        return withContext(Dispatchers.IO) {
+            try {
+                val file = File(context.filesDir, "tiktok_recording.mp4")
+
+                context.contentResolver.openInputStream(recordingUri)?.use {
+                    it.copyTo(file.outputStream())
+                } ?: return@withContext Result.failure(Exception("Open input stream failure"))
+
+                val response = tikTokReporterService.uploadRecording(
+                    file = MultipartBody.Part.createFormData(
+                        name = "file",
+                        filename = file.name,
+                        body = file.asRequestBody(contentType = "video/mp4".toMediaType())
+                    )
+                )
+
+                file.delete()
+
+                context.dataStore.edit {
+                    it[Common.DATASTORE_KEY_RECORDING_NAME] = response.name
+                }
+
+                return@withContext Result.success(response)
+            } catch (e: Exception) {
+                return@withContext Result.failure(e)
+            }
         }
     }
 }
