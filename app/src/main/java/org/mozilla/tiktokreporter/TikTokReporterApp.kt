@@ -5,6 +5,9 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
 import dagger.hilt.android.HiltAndroidApp
+import mozilla.telemetry.glean.Glean
+import org.mozilla.tiktokreporter.GleanMetrics.GleanBuildInfo
+import org.mozilla.tiktokreporter.GleanMetrics.Pings
 
 @HiltAndroidApp
 class TikTokReporterApp: Application() {
@@ -27,16 +30,11 @@ class TikTokReporterApp: Application() {
             )
         )
 
-//        TopLevel.identifier.set(UUID.randomUUID())
-//        TopLevel.name.set("name")
-//        TopLevel.fields.set("stringified json of the form")
-//        Pings.tiktokReport.submit()
-//
-//        Glean.registerPings(Pings)
-//        Glean.initialize(
-//            applicationContext = applicationContext,
-//            uploadEnabled = true,
-//            buildInfo = GleanBuildInfo.buildInfo
-//        )
+        Glean.registerPings(Pings)
+        Glean.initialize(
+            applicationContext = applicationContext,
+            uploadEnabled = true,
+            buildInfo = GleanBuildInfo.buildInfo
+        )
     }
 }

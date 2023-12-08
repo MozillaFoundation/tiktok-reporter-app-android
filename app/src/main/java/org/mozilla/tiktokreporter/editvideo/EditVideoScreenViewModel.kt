@@ -147,8 +147,6 @@ class EditVideoScreenViewModel @Inject constructor(
 
             player.setMediaItem(editedMediaItem)
 
-            println("View model: ${state.value.seekBarRangeSelection}")
-
             _state.update { state ->
                 state.copy(
                     editedMediaItem = editedMediaItem

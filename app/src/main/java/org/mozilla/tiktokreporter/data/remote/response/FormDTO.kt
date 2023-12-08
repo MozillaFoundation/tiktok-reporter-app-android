@@ -2,6 +2,8 @@ package org.mozilla.tiktokreporter.data.remote.response
 
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
+import org.mozilla.tiktokreporter.data.model.FormField
+import org.mozilla.tiktokreporter.data.model.Option
 import java.time.LocalDateTime
 
 @JsonClass(generateAdapter = true)
@@ -88,5 +90,24 @@ enum class FormFieldTypeDTO {
     CheckboxGroup,
     Slider,
     Unknown
+}
+
+fun Option.toOptionDTO(): OptionDTO = OptionDTO(id, title)
+fun FormField.toFormFieldDTO(): FormFieldDTO {
+    return when(this) {
+        is FormField.TextField -> FormFieldDTO.TextField(
+            id, isRequired, label, placeholder, multiline, maxLines, description
+        )
+        is FormField.DropDown -> FormFieldDTO.DropDown(
+            id, isRequired, label, options.map { it.toOptionDTO() }, selectedOptionId, description, placeholder, hasOtherOption
+        )
+        is FormField.Slider -> FormFieldDTO.Slider(
+            id, isRequired, max, step, label, leftLabel, rightLabel, description
+        )
+        FormField.CheckboxGroup -> FormFieldDTO.CheckboxGroup(id, isRequired)
+        FormField.MultiSelect -> FormFieldDTO.MultiSelect(id, isRequired)
+        FormField.RadioGroup -> FormFieldDTO.RadioGroup(id, isRequired)
+        FormField.Unknown -> FormFieldDTO.Unknown
+    }
 }
 

@@ -1,0 +1,18 @@
+package org.mozilla.tiktokreporter.data.model
+
+import com.squareup.moshi.Json
+import com.squareup.moshi.JsonClass
+import org.mozilla.tiktokreporter.data.remote.response.FormFieldDTO
+
+@JsonClass(generateAdapter = true)
+data class GleanFormItem(
+    @Json(name = "inputValue") val inputValue: Any,
+    @Json(name = "formItem") val formItem: FormFieldDTO
+)
+
+@JsonClass(generateAdapter = true)
+data class GleanFormRequest(
+    @Json(name = "id") val id: String,
+    @Json(name = "name") val name: String,
+    @Json(name = "items") val items: List<GleanFormItem>,
+)

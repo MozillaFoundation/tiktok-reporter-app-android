@@ -146,7 +146,6 @@ fun ReportFormScreen(
     DialogContainer { dialogState ->
 
         CollectWithLifecycle(viewModel.uiAction) { action ->
-            println("@@@@@@ Action: $action")
             when (action) {
                 is ReportFormScreenViewModel.UiAction.StartUploadRecordingService -> {
                     Intent(context.applicationContext, UploadRecordingService::class.java).also {

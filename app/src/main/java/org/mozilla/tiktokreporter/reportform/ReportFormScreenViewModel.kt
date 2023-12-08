@@ -9,6 +9,7 @@ import androidx.datastore.preferences.core.edit
 import androidx.documentfile.provider.DocumentFile
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.squareup.moshi.Moshi
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
@@ -31,6 +32,9 @@ import org.mozilla.tiktokreporter.common.OTHER_CATEGORY_TEXT_FIELD_ID
 import org.mozilla.tiktokreporter.common.OTHER_DROP_DOWN_OPTION_ID
 import org.mozilla.tiktokreporter.common.toUiComponents
 import org.mozilla.tiktokreporter.TikTokReporterRepository
+import org.mozilla.tiktokreporter.data.model.GleanFormItem
+import org.mozilla.tiktokreporter.data.model.GleanFormRequest
+import org.mozilla.tiktokreporter.data.remote.response.toFormFieldDTO
 import org.mozilla.tiktokreporter.toTikTokReporterError
 import org.mozilla.tiktokreporter.util.Common
 import org.mozilla.tiktokreporter.util.dataStore
@@ -44,7 +48,8 @@ import javax.inject.Inject
 @HiltViewModel
 class ReportFormScreenViewModel @Inject constructor(
     private val tikTokReporterRepository: TikTokReporterRepository,
-    @ApplicationContext context: Context
+    @ApplicationContext context: Context,
+    private val moshi: Moshi
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(State())
@@ -135,18 +140,22 @@ class ReportFormScreenViewModel @Inject constructor(
                             null
                         )?.use { cursor ->
                             val titleColumn = cursor.getColumnIndex(MediaStore.Video.Media.TITLE)
-                            val dateColumn = cursor.getColumnIndex(MediaStore.Video.Media.DATE_ADDED)
+                            val dateColumn =
+                                cursor.getColumnIndex(MediaStore.Video.Media.DATE_ADDED)
 
                             if (cursor.moveToFirst()) {
 
                                 mediaMetadataRetriever.setDataSource(context, videoUri)
-                                val duration = mediaMetadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)?.toLong() ?: 0L // ms
+                                val duration =
+                                    mediaMetadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
+                                        ?.toLong() ?: 0L // ms
 
                                 val name = cursor.getString(titleColumn)
 
                                 val date = cursor.getLong(dateColumn)
                                 val instant = Instant.ofEpochSecond(date)
-                                val localDateTime = instant.atZone(ZoneId.systemDefault()).toLocalDateTime()
+                                val localDateTime =
+                                    instant.atZone(ZoneId.systemDefault()).toLocalDateTime()
 
                                 _state.update { state ->
                                     state.copy(
@@ -317,6 +326,7 @@ class ReportFormScreenViewModel @Inject constructor(
                             )
                         }
 
+                        _isLoading.update { false }
                         return@launch
                     }
 
@@ -331,6 +341,7 @@ class ReportFormScreenViewModel @Inject constructor(
                             )
                         }
 
+                        _isLoading.update { false }
                         return@launch
                     }
 
@@ -345,6 +356,13 @@ class ReportFormScreenViewModel @Inject constructor(
     private suspend fun submitReportLinkForm() {
         // TODO: serialize form and submit to glean
 
+        val serializedForm = serializeReportLinkForm()
+
+//        TopLevel.identifier.set(UUID.randomUUID())
+//        TopLevel.name.set("name")
+//        TopLevel.fields.set("stringified json of the form")
+//        Pings.tiktokReport.submit()
+
         onCancelReport()
         _uiAction.send(UiAction.GoToReportSubmittedScreen)
         _isLoading.update { false }
@@ -354,6 +372,7 @@ class ReportFormScreenViewModel @Inject constructor(
         recordingName: String
     ) {
         // TODO: serialize form and submit to glean
+        val serializedForm = serializeRecordSessionForm()
 
         onCancelReport()
         _uiAction.send(UiAction.StopUploadRecordingService)
@@ -445,6 +464,37 @@ class ReportFormScreenViewModel @Inject constructor(
             }
         }
 
+    }
+
+    private suspend fun serializeReportLinkForm(): String {
+
+        val selectedStudy = tikTokReporterRepository.getSelectedStudy().getOrNull()!!
+        val gleanFields = selectedStudy.form?.fields.orEmpty().mapNotNull { formField ->
+            val uiFormFieldValue = state.value.formFields.firstOrNull { uiFormField -> uiFormField.id == formField.id }?.value
+
+            uiFormFieldValue?.let {
+                GleanFormItem(
+                    inputValue = uiFormFieldValue,
+                    formItem = formField.toFormFieldDTO()
+                )
+            }
+        }
+
+
+        val jsonAdapter = moshi.adapter(GleanFormRequest::class.java)
+
+        return jsonAdapter.toJson(
+            GleanFormRequest(
+                id = selectedStudy.id,
+                name = selectedStudy.name,
+                items = gleanFields
+            )
+        )
+    }
+
+    private fun serializeRecordSessionForm(): String {
+
+        return ""
     }
 
     data class State(
