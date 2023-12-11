@@ -74,7 +74,6 @@ class EditVideoScreenViewModel @Inject constructor(
                 exportResult: ExportResult,
                 exportException: ExportException
             ) {
-                exportException.printStackTrace()
                 viewModelScope.launch {
                     _uiAction.send(UiAction.ShowError(exportException.message.orEmpty()))
                 }

@@ -21,7 +21,6 @@ import androidx.compose.material3.RangeSlider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -44,6 +43,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
@@ -59,9 +59,11 @@ import org.mozilla.tiktokreporter.ui.components.MozillaScaffold
 import org.mozilla.tiktokreporter.ui.components.MozillaTopAppBar
 import org.mozilla.tiktokreporter.ui.components.SecondaryButton
 import org.mozilla.tiktokreporter.ui.components.dialog.DialogContainer
+import org.mozilla.tiktokreporter.ui.components.dialog.DialogState
 import org.mozilla.tiktokreporter.ui.theme.MozillaColor
 import org.mozilla.tiktokreporter.ui.theme.MozillaDimension
 import org.mozilla.tiktokreporter.util.CollectWithLifecycle
+import org.mozilla.tiktokreporter.util.UiText
 import org.mozilla.tiktokreporter.util.scale
 
 private const val SEEK_BAR_FRAMES_COUNT = 10
@@ -90,18 +92,6 @@ fun EditVideoScreen(
             }
         }
 
-        CollectWithLifecycle(
-            flow = viewModel.uiAction,
-            onCollect = { action ->
-                when (action) {
-                    EditVideoScreenViewModel.UiAction.NavigateBack -> onNavigateBack()
-                    is EditVideoScreenViewModel.UiAction.ShowError -> {
-
-                    }
-                }
-            }
-        )
-
         EditVideoScreenContent(
             state = state,
             isLoading = isLoading,
@@ -111,6 +101,22 @@ fun EditVideoScreen(
             onSeekBarRangeChange = viewModel::onSeekBarRangeChange,
             onSeekBarRangeChangeFinished = viewModel::onSeekBarRangeChangeFinished,
             modifier = Modifier.fillMaxSize()
+        )
+
+        CollectWithLifecycle(
+            flow = viewModel.uiAction,
+            onCollect = { action ->
+                when (action) {
+                    EditVideoScreenViewModel.UiAction.NavigateBack -> onNavigateBack()
+                    is EditVideoScreenViewModel.UiAction.ShowError -> {
+                        dialogState.value = DialogState.ErrorDialog(
+                            title = UiText.StringResource(R.string.error_title_general),
+                            message = UiText.StringResource(R.string.error_message_general),
+                            drawable = R.drawable.error_cat
+                        )
+                    }
+                }
+            }
         )
     }
 }
@@ -191,7 +197,8 @@ private fun EditVideoScreenContent(
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     MozillaProgressIndicator(
-                        modifier = Modifier.size(40.dp)
+                        modifier = Modifier
+                            .size(40.dp)
                             .align(Alignment.Center)
                     )
                 }
