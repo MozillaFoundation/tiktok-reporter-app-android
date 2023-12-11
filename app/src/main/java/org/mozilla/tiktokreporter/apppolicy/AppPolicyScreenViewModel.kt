@@ -12,9 +12,9 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.mozilla.tiktokreporter.TikTokReporterError
+import org.mozilla.tiktokreporter.TikTokReporterRepository
 import org.mozilla.tiktokreporter.data.model.Policy
 import org.mozilla.tiktokreporter.navigation.NestedDestination
-import org.mozilla.tiktokreporter.TikTokReporterRepository
 import org.mozilla.tiktokreporter.toTikTokReporterError
 import javax.inject.Inject
 
@@ -35,63 +35,68 @@ class AppPolicyScreenViewModel @Inject constructor(
 
     private var policyType = NestedDestination.AppPolicy.Type.TermsAndConditions
 
+    private val _refreshAction = MutableStateFlow<Boolean>(true)
+
     init {
         val isForOnboarding = savedStateHandle.get<Boolean>("isForOnboarding") ?: true
         val type = savedStateHandle.get<String>("type").orEmpty()
         policyType = NestedDestination.AppPolicy.Type.valueOf(type)
 
         viewModelScope.launch(Dispatchers.Unconfined) {
-            _isLoading.update { true }
+            _refreshAction
+                .collect {
+                    _isLoading.update { true }
 
-            val policies =
-                if (policyType == NestedDestination.AppPolicy.Type.Study || !isForOnboarding) {
-                    val selectedStudy = tikTokReporterRepository.getSelectedStudy()
+                    val policies =
+                        if (policyType == NestedDestination.AppPolicy.Type.Study || !isForOnboarding) {
+                            val selectedStudy = tikTokReporterRepository.getSelectedStudy()
 
-                    if (selectedStudy.isFailure) {
-                        val error = selectedStudy.exceptionOrNull()!!.toTikTokReporterError()
+                            if (selectedStudy.isFailure) {
+                                val error = selectedStudy.exceptionOrNull()!!.toTikTokReporterError()
+                                _isLoading.update { false }
+                                _uiAction.send(UiAction.ShowError(error))
+                                return@collect
+                            }
+
+                            selectedStudy.getOrNull()!!.policies
+                        } else {
+
+                            val policyResult = tikTokReporterRepository.getAppPolicies()
+                            if (policyResult.isFailure) {
+                                val error = policyResult.exceptionOrNull()!!.toTikTokReporterError()
+                                _isLoading.update { false }
+                                _uiAction.send(UiAction.ShowError(error))
+                                return@collect
+                            }
+
+                            policyResult.getOrNull().orEmpty()
+                        }
+
+                    val policy = policies.firstOrNull { policy ->
+                        when (policyType) {
+                            NestedDestination.AppPolicy.Type.TermsAndConditions -> policy.type == Policy.Type.TermsAndConditions
+                            NestedDestination.AppPolicy.Type.PrivacyPolicy -> policy.type == Policy.Type.Privacy
+                            NestedDestination.AppPolicy.Type.Study -> policy.type == Policy.Type.TermsAndConditions
+                        }
+                    } ?: kotlin.run {
                         _isLoading.update { false }
-                        _uiAction.send(UiAction.ShowError(error))
-                        return@launch
+
+                        val uiAction = if (policyType == NestedDestination.AppPolicy.Type.Study) UiAction.OnGoToStudyOnboarding
+                        else UiAction.OnGoToStudies
+                        _uiAction.send(uiAction)
+
+                        return@collect
                     }
 
-                    selectedStudy.getOrNull()!!.policies
-                } else {
-
-                    val policyResult = tikTokReporterRepository.getAppPolicies()
-                    if (policyResult.isFailure) {
-                        val error = policyResult.exceptionOrNull()!!.toTikTokReporterError()
-                        _isLoading.update { false }
-                        _uiAction.send(UiAction.ShowError(error))
-                        return@launch
+                    _isLoading.update { false }
+                    _state.update {
+                        it.copy(
+                            title = policy.title,
+                            subtitle = policy.subtitle,
+                            content = policy.text,
+                        )
                     }
-
-                    policyResult.getOrNull().orEmpty()
                 }
-
-            val policy = policies.firstOrNull { policy ->
-                when (policyType) {
-                    NestedDestination.AppPolicy.Type.TermsAndConditions -> policy.type == Policy.Type.TermsAndConditions
-                    NestedDestination.AppPolicy.Type.PrivacyPolicy -> policy.type == Policy.Type.Privacy
-                    NestedDestination.AppPolicy.Type.Study -> policy.type == Policy.Type.TermsAndConditions
-                }
-            } ?: kotlin.run {
-                _isLoading.update { false }
-
-                val uiAction = if (policyType == NestedDestination.AppPolicy.Type.Study) UiAction.OnGoToStudyOnboarding
-                else UiAction.OnGoToStudies
-                _uiAction.send(uiAction)
-
-                return@launch
-            }
-
-            _isLoading.update { false }
-            _state.update {
-                it.copy(
-                    title = policy.title,
-                    subtitle = policy.subtitle,
-                    content = policy.text,
-                )
-            }
         }
     }
 
@@ -103,6 +108,12 @@ class AppPolicyScreenViewModel @Inject constructor(
                 if (policyType == NestedDestination.AppPolicy.Type.Study) UiAction.OnGoToStudyOnboarding
                 else UiAction.OnGoToStudies
             )
+        }
+    }
+
+    fun refresh() {
+        viewModelScope.launch {
+            _refreshAction.update { !_refreshAction.value }
         }
     }
 

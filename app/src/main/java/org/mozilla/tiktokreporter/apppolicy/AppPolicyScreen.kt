@@ -88,13 +88,24 @@ fun AppPolicyScreen(
 
                     when (action.error) {
                         // internet connection / server unresponsive / server error
-                        is TikTokReporterError.NetworkError, is TikTokReporterError.ServerError, is TikTokReporterError.UnknownError -> {
+                        is TikTokReporterError.NetworkError, is TikTokReporterError.ServerError -> {
                             dialogState.value = DialogState.ErrorDialog(
                                 title = UiText.StringResource(R.string.error_title_general),
                                 message = UiText.StringResource(R.string.error_message_general),
                                 drawable = R.drawable.error_cat,
                                 actionText = UiText.StringResource(R.string.button_refresh),
-                                action = { } // TODO: refresh
+                                action = {
+                                    viewModel.refresh()
+                                    dialogState.value = DialogState.Nothing
+                                }
+                            )
+                        }
+
+                        is TikTokReporterError.UnknownError -> {
+                            dialogState.value = DialogState.ErrorDialog(
+                                title = UiText.StringResource(R.string.error_title_general),
+                                message = UiText.StringResource(R.string.error_message_general),
+                                drawable = R.drawable.error_cat
                             )
                         }
                     }

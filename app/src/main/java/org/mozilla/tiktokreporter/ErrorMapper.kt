@@ -2,13 +2,14 @@ package org.mozilla.tiktokreporter
 
 import retrofit2.HttpException
 import java.net.SocketTimeoutException
+import java.net.UnknownHostException
 
 fun Throwable.toTikTokReporterError(): TikTokReporterError {
 
     return when (this) {
         is HttpException -> TikTokReporterError.ServerError(this.message())
 
-        is SocketTimeoutException -> TikTokReporterError.NetworkError(this.message.orEmpty())
+        is SocketTimeoutException, is UnknownHostException -> TikTokReporterError.NetworkError(this.message.orEmpty())
 
         // unknown error
         else -> TikTokReporterError.UnknownError(this.message.orEmpty())
