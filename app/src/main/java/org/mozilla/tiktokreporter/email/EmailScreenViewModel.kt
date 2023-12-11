@@ -12,7 +12,7 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.mozilla.tiktokreporter.GleanMetrics.Pings
-import org.mozilla.tiktokreporter.GleanMetrics.TiktokReport
+import org.mozilla.tiktokreporter.GleanMetrics.TiktokUserData
 import org.mozilla.tiktokreporter.TikTokReporterError
 import org.mozilla.tiktokreporter.TikTokReporterRepository
 import org.mozilla.tiktokreporter.common.FormFieldUiComponent
@@ -118,8 +118,8 @@ class EmailScreenViewModel @Inject constructor(
 
             tikTokReporterRepository.saveUserEmail(email)
 
-            TiktokReport.email.set(email)
-            Pings.tiktokReport.submit()
+            TiktokUserData.email.set(email)
+            Pings.email.submit()
 
             _uiAction.send(UiAction.EmailSaved)
         }

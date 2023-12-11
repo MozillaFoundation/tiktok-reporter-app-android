@@ -22,16 +22,18 @@ import org.mozilla.tiktokreporter.ui.components.MozillaScaffold
 import org.mozilla.tiktokreporter.ui.components.MozillaTopAppBar
 import org.mozilla.tiktokreporter.ui.components.SecondaryButton
 import org.mozilla.tiktokreporter.ui.components.dialog.DialogContainer
+import org.mozilla.tiktokreporter.ui.components.dialog.DialogState
 import org.mozilla.tiktokreporter.ui.theme.MozillaColor
 import org.mozilla.tiktokreporter.ui.theme.MozillaDimension
 import org.mozilla.tiktokreporter.util.CollectWithLifecycle
+import org.mozilla.tiktokreporter.util.UiText
 
 @Composable
 fun DataHandlingScreen(
     viewModel: DataHandlingScreenViewModel = hiltViewModel(),
     onNavigateBack: () -> Unit
 ) {
-    DialogContainer { _ ->
+    DialogContainer { dialogState ->
 
         val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
 
@@ -40,6 +42,16 @@ fun DataHandlingScreen(
             onCollect = { action ->
                 when (action) {
                     is DataHandlingScreenViewModel.UiAction.NavigateBack -> onNavigateBack()
+                    DataHandlingScreenViewModel.UiAction.ShowNoEmailProvidedWarning -> {
+                        dialogState.value = DialogState.MessageDialog(
+                            title = UiText.DynamicString("No email provided"),
+                            message = UiText.DynamicString("Please provide an email in order to get a copy of your data."),
+                            negativeButtonText = UiText.StringResource(R.string.got_it),
+                            onNegative = {
+                                dialogState.value = DialogState.Nothing
+                            }
+                        )
+                    }
                 }
             }
         )

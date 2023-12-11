@@ -29,6 +29,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.mozilla.tiktokreporter.GleanMetrics.Pings
 import org.mozilla.tiktokreporter.GleanMetrics.TiktokReport
+import org.mozilla.tiktokreporter.GleanMetrics.TiktokScreenRecording
 import org.mozilla.tiktokreporter.TikTokReporterError
 import org.mozilla.tiktokreporter.TikTokReporterRepository
 import org.mozilla.tiktokreporter.common.FormFieldError
@@ -397,9 +398,9 @@ class ReportFormScreenViewModel @Inject constructor(
             val serializedForm = serializeRecordSessionForm(uploadedRecordingDTO)
 
             val studyUUID = UUID.fromString(state.value.studyDetails?.id)
-            TiktokReport.identifier.set(studyUUID)
-            TiktokReport.screenRecording.set(serializedForm)
-            Pings.tiktokReport.submit()
+            TiktokScreenRecording.identifier.set(studyUUID)
+            TiktokScreenRecording.data.set(serializedForm)
+            Pings.screenRecording.submit()
         }
 
         onCancelReport()

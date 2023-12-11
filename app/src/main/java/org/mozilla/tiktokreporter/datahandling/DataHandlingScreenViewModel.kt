@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
+import org.mozilla.tiktokreporter.GleanMetrics.Pings
 import org.mozilla.tiktokreporter.TikTokReporterRepository
 import javax.inject.Inject
 
@@ -27,7 +28,11 @@ class DataHandlingScreenViewModel @Inject constructor(
     fun downloadData() {
         // TODO: check if email is set and ping GLEAN
         viewModelScope.launch {
-
+            if (tikTokReporterRepository.userEmail.isNotBlank()) {
+                Pings.downloadData.submit()
+            } else {
+                _uiAction.send(UiAction.ShowNoEmailProvidedWarning)
+            }
         }
     }
 
@@ -41,5 +46,6 @@ class DataHandlingScreenViewModel @Inject constructor(
 
     sealed class UiAction {
         data object NavigateBack: UiAction()
+        data object ShowNoEmailProvidedWarning: UiAction()
     }
 }

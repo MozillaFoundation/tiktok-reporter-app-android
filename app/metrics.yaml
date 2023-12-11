@@ -45,10 +45,12 @@ tiktok_report:
       - jessed@mozillafoundation.org
     expires: never
 
+
+tiktok_user_data:
   email:
     type: text
     send_in_pings:
-      - tiktok-report
+      - email
     description: |
       Optionally participant-provided email address.
     bugs:
@@ -61,13 +63,31 @@ tiktok_report:
       - jessed@mozillafoundation.org
     expires: never
 
-  screen_recording:
+
+tiktok_screen_recording:
+  identifier:
+    type: uuid
+    send_in_pings:
+      - screen-recording
+    description: |
+      A unique identifier for the app installation.
+    bugs:
+      - https://bugzilla.mozilla.org/show_bug.cgi?id=1869236
+    data_reviews:
+      - https://bugzilla.mozilla.org/show_bug.cgi?id=1858684
+    data_sensitivity:
+      - highly_sensitive
+    notification_emails:
+      - jessed@mozillafoundation.org
+    expires: never
+
+  data:
     type: text
     send_in_pings:
-      - tiktok-report
+      - screen-recording
     description: |
       Some description about what this contains. This is a json dump
-      of the "fields" in the example I was given.
+      of the "recording data" in the example I was given.
     bugs:
       - https://bugzilla.mozilla.org/show_bug.cgi?id=1869236
     data_reviews:
