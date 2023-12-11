@@ -152,6 +152,12 @@ class TikTokReporterRepository @Inject constructor(
         }
     }
 
+    suspend fun clearData() {
+        withContext(Dispatchers.IO) {
+            context.deleteSharedPreferences(Common.PREFERENCES_USER_EMAIL_KEY)
+        }
+    }
+
     suspend fun uploadRecording(
         recordingUri: Uri
     ): Result<UploadedRecordingDTO> {

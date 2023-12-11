@@ -11,11 +11,11 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.mozilla.tiktokreporter.R
 import org.mozilla.tiktokreporter.ui.components.LoadingScreen
 import org.mozilla.tiktokreporter.ui.components.MozillaScaffold
@@ -24,6 +24,7 @@ import org.mozilla.tiktokreporter.ui.components.SecondaryButton
 import org.mozilla.tiktokreporter.ui.components.dialog.DialogContainer
 import org.mozilla.tiktokreporter.ui.theme.MozillaColor
 import org.mozilla.tiktokreporter.ui.theme.MozillaDimension
+import org.mozilla.tiktokreporter.util.CollectWithLifecycle
 
 @Composable
 fun DataHandlingScreen(
@@ -32,13 +33,16 @@ fun DataHandlingScreen(
 ) {
     DialogContainer { _ ->
 
-        val state by viewModel.state.collectAsStateWithLifecycle()
         val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
 
-        when (state.action?.get()) {
-            is DataHandlingScreenViewModel.UiAction.NavigateBack -> onNavigateBack()
-            else -> Unit
-        }
+        CollectWithLifecycle(
+            flow = viewModel.uiAction,
+            onCollect = { action ->
+                when (action) {
+                    is DataHandlingScreenViewModel.UiAction.NavigateBack -> onNavigateBack()
+                }
+            }
+        )
 
         if (isLoading) {
             LoadingScreen()
