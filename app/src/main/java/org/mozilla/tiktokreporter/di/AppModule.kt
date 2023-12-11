@@ -16,6 +16,7 @@ import dagger.hilt.components.SingletonComponent
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import org.mozilla.tiktokreporter.BuildConfig
+import org.mozilla.tiktokreporter.common.FormFieldUiComponent
 import org.mozilla.tiktokreporter.data.remote.TikTokReporterService
 import org.mozilla.tiktokreporter.data.remote.response.FormFieldDTO
 import org.mozilla.tiktokreporter.data.remote.response.FormFieldTypeDTO
@@ -31,7 +32,9 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideTikTokReporterService(): TikTokReporterService {
+    fun provideTikTokReporterService(
+        moshi: Moshi
+    ): TikTokReporterService {
 
         val client = OkHttpClient.Builder()
             .connectTimeout(30, TimeUnit.SECONDS)
@@ -46,21 +49,6 @@ object AppModule {
             }
             .build()
 
-        val moshi = Moshi.Builder()
-            .add(
-                PolymorphicJsonAdapterFactory.of(FormFieldDTO::class.java, "type")
-                    .withSubtype(FormFieldDTO.TextField::class.java, FormFieldTypeDTO.TextField.name)
-                    .withSubtype(FormFieldDTO.DropDown::class.java, FormFieldTypeDTO.DropDown.name)
-                    .withSubtype(FormFieldDTO.Slider::class.java, FormFieldTypeDTO.Slider.name)
-                    .withSubtype(FormFieldDTO.CheckboxGroup::class.java, FormFieldTypeDTO.CheckboxGroup.name)
-                    .withSubtype(FormFieldDTO.RadioGroup::class.java, FormFieldTypeDTO.RadioGroup.name)
-                    .withSubtype(FormFieldDTO.MultiSelect::class.java, FormFieldTypeDTO.MultiSelect.name)
-                    .withDefaultValue(FormFieldDTO.Unknown)
-            )
-            .add(KotlinJsonAdapterFactory())
-            .add(LocalDateTimeAdapter())
-            .build()
-
         return Retrofit.Builder()
             .client(client)
             .addConverterFactory(MoshiConverterFactory.create(moshi))
@@ -68,6 +56,23 @@ object AppModule {
             .build()
             .create(TikTokReporterService::class.java)
     }
+
+    @Provides
+    @Singleton
+    fun provideMoshi(): Moshi = Moshi.Builder()
+        .add(
+            PolymorphicJsonAdapterFactory.of(FormFieldDTO::class.java, "type")
+                .withSubtype(FormFieldDTO.TextField::class.java, FormFieldTypeDTO.TextField.name)
+                .withSubtype(FormFieldDTO.DropDown::class.java, FormFieldTypeDTO.DropDown.name)
+                .withSubtype(FormFieldDTO.Slider::class.java, FormFieldTypeDTO.Slider.name)
+                .withSubtype(FormFieldDTO.CheckboxGroup::class.java, FormFieldTypeDTO.CheckboxGroup.name)
+                .withSubtype(FormFieldDTO.RadioGroup::class.java, FormFieldTypeDTO.RadioGroup.name)
+                .withSubtype(FormFieldDTO.MultiSelect::class.java, FormFieldTypeDTO.MultiSelect.name)
+                .withDefaultValue(FormFieldDTO.Unknown)
+        )
+        .add(KotlinJsonAdapterFactory())
+        .add(LocalDateTimeAdapter())
+        .build()
 }
 
 @Module

@@ -9,6 +9,7 @@ import androidx.datastore.preferences.core.edit
 import androidx.documentfile.provider.DocumentFile
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.squareup.moshi.Moshi
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
@@ -23,6 +24,8 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.mozilla.tiktokreporter.GleanMetrics.Pings
+import org.mozilla.tiktokreporter.GleanMetrics.TiktokReport
 import org.mozilla.tiktokreporter.TikTokReporterError
 import org.mozilla.tiktokreporter.common.FormFieldError
 import org.mozilla.tiktokreporter.common.TabModelType
@@ -31,6 +34,12 @@ import org.mozilla.tiktokreporter.common.OTHER_CATEGORY_TEXT_FIELD_ID
 import org.mozilla.tiktokreporter.common.OTHER_DROP_DOWN_OPTION_ID
 import org.mozilla.tiktokreporter.common.toUiComponents
 import org.mozilla.tiktokreporter.TikTokReporterRepository
+import org.mozilla.tiktokreporter.data.model.GleanFormItem
+import org.mozilla.tiktokreporter.data.model.GleanReportLinkFormRequest
+import org.mozilla.tiktokreporter.data.model.GleanRecordSessionFormRequest
+import org.mozilla.tiktokreporter.data.model.StudyDetails
+import org.mozilla.tiktokreporter.data.remote.response.UploadedRecordingDTO
+import org.mozilla.tiktokreporter.data.remote.response.toFormFieldDTO
 import org.mozilla.tiktokreporter.toTikTokReporterError
 import org.mozilla.tiktokreporter.util.Common
 import org.mozilla.tiktokreporter.util.dataStore
@@ -39,12 +48,14 @@ import org.mozilla.tiktokreporter.util.toDateString
 import org.mozilla.tiktokreporter.util.toTimeString
 import java.time.Instant
 import java.time.ZoneId
+import java.util.UUID
 import javax.inject.Inject
 
 @HiltViewModel
 class ReportFormScreenViewModel @Inject constructor(
     private val tikTokReporterRepository: TikTokReporterRepository,
-    @ApplicationContext context: Context
+    @ApplicationContext context: Context,
+    private val moshi: Moshi
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(State())
@@ -107,6 +118,7 @@ class ReportFormScreenViewModel @Inject constructor(
 
                     _state.update { state ->
                         state.copy(
+                            studyDetails = study,
                             tabs = tabs,
                             selectedTab = tabs.firstOrNull()?.to(0),
                             formFields = fields,
@@ -117,7 +129,7 @@ class ReportFormScreenViewModel @Inject constructor(
 
         viewModelScope.launch {
             context.dataStore.data.map {
-                it[Common.VIDEO_URI_PREFERENCE_KEY]
+                it[Common.DATASTORE_KEY_VIDEO_URI]
             }
                 .filterNotNull()
                 .collect { videoUriString ->
@@ -135,18 +147,22 @@ class ReportFormScreenViewModel @Inject constructor(
                             null
                         )?.use { cursor ->
                             val titleColumn = cursor.getColumnIndex(MediaStore.Video.Media.TITLE)
-                            val dateColumn = cursor.getColumnIndex(MediaStore.Video.Media.DATE_ADDED)
+                            val dateColumn =
+                                cursor.getColumnIndex(MediaStore.Video.Media.DATE_ADDED)
 
                             if (cursor.moveToFirst()) {
 
                                 mediaMetadataRetriever.setDataSource(context, videoUri)
-                                val duration = mediaMetadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)?.toLong() ?: 0L // ms
+                                val duration =
+                                    mediaMetadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
+                                        ?.toLong() ?: 0L // ms
 
                                 val name = cursor.getString(titleColumn)
 
                                 val date = cursor.getLong(dateColumn)
                                 val instant = Instant.ofEpochSecond(date)
-                                val localDateTime = instant.atZone(ZoneId.systemDefault()).toLocalDateTime()
+                                val localDateTime =
+                                    instant.atZone(ZoneId.systemDefault()).toLocalDateTime()
 
                                 _state.update { state ->
                                     state.copy(
@@ -179,7 +195,7 @@ class ReportFormScreenViewModel @Inject constructor(
 
         viewModelScope.launch {
             context.dataStore.data.map {
-                it[Common.IS_RECORDING_PREFERENCE_KEY]
+                it[Common.DATASTORE_KEY_IS_RECORDING]
             }.collect { isRecording ->
                 _state.update { state ->
                     state.copy(
@@ -187,6 +203,24 @@ class ReportFormScreenViewModel @Inject constructor(
                     )
                 }
             }
+        }
+
+        viewModelScope.launch {
+            context.dataStore.data.map {
+                it[Common.DATASTORE_KEY_RECORDING_UPLOADED] ?: false
+            }
+                .filterNotNull()
+                .collect { recordingUploaded ->
+                    val recordingInfo = tikTokReporterRepository.uploadedRecording
+                    if (recordingUploaded && recordingInfo != null) {
+                        submitRecordedSessionForm(recordingInfo)
+
+                        context.dataStore.edit {
+                            it.remove(Common.DATASTORE_KEY_RECORDING_UPLOADED)
+                        }
+                    }
+
+                }
         }
     }
 
@@ -262,6 +296,8 @@ class ReportFormScreenViewModel @Inject constructor(
     fun onSubmitReport() {
         viewModelScope.launch(Dispatchers.Unconfined) {
 
+            _isLoading.update { true }
+
             when (state.value.selectedTab?.first) {
                 TabModelType.ReportLink -> {
                     _state.update {
@@ -299,29 +335,64 @@ class ReportFormScreenViewModel @Inject constructor(
                             )
                         }
 
+                        _isLoading.update { false }
                         return@launch
                     }
+
+                    submitReportLinkForm()
                 }
 
                 TabModelType.RecordSession -> {
-                    val noVideoPresent = state.value.video == null
-
-                    if (noVideoPresent) {
+                    if (state.value.video == null) {
                         _state.update { state ->
                             state.copy(
-                                showSubmitNoVideoError = noVideoPresent
+                                showSubmitNoVideoError = true
                             )
                         }
 
+                        _isLoading.update { false }
                         return@launch
                     }
+
+                    _uiAction.send(UiAction.StartUploadRecordingService(state.value.video!!.uri))
                 }
 
                 else -> Unit
             }
-
-            _uiAction.send(UiAction.GoToReportSubmittedScreen)
         }
+    }
+
+    private suspend fun submitReportLinkForm() {
+
+        withContext(Dispatchers.Unconfined) {
+            val serializedForm = serializeReportLinkForm()
+
+            val studyUUID = UUID.fromString(state.value.studyDetails?.id)
+            TiktokReport.identifier.set(studyUUID)
+            TiktokReport.fields.set(serializedForm)
+            Pings.tiktokReport.submit()
+        }
+
+        onCancelReport()
+        _uiAction.send(UiAction.GoToReportSubmittedScreen)
+        _isLoading.update { false }
+    }
+
+    private suspend fun submitRecordedSessionForm(
+        uploadedRecordingDTO: UploadedRecordingDTO
+    ) {
+        withContext(Dispatchers.Unconfined) {
+            val serializedForm = serializeRecordSessionForm(uploadedRecordingDTO)
+
+            val studyUUID = UUID.fromString(state.value.studyDetails?.id)
+            TiktokReport.identifier.set(studyUUID)
+            TiktokReport.screenRecording.set(serializedForm)
+            Pings.tiktokReport.submit()
+        }
+
+        onCancelReport()
+        _uiAction.send(UiAction.StopUploadRecordingService)
+        _isLoading.update { false }
     }
 
     /**
@@ -403,18 +474,57 @@ class ReportFormScreenViewModel @Inject constructor(
                 }
 
                 context.dataStore.edit {
-                    it.remove(Common.VIDEO_URI_PREFERENCE_KEY)
-                    it.remove(Common.IS_RECORDING_PREFERENCE_KEY)
+                    it.remove(Common.DATASTORE_KEY_VIDEO_URI)
+                    it.remove(Common.DATASTORE_KEY_IS_RECORDING)
                 }
             }
         }
 
     }
 
+    private fun serializeReportLinkForm(): String {
+
+        val study = state.value.studyDetails
+        val gleanFields = study?.form?.fields.orEmpty().mapNotNull { formField ->
+            val uiFormFieldValue = state.value.formFields.firstOrNull { uiFormField -> uiFormField.id == formField.id }?.value
+
+            uiFormFieldValue?.let {
+                GleanFormItem(
+                    inputValue = uiFormFieldValue,
+                    formItem = formField.toFormFieldDTO()
+                )
+            }
+        }
+
+        val jsonAdapter = moshi.adapter(GleanReportLinkFormRequest::class.java)
+
+        return jsonAdapter.toJson(
+            GleanReportLinkFormRequest(
+                id = study?.form?.id ?: UUID.randomUUID().toString(),
+                name = study?.form?.name ?: "",
+                items = gleanFields
+            )
+        )
+    }
+
+    private fun serializeRecordSessionForm(
+        recordingInfo: UploadedRecordingDTO
+    ): String {
+        val jsonAdapter = moshi.adapter(GleanRecordSessionFormRequest::class.java)
+        return jsonAdapter.toJson(
+            GleanRecordSessionFormRequest(
+                recordingInfo = recordingInfo,
+                comments = state.value.recordSessionComments
+            )
+        )
+    }
+
     data class State(
+        val studyDetails: StudyDetails? = null,
         val tabs: List<TabModelType> = emptyList(),
         val selectedTab: Pair<TabModelType, Int>? = null,
         val formFields: List<FormFieldUiComponent<*>> = listOf(),
+
         val isRecording: Boolean = false,
         val recordSessionComments: String = "",
         val video: VideoModel? = null,
@@ -433,6 +543,11 @@ class ReportFormScreenViewModel @Inject constructor(
         data object GoToReportSubmittedScreen : UiAction()
         data object ShowFetchStudyError : UiAction()
         data object ShowStudyNotActive : UiAction()
+        data class StartUploadRecordingService(
+            val recordingUri: Uri
+        ) : UiAction()
+
+        data object StopUploadRecordingService : UiAction()
         data class ShowError(
             val error: TikTokReporterError
         ) : UiAction()

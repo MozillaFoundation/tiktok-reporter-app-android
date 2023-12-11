@@ -87,7 +87,7 @@ class EditVideoScreenViewModel @Inject constructor(
 
         viewModelScope.launch {
             context.dataStore.data.map {
-                it[Common.VIDEO_URI_PREFERENCE_KEY]
+                it[Common.DATASTORE_KEY_VIDEO_URI]
             }
                 .filterNotNull()
                 .collect { videoUriString ->
@@ -147,8 +147,6 @@ class EditVideoScreenViewModel @Inject constructor(
 
             player.setMediaItem(editedMediaItem)
 
-            println("View model: ${state.value.seekBarRangeSelection}")
-
             _state.update { state ->
                 state.copy(
                     editedMediaItem = editedMediaItem
@@ -191,7 +189,7 @@ class EditVideoScreenViewModel @Inject constructor(
                     }
                 }
                 context.dataStore.edit {
-                    it[Common.VIDEO_URI_PREFERENCE_KEY] = editedVideoUri.toString()
+                    it[Common.DATASTORE_KEY_VIDEO_URI] = editedVideoUri.toString()
                 }
 
                 tempEditedVideoFile?.delete()

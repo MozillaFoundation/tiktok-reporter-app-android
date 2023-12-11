@@ -1,0 +1,79 @@
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
+# This file defines the metrics that are recorded by the Glean JavaScript SDK.
+
+# Metrics in this file may make use of SDK reserved ping names. See
+# https://mozilla.github.io/glean/book/dev/core/internal/reserved-ping-names.html
+# for additional information.
+
+---
+$schema: moz://mozilla.org/schemas/glean/metrics/2-0-0
+
+tiktok_report:
+
+  identifier:
+    type: uuid
+    send_in_pings:
+      - tiktok-report
+    description: |
+      A unique identifier for the app installation.
+    bugs:
+      - https://bugzilla.mozilla.org/show_bug.cgi?id=1869236
+    data_reviews:
+      - https://bugzilla.mozilla.org/show_bug.cgi?id=1858684
+    data_sensitivity:
+      - highly_sensitive
+    notification_emails:
+      - jessed@mozillafoundation.org
+    expires: never
+
+  fields:
+    type: text
+    send_in_pings:
+      - tiktok-report
+    description: |
+      A JSON structure with information about a report.  Includes the reported video ID, as well as additional participant-provided fields that depend on the study specification.
+    bugs:
+      - https://bugzilla.mozilla.org/show_bug.cgi?id=1869236
+    data_reviews:
+      - https://bugzilla.mozilla.org/show_bug.cgi?id=1858684
+    data_sensitivity:
+      - stored_content
+    notification_emails:
+      - jessed@mozillafoundation.org
+    expires: never
+
+  email:
+    type: text
+    send_in_pings:
+      - tiktok-report
+    description: |
+      Optionally participant-provided email address.
+    bugs:
+      - https://bugzilla.mozilla.org/show_bug.cgi?id=1869236
+    data_reviews:
+      - https://bugzilla.mozilla.org/show_bug.cgi?id=1858684
+    data_sensitivity:
+      - highly_sensitive
+    notification_emails:
+      - jessed@mozillafoundation.org
+    expires: never
+
+  screen_recording:
+    type: text
+    send_in_pings:
+      - tiktok-report
+    description: |
+      Some description about what this contains. This is a json dump
+      of the "fields" in the example I was given.
+    bugs:
+      - https://bugzilla.mozilla.org/show_bug.cgi?id=1869236
+    data_reviews:
+      - https://bugzilla.mozilla.org/show_bug.cgi?id=1858684
+    data_sensitivity:
+      - highly_sensitive
+    notification_emails:
+      - jessed@mozillafoundation.org
+    expires: never

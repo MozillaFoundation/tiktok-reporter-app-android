@@ -23,8 +23,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
 
-val emptyCallback: () -> Unit = { }
-
 val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "app_flags")
 
 object Common {
@@ -32,8 +30,9 @@ object Common {
     const val PREFERENCES_ONBOARDING_COMPLETED_KEY = "onboarding_completed"
     const val PREFERENCES_SELECTED_STUDY_KEY = "selected_study"
     const val PREFERENCES_USER_EMAIL_KEY = "user_email"
-    val IS_RECORDING_PREFERENCE_KEY = booleanPreferencesKey("is_recording")
-    val VIDEO_URI_PREFERENCE_KEY = stringPreferencesKey("video_uri")
+    val DATASTORE_KEY_IS_RECORDING = booleanPreferencesKey("is_recording")
+    val DATASTORE_KEY_VIDEO_URI = stringPreferencesKey("video_uri")
+    val DATASTORE_KEY_RECORDING_UPLOADED = booleanPreferencesKey("recording_uploaded")
 }
 
 
@@ -59,6 +58,7 @@ inline fun <reified T : Parcelable> Intent.parcelable(key: String): T? = when {
     else -> @Suppress("DEPRECATION") getParcelableExtra(key) as? T
 }
 
+@Suppress("unused")
 inline fun <reified T : Parcelable> Bundle.parcelable(key: String): T? = when {
     Build.VERSION.SDK_INT >= 33 -> getParcelable(key, T::class.java)
     else -> @Suppress("DEPRECATION") getParcelable(key) as? T
@@ -89,6 +89,7 @@ fun scale(
 ) = lerp(targetMin, targetMax, calcFraction(min, max, num))
 
 // Scale range.start, range.end from min..max range to targetMin..targetMax range
+@Suppress("unused")
 fun scale(
     min: Float,
     max: Float,

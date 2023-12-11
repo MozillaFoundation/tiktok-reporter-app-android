@@ -49,6 +49,7 @@ import com.google.accompanist.permissions.shouldShowRationale
 import org.mozilla.tiktokreporter.R
 import org.mozilla.tiktokreporter.ScreenRecorderService
 import org.mozilla.tiktokreporter.TikTokReporterError
+import org.mozilla.tiktokreporter.UploadRecordingService
 import org.mozilla.tiktokreporter.common.TabModelType
 import org.mozilla.tiktokreporter.common.formcomponents.formComponentsItems
 import org.mozilla.tiktokreporter.ui.components.LoadingScreen
@@ -108,7 +109,7 @@ fun ReportFormScreen(
                     it.action = ScreenRecorderService.Actions.START.toString()
                     it.putExtra("activityResult", result)
 
-                    context.startService(it)
+                    context.startForegroundService(it)
                 }
             }
         }
@@ -146,6 +147,23 @@ fun ReportFormScreen(
 
         CollectWithLifecycle(viewModel.uiAction) { action ->
             when (action) {
+                is ReportFormScreenViewModel.UiAction.StartUploadRecordingService -> {
+                    Intent(context.applicationContext, UploadRecordingService::class.java).also {
+                        it.action = UploadRecordingService.Actions.START.toString()
+                        it.putExtra("recordingUri", action.recordingUri.toString())
+
+                        context.startForegroundService(it)
+                    }
+                }
+                ReportFormScreenViewModel.UiAction.StopUploadRecordingService -> {
+                    Intent(context.applicationContext, UploadRecordingService::class.java).also {
+                        it.action = UploadRecordingService.Actions.STOP.toString()
+
+                        context.startService(it)
+                    }
+
+                    onGoToReportSubmittedScreen()
+                }
                 is ReportFormScreenViewModel.UiAction.ShowStudyNotActive -> {
                     dialogState.value = DialogState.MessageDialog(
                         title = UiText.StringResource(R.string.dialog_title_inactive_study),
@@ -157,8 +175,9 @@ fun ReportFormScreen(
                         onDismissRequest = { dialogState.value = DialogState.Nothing }
                     )
                 }
-
-                ReportFormScreenViewModel.UiAction.GoToReportSubmittedScreen -> onGoToReportSubmittedScreen()
+                ReportFormScreenViewModel.UiAction.GoToReportSubmittedScreen -> {
+                    onGoToReportSubmittedScreen()
+                }
                 is ReportFormScreenViewModel.UiAction.ShowError -> {
                     when (action.error) {
                         // internet connection / server unresponsive / server error
@@ -173,7 +192,6 @@ fun ReportFormScreen(
                         }
                     }
                 }
-
                 ReportFormScreenViewModel.UiAction.ShowFetchStudyError -> {
                     dialogState.value = DialogState.ErrorDialog(
                         title = UiText.StringResource(R.string.error_title_general),
