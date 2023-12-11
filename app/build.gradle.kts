@@ -38,6 +38,7 @@ android {
             )
 
             buildConfigField("String", "BASE_URL", "\"https://tiktok-reporter-app-be-jbrlktowcq-ew.a.run.app/\"")
+            buildConfigField("String", "UPLOAD_RECORDING_API_KEY", "\"f0bfa33e-333b-4704-b57e-bbe6e766ba65\"")
         }
 
         debug {
@@ -45,6 +46,7 @@ android {
             isMinifyEnabled = false
 
             buildConfigField("String", "BASE_URL", "\"https://tiktok-reporter-app-be-jbrlktowcq-ew.a.run.app/\"")
+            buildConfigField("String", "UPLOAD_RECORDING_API_KEY", "\"f0bfa33e-333b-4704-b57e-bbe6e766ba65\"")
         }
     }
     compileOptions {

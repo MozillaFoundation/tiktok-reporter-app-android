@@ -1,6 +1,7 @@
 package org.mozilla.tiktokreporter.data.remote
 
 import okhttp3.MultipartBody
+import org.mozilla.tiktokreporter.BuildConfig
 import org.mozilla.tiktokreporter.data.remote.response.PolicyDTO
 import org.mozilla.tiktokreporter.data.remote.response.StudyDTO
 import org.mozilla.tiktokreporter.data.remote.response.UploadedRecordingDTO
@@ -25,7 +26,7 @@ interface TikTokReporterService {
     @POST("storage")
     @Multipart
     suspend fun uploadRecording(
-        @Header("X-API-KEY") token: String = "f0bfa33e-333b-4704-b57e-bbe6e766ba65",
+        @Header("X-API-KEY") token: String = BuildConfig.UPLOAD_RECORDING_API_KEY,
         @Part file: MultipartBody.Part
     ): UploadedRecordingDTO
 }
