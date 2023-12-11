@@ -34,39 +34,44 @@ class EmailScreenViewModel @Inject constructor(
     private val _uiAction = Channel<UiAction>()
     val uiAction = _uiAction.receiveAsFlow()
 
+    private val _refreshAction = MutableStateFlow(false)
+
     init {
         viewModelScope.launch {
-            _isLoading.update { true }
+            _refreshAction.collect {
 
-            val studyResult = tikTokReporterRepository.getSelectedStudy()
-            if (studyResult.isFailure) {
+                _isLoading.update { true }
+
+                val studyResult = tikTokReporterRepository.getSelectedStudy()
+                if (studyResult.isFailure) {
+                    _isLoading.update { false }
+                    val error = studyResult.exceptionOrNull()!!.toTikTokReporterError()
+                    _uiAction.send(UiAction.ShowError(error))
+                    return@collect
+                }
+
+                val onboardingForm = studyResult.getOrNull()?.onboarding?.form ?: kotlin.run {
+                    _isLoading.update { false }
+                    _uiAction.send(UiAction.GoToReportForm)
+                    return@collect
+                }
+
+                val userEmail = tikTokReporterRepository.userEmail
+                val fields = onboardingForm.fields.toUiComponents().toMutableList().apply {
+                    if (userEmail.isNotBlank()) {
+                        val index = this.indexOfFirst { it is FormFieldUiComponent.TextField }
+                        val field = this[index] as FormFieldUiComponent.TextField
+                        this[index] = field.copy(
+                            value = userEmail
+                        )
+                    }
+                }
                 _isLoading.update { false }
-                val error = studyResult.exceptionOrNull()!!.toTikTokReporterError()
-                _uiAction.send(UiAction.ShowError(error))
-                return@launch
-            }
-
-            val onboardingForm = studyResult.getOrNull()?.onboarding?.form ?: kotlin.run {
-                _isLoading.update { false }
-                _uiAction.send(UiAction.GoToReportForm)
-                return@launch
-            }
-
-            val userEmail = tikTokReporterRepository.userEmail
-            val fields = onboardingForm.fields.toUiComponents().toMutableList().apply {
-                if (userEmail.isNotBlank()) {
-                    val index = this.indexOfFirst { it is FormFieldUiComponent.TextField }
-                    val field = this[index] as FormFieldUiComponent.TextField
-                    this[index] = field.copy(
-                        value = userEmail
+                _state.update { state ->
+                    state.copy(
+                        formFields = fields
                     )
                 }
-            }
-            _isLoading.update { false }
-            _state.update { state ->
-                state.copy(
-                    formFields = fields
-                )
             }
         }
     }
@@ -117,6 +122,12 @@ class EmailScreenViewModel @Inject constructor(
             Pings.tiktokReport.submit()
 
             _uiAction.send(UiAction.EmailSaved)
+        }
+    }
+
+    fun refresh() {
+        viewModelScope.launch {
+            _refreshAction.update { !_refreshAction.value }
         }
     }
 

@@ -13,11 +13,14 @@ import com.squareup.moshi.Moshi
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onSubscription
 import kotlinx.coroutines.flow.receiveAsFlow
@@ -27,16 +30,16 @@ import kotlinx.coroutines.withContext
 import org.mozilla.tiktokreporter.GleanMetrics.Pings
 import org.mozilla.tiktokreporter.GleanMetrics.TiktokReport
 import org.mozilla.tiktokreporter.TikTokReporterError
+import org.mozilla.tiktokreporter.TikTokReporterRepository
 import org.mozilla.tiktokreporter.common.FormFieldError
-import org.mozilla.tiktokreporter.common.TabModelType
 import org.mozilla.tiktokreporter.common.FormFieldUiComponent
 import org.mozilla.tiktokreporter.common.OTHER_CATEGORY_TEXT_FIELD_ID
 import org.mozilla.tiktokreporter.common.OTHER_DROP_DOWN_OPTION_ID
+import org.mozilla.tiktokreporter.common.TabModelType
 import org.mozilla.tiktokreporter.common.toUiComponents
-import org.mozilla.tiktokreporter.TikTokReporterRepository
 import org.mozilla.tiktokreporter.data.model.GleanFormItem
-import org.mozilla.tiktokreporter.data.model.GleanReportLinkFormRequest
 import org.mozilla.tiktokreporter.data.model.GleanRecordSessionFormRequest
+import org.mozilla.tiktokreporter.data.model.GleanReportLinkFormRequest
 import org.mozilla.tiktokreporter.data.model.StudyDetails
 import org.mozilla.tiktokreporter.data.remote.response.UploadedRecordingDTO
 import org.mozilla.tiktokreporter.data.remote.response.toFormFieldDTO
@@ -51,6 +54,7 @@ import java.time.ZoneId
 import java.util.UUID
 import javax.inject.Inject
 
+@OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class ReportFormScreenViewModel @Inject constructor(
     private val tikTokReporterRepository: TikTokReporterRepository,
@@ -71,37 +75,45 @@ class ReportFormScreenViewModel @Inject constructor(
 
     private val mediaMetadataRetriever = MediaMetadataRetriever()
 
+    private val _refreshAction = MutableStateFlow(false)
+
     init {
         viewModelScope.launch {
             tikTokReporterRepository.setOnboardingCompleted(true)
         }
 
         viewModelScope.launch {
-            _isLoading.update { true }
+            _refreshAction
+                .flatMapLatest {
+                    _isLoading.update { true }
 
-            val studyResult = tikTokReporterRepository.getSelectedStudy()
-            if (studyResult.isFailure) {
-                _isLoading.update { false }
-                val error = studyResult.exceptionOrNull()!!.toTikTokReporterError()
-                _uiAction.send(UiAction.ShowError(error))
-                return@launch
-            }
+                    val studyResult = tikTokReporterRepository.getSelectedStudy()
+                    if (studyResult.isFailure) {
+                        _isLoading.update { false }
+                        val error = studyResult.exceptionOrNull()!!.toTikTokReporterError()
+                        _uiAction.send(UiAction.ShowError(error))
+                        return@flatMapLatest flowOf(null)
+                    }
 
-            val study = studyResult.getOrNull() ?: kotlin.run {
-                _isLoading.update { false }
-                _uiAction.send(UiAction.ShowFetchStudyError)
-                return@launch
-            }
-            if (!study.isActive) {
-                tikTokReporterRepository.setOnboardingCompleted(false)
-                _uiAction.send(UiAction.ShowStudyNotActive)
-                return@launch
-            }
+                    val study = studyResult.getOrNull() ?: kotlin.run {
+                        _isLoading.update { false }
+                        _uiAction.send(UiAction.ShowFetchStudyError)
+                        return@flatMapLatest flowOf(null)
+                    }
+                    if (!study.isActive) {
+                        tikTokReporterRepository.setOnboardingCompleted(false)
+                        _uiAction.send(UiAction.ShowStudyNotActive)
+                        return@flatMapLatest flowOf(null)
+                    }
 
+                    tikTokReporterRepository.tikTokUrl
+                        .onSubscription { emit(null) }
+                        .map {
+                            it to study
+                        }
+                }.collect { pair: Pair<String?, StudyDetails>? ->
+                    val (tikTokUrl, study) = pair ?: return@collect
 
-            tikTokReporterRepository.tikTokUrl
-                .onSubscription { emit(null) }
-                .collect { tikTokUrl ->
                     _isLoading.update { false }
 
                     val fields = study.form?.fields.orEmpty().toUiComponents(tikTokUrl)
@@ -125,6 +137,18 @@ class ReportFormScreenViewModel @Inject constructor(
                         )
                     }
                 }
+        }
+
+        viewModelScope.launch {
+            context.dataStore.data.map {
+                it[Common.DATASTORE_KEY_IS_RECORDING]
+            }.collect { isRecording ->
+                _state.update { state ->
+                    state.copy(
+                        isRecording = isRecording ?: false
+                    )
+                }
+            }
         }
 
         viewModelScope.launch {
@@ -191,18 +215,6 @@ class ReportFormScreenViewModel @Inject constructor(
                         }
                     }
                 }
-        }
-
-        viewModelScope.launch {
-            context.dataStore.data.map {
-                it[Common.DATASTORE_KEY_IS_RECORDING]
-            }.collect { isRecording ->
-                _state.update { state ->
-                    state.copy(
-                        isRecording = isRecording ?: false
-                    )
-                }
-            }
         }
 
         viewModelScope.launch {
@@ -517,6 +529,12 @@ class ReportFormScreenViewModel @Inject constructor(
                 comments = state.value.recordSessionComments
             )
         )
+    }
+
+    fun refresh() {
+        viewModelScope.launch {
+            _refreshAction.update { !_refreshAction.value }
+        }
     }
 
     data class State(
