@@ -11,9 +11,9 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.mozilla.tiktokreporter.TikTokReporterError
+import org.mozilla.tiktokreporter.TikTokReporterRepository
 import org.mozilla.tiktokreporter.data.model.Form
 import org.mozilla.tiktokreporter.data.model.OnboardingStep
-import org.mozilla.tiktokreporter.TikTokReporterRepository
 import org.mozilla.tiktokreporter.toTikTokReporterError
 import org.mozilla.tiktokreporter.util.OneTimeEvent
 import javax.inject.Inject
@@ -32,32 +32,42 @@ class StudyOnboardingScreenViewModel @Inject constructor(
     private val _uiAction = Channel<UiAction>()
     val uiAction = _uiAction.receiveAsFlow()
 
+    private val _refreshAction = MutableStateFlow(false)
+
     init {
         viewModelScope.launch {
-            _isLoading.update { true }
+            _refreshAction.collect {
+                _isLoading.update { true }
 
-            val studyResult = tikTokReporterRepository.getSelectedStudy()
-            if (studyResult.isFailure) {
+                val studyResult = tikTokReporterRepository.getSelectedStudy()
+                if (studyResult.isFailure) {
+                    _isLoading.update { false }
+                    val error = studyResult.exceptionOrNull()!!.toTikTokReporterError()
+                    _uiAction.send(UiAction.ShowError(error))
+                    return@collect
+                }
+
+                val onboarding = studyResult.getOrNull()?.onboarding ?: kotlin.run {
+                    _isLoading.update { false }
+                    _uiAction.send(UiAction.GoToReportForm)
+                    return@collect
+                }
+
                 _isLoading.update { false }
-                val error = studyResult.exceptionOrNull()!!.toTikTokReporterError()
-                _uiAction.send(UiAction.ShowError(error))
-                return@launch
+                _state.update { state ->
+                    state.copy(
+                        action = null,
+                        steps = onboarding.steps.sortedBy { it.order },
+                        form = onboarding.form,
+                    )
+                }
             }
+        }
+    }
 
-            val onboarding = studyResult.getOrNull()?.onboarding ?: kotlin.run {
-                _isLoading.update { false }
-                _uiAction.send(UiAction.GoToReportForm)
-                return@launch
-            }
-
-            _isLoading.update { false }
-            _state.update { state ->
-                state.copy(
-                    action = null,
-                    steps = onboarding.steps.sortedBy { it.order },
-                    form = onboarding.form,
-                )
-            }
+    fun refresh() {
+        viewModelScope.launch {
+            _refreshAction.update { !_refreshAction.value }
         }
     }
 

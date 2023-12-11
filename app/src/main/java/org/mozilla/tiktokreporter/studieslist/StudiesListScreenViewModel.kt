@@ -11,8 +11,8 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.mozilla.tiktokreporter.TikTokReporterError
-import org.mozilla.tiktokreporter.data.model.StudyOverview
 import org.mozilla.tiktokreporter.TikTokReporterRepository
+import org.mozilla.tiktokreporter.data.model.StudyOverview
 import org.mozilla.tiktokreporter.toTikTokReporterError
 import javax.inject.Inject
 
@@ -30,26 +30,30 @@ class StudiesListScreenViewModel @Inject constructor(
     private val _uiAction = Channel<UiAction>()
     val uiAction = _uiAction.receiveAsFlow()
 
+    private val _refreshAction = MutableStateFlow(true)
+
     init {
         viewModelScope.launch(Dispatchers.Unconfined) {
-            _isLoading.update { true }
+            _refreshAction.collect {
+                _isLoading.update { true }
 
-            val studiesResult = tikTokReporterRepository.fetchStudies()
-            if (studiesResult.isFailure)  {
+                val studiesResult = tikTokReporterRepository.fetchStudies()
+                if (studiesResult.isFailure)  {
+                    _isLoading.update { false }
+                    _uiAction.send(
+                        UiAction.ShowError(studiesResult.exceptionOrNull()!!.toTikTokReporterError())
+                    )
+                    return@collect
+                }
+
+                val studies = studiesResult.getOrNull().orEmpty()
+
                 _isLoading.update { false }
-                _uiAction.send(
-                    UiAction.ShowError(studiesResult.exceptionOrNull()!!.toTikTokReporterError())
-                )
-                return@launch
-            }
-
-            val studies = studiesResult.getOrNull().orEmpty()
-
-            _isLoading.update { false }
-            _state.update {
-                it.copy(
-                    studies = studies
-                )
+                _state.update {
+                    it.copy(
+                        studies = studies
+                    )
+                }
             }
         }
     }
@@ -93,6 +97,12 @@ class StudiesListScreenViewModel @Inject constructor(
                 else if (selectedStudy.hasEmailForm) UiAction.OnGoToEmail
                 else UiAction.OnGoToReportForm
             )
+        }
+    }
+
+    fun refresh() {
+        viewModelScope.launch {
+            _refreshAction.update { !_refreshAction.value }
         }
     }
 

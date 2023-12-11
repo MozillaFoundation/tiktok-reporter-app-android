@@ -35,7 +35,7 @@ class AppPolicyScreenViewModel @Inject constructor(
 
     private var policyType = NestedDestination.AppPolicy.Type.TermsAndConditions
 
-    private val _refreshAction = MutableStateFlow<Boolean>(true)
+    private val _refreshAction = MutableStateFlow(true)
 
     init {
         val isForOnboarding = savedStateHandle.get<Boolean>("isForOnboarding") ?: true
