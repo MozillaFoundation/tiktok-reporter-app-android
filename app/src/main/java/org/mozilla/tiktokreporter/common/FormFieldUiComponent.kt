@@ -111,7 +111,7 @@ fun FormField.toFormFieldComponent(): List<FormFieldUiComponent<*>>? {
                 placeholder = placeholder,
             )
             val otherTextField = FormFieldUiComponent.TextField(
-                id = OTHER_CATEGORY_TEXT_FIELD_ID,
+                id = "${id}_${OTHER_CATEGORY_TEXT_FIELD_ID}",
                 value = "",
                 isVisible = false,
                 isRequired = isRequired,
