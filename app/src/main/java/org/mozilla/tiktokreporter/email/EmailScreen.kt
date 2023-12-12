@@ -92,7 +92,10 @@ fun EmailScreen(
                 onFormFieldValueChanged = viewModel::onFormFieldValueChanged,
                 onNavigateBack = onNavigateBack,
                 onSaveEmail = viewModel::onSaveEmail,
-                onNextScreen = onNextScreen,
+                onNextScreen = {
+                    viewModel.onSaveEmail()
+                    onNextScreen()
+                },
                 isForOnboarding = isForOnboarding,
                 modifier = Modifier.fillMaxSize()
             )
