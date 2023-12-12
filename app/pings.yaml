@@ -17,6 +17,7 @@ tiktok-report:
     - https://bugzilla.mozilla.org/show_bug.cgi?id=1858684
   notification_emails:
     - jessed@mozillafoundation.org
+    - rebeccar@mozillafoundation.org
 
 email:
   description: |
@@ -28,6 +29,7 @@ email:
     - https://bugzilla.mozilla.org/show_bug.cgi?id=1858684
   notification_emails:
     - jessed@mozillafoundation.org
+    - rebeccar@mozillafoundation.org
 
 download-data:
   description: |
@@ -39,6 +41,7 @@ download-data:
     - https://bugzilla.mozilla.org/show_bug.cgi?id=1858684
   notification_emails:
     - jessed@mozillafoundation.org
+    - rebeccar@mozillafoundation.org
 
 screen-recording:
   description: |
@@ -50,3 +53,4 @@ screen-recording:
     - https://bugzilla.mozilla.org/show_bug.cgi?id=1858684
   notification_emails:
     - jessed@mozillafoundation.org
+    - rebeccar@mozillafoundation.org
