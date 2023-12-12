@@ -27,6 +27,7 @@ tiktok_report:
       - highly_sensitive
     notification_emails:
       - jessed@mozillafoundation.org
+      - rebeccar@mozillafoundation.org
     expires: never
 
   fields:
@@ -43,10 +44,28 @@ tiktok_report:
       - stored_content
     notification_emails:
       - jessed@mozillafoundation.org
+      - rebeccar@mozillafoundation.org
     expires: never
 
 
-tiktok_user_data:
+email:
+  identifier:
+    type: uuid
+    send_in_pings:
+      - email
+    description: |
+      A unique identifier for the app installation.
+    bugs:
+      - https://bugzilla.mozilla.org/show_bug.cgi?id=1869236
+    data_reviews:
+      - https://bugzilla.mozilla.org/show_bug.cgi?id=1858684
+    data_sensitivity:
+      - highly_sensitive
+    notification_emails:
+      - jessed@mozillafoundation.org
+      - rebeccar@mozillafoundation.org
+    expires: never
+
   email:
     type: text
     send_in_pings:
@@ -61,6 +80,7 @@ tiktok_user_data:
       - highly_sensitive
     notification_emails:
       - jessed@mozillafoundation.org
+      - rebeccar@mozillafoundation.org
     expires: never
 
 
@@ -79,6 +99,7 @@ tiktok_screen_recording:
       - highly_sensitive
     notification_emails:
       - jessed@mozillafoundation.org
+      - rebeccar@mozillafoundation.org
     expires: never
 
   data:
@@ -86,8 +107,7 @@ tiktok_screen_recording:
     send_in_pings:
       - screen-recording
     description: |
-      Some description about what this contains. This is a json dump
-      of the "recording data" in the example I was given.
+      The GCS path to which the screen recording was uploaded.
     bugs:
       - https://bugzilla.mozilla.org/show_bug.cgi?id=1869236
     data_reviews:
@@ -96,4 +116,40 @@ tiktok_screen_recording:
       - highly_sensitive
     notification_emails:
       - jessed@mozillafoundation.org
+      - rebeccar@mozillafoundation.org
+    expires: never
+
+download-data:
+  identifier:
+    type: uuid
+    send_in_pings:
+      - download-data
+    description: |
+      A unique identifier for the app installation.
+    bugs:
+      - https://bugzilla.mozilla.org/show_bug.cgi?id=1869236
+    data_reviews:
+      - https://bugzilla.mozilla.org/show_bug.cgi?id=1858684
+    data_sensitivity:
+      - highly_sensitive
+    notification_emails:
+      - jessed@mozillafoundation.org
+      - rebeccar@mozillafoundation.org
+    expires: never
+
+  email:
+    type: text
+    send_in_pings:
+      - download-data
+    description: |
+      Participant-provided email address to fulfill data download request.
+    bugs:
+      - https://bugzilla.mozilla.org/show_bug.cgi?id=1869236
+    data_reviews:
+      - https://bugzilla.mozilla.org/show_bug.cgi?id=1858684
+    data_sensitivity:
+      - highly_sensitive
+    notification_emails:
+      - jessed@mozillafoundation.org
+      - rebeccar@mozillafoundation.org
     expires: never
