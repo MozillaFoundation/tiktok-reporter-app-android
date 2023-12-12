@@ -119,7 +119,7 @@ tiktok_screen_recording:
       - rebeccar@mozillafoundation.org
     expires: never
 
-download-data:
+download_data:
   identifier:
     type: uuid
     send_in_pings:

@@ -11,13 +11,15 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import org.mozilla.tiktokreporter.GleanMetrics.Email
 import org.mozilla.tiktokreporter.GleanMetrics.Pings
-import org.mozilla.tiktokreporter.GleanMetrics.TiktokUserData
 import org.mozilla.tiktokreporter.TikTokReporterError
 import org.mozilla.tiktokreporter.TikTokReporterRepository
 import org.mozilla.tiktokreporter.common.FormFieldUiComponent
 import org.mozilla.tiktokreporter.common.toUiComponents
+import org.mozilla.tiktokreporter.data.model.StudyDetails
 import org.mozilla.tiktokreporter.toTikTokReporterError
+import java.util.UUID
 import javax.inject.Inject
 
 @HiltViewModel
@@ -50,7 +52,8 @@ class EmailScreenViewModel @Inject constructor(
                     return@collect
                 }
 
-                val onboardingForm = studyResult.getOrNull()?.onboarding?.form ?: kotlin.run {
+                val study = studyResult.getOrNull()
+                val onboardingForm = study?.onboarding?.form ?: kotlin.run {
                     _isLoading.update { false }
                     _uiAction.send(UiAction.GoToReportForm)
                     return@collect
@@ -69,6 +72,7 @@ class EmailScreenViewModel @Inject constructor(
                 _isLoading.update { false }
                 _state.update { state ->
                     state.copy(
+                        studyDetails = study,
                         formFields = fields
                     )
                 }
@@ -118,7 +122,8 @@ class EmailScreenViewModel @Inject constructor(
 
             tikTokReporterRepository.saveUserEmail(email)
 
-            TiktokUserData.email.set(email)
+            Email.identifier.set(UUID.fromString(state.value.studyDetails?.id))
+            Email.email.set(email)
             Pings.email.submit()
 
             _uiAction.send(UiAction.EmailSaved)
@@ -132,6 +137,7 @@ class EmailScreenViewModel @Inject constructor(
     }
 
     data class State(
+        val studyDetails: StudyDetails? = null,
         val formFields: List<FormFieldUiComponent<*>> = emptyList()
     )
 
