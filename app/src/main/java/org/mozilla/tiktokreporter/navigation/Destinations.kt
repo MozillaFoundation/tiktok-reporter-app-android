@@ -83,9 +83,6 @@ sealed class NestedDestination(
             val tikTokUrl: String
         )
 
-        override fun createRoute(
-            root: Destination
-        ): String = "${root.route}/reportForm/${null}"
         fun createRouteWithArguments(
             root: Destination,
             tikTokUrl: String

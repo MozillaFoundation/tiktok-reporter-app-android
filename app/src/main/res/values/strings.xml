@@ -55,7 +55,10 @@
     <string name="dialog_message_notification_permission">Enable notifications to record your TikTok session. Please grant permission in your device settings.</string>
 
     <string name="dialog_title_write_external_storage_permission">Write external storage permission required</string>
-    <string name="dialog_message_write_external_storage_permission">Write external storage permission required</string>
+    <string name="dialog_message_write_external_storage_permission">Enable write external storage permission to record your TikTok session. Please grant permission in your device settings.</string>
+
+    <string name="dialog_title_record_audio_permission">Record audio permission required</string>
+    <string name="dialog_message_record_audio_permission">Enable record audio permission to record your TikTok session. Please grant permission in your device settings.</string>
 
 
 

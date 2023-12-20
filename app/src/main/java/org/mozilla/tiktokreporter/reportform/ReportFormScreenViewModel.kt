@@ -18,6 +18,8 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
@@ -110,15 +112,19 @@ class ReportFormScreenViewModel @Inject constructor(
                     tikTokReporterRepository.tikTokUrl
                         .onSubscription { emit(null) }
                         .map {
-                            it to study
+                            val fields = study.form?.fields.orEmpty().toUiComponents(it)
+                            initialFormFields = fields
+
+                            Pair(study, fields)
                         }
-                }.collect { pair: Pair<String?, StudyDetails>? ->
-                    val (tikTokUrl, study) = pair ?: return@collect
+                }.combine(
+                    context.dataStore.data.map {
+                        it[Common.DATASTORE_KEY_IS_RECORDING] ?: false
+                    }
+                ) { pair: Pair<StudyDetails, List<FormFieldUiComponent<*>>>?, isRecording: Boolean ->
+                    val (study, fields) = pair ?: return@combine
 
                     _isLoading.update { false }
-
-                    val fields = study.form?.fields.orEmpty().toUiComponents(tikTokUrl)
-                    initialFormFields = fields
 
                     val tabs = buildList {
                         if (fields.isNotEmpty()) {
@@ -129,27 +135,28 @@ class ReportFormScreenViewModel @Inject constructor(
                         }
                     }
 
+                    val recordSessionTabIndex = tabs.indexOfFirst { it == TabModelType.RecordSession }
+                    val selectedTab = if (state.value.selectedTab == null) {
+                        // first screen rendering
+                        if (recordSessionTabIndex != -1 && isRecording) {
+                            tabs[recordSessionTabIndex] to recordSessionTabIndex
+                        } else {
+                            tabs.firstOrNull()?.to(0)
+                        }
+                    } else {
+                        state.value.selectedTab
+                    }
+
                     _state.update { state ->
                         state.copy(
                             studyDetails = study,
                             tabs = tabs,
-                            selectedTab = tabs.firstOrNull()?.to(0),
+                            selectedTab = selectedTab,
                             formFields = fields,
+                            isRecording = isRecording
                         )
                     }
-                }
-        }
-
-        viewModelScope.launch {
-            context.dataStore.data.map {
-                it[Common.DATASTORE_KEY_IS_RECORDING]
-            }.collect { isRecording ->
-                _state.update { state ->
-                    state.copy(
-                        isRecording = isRecording ?: false
-                    )
-                }
-            }
+                }.collect()
         }
 
         viewModelScope.launch {
