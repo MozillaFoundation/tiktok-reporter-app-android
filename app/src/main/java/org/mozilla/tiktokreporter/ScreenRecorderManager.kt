@@ -53,9 +53,10 @@ class ScreenRecorderManager @Inject constructor(
         mediaRecorder?.apply {
 
             setVideoSource(MediaRecorder.VideoSource.SURFACE)
-
+            setAudioSource(MediaRecorder.AudioSource.DEFAULT)
             setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
             setVideoEncoder(MediaRecorder.VideoEncoder.H264)
+            setAudioEncoder(MediaRecorder.AudioEncoder.DEFAULT)
             setVideoSize(recordingInfo.width, recordingInfo.height)
             setVideoFrameRate(recordingInfo.frameRate)
             setVideoEncodingBitRate(8 * 1000 * 1000)
