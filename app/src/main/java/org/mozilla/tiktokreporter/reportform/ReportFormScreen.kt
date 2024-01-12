@@ -429,6 +429,7 @@ private fun ReportFormScreenContent(
             )
 
             FormButtons(
+                video = state.video,
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(
@@ -561,6 +562,7 @@ private fun VideoEntry(
 
 @Composable
 private fun FormButtons(
+    video: ReportFormScreenViewModel.VideoModel?,
     modifier: Modifier = Modifier,
     onSubmitReport: (() -> Unit)? = null,
     onCancelReport: (() -> Unit)? = null,
@@ -578,11 +580,13 @@ private fun FormButtons(
             )
         }
         onCancelReport?.let {
-            SecondaryButton(
-                modifier = Modifier.fillMaxWidth(),
-                text = stringResource(R.string.button_cancel_report),
-                onClick = it
-            )
+            if (video != null) {
+                SecondaryButton(
+                    modifier = Modifier.fillMaxWidth(),
+                    text = stringResource(R.string.button_cancel_report),
+                    onClick = it
+                )
+            }
         }
     }
 }
