@@ -148,7 +148,8 @@ class EditVideoScreenViewModel @Inject constructor(
 
             _state.update { state ->
                 state.copy(
-                    editedMediaItem = editedMediaItem
+                    editedMediaItem = editedMediaItem,
+                    edited = true
                 )
             }
         }
@@ -159,12 +160,17 @@ class EditVideoScreenViewModel @Inject constructor(
         viewModelScope.launch {
             _isLoading.update { true }
 
+            onSeekBarRangeChangeFinished()
+
             tempEditedVideoFile = File(
                 context.filesDir,
                 "edited_recording"
             )
-
-            transformer.start(state.value.editedMediaItem, tempEditedVideoFile!!.path)
+            if (state.value.edited) {
+                transformer.start(state.value.editedMediaItem, tempEditedVideoFile!!.path)
+            } else {
+                transformer.start(state.value.mediaItem, tempEditedVideoFile!!.path)
+            }
         }
     }
 
@@ -211,13 +217,14 @@ class EditVideoScreenViewModel @Inject constructor(
         val editedMediaItem: MediaItem = mediaItem,
         val videoUri: Uri = Uri.EMPTY,
         val videoDurationMs: Long = 0L,
-        val seekBarRangeSelection: ClosedRange<Long> = 0L..videoDurationMs
+        val seekBarRangeSelection: ClosedRange<Long> = 0L..videoDurationMs,
+        val edited: Boolean = false
     )
 
     sealed class UiAction {
         data object NavigateBack : UiAction()
         data class ShowError(
             val message: String
-        ): UiAction()
+        ) : UiAction()
     }
 }
