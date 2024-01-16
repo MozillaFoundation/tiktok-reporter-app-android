@@ -5,6 +5,7 @@ import android.content.ContentValues
 import android.content.Context
 import android.net.Uri
 import android.provider.MediaStore
+import android.widget.Toast
 import androidx.annotation.OptIn
 import androidx.core.net.toUri
 import androidx.datastore.preferences.core.edit
@@ -134,23 +135,35 @@ class EditVideoScreenViewModel @Inject constructor(
 
     fun onSeekBarRangeChangeFinished() {
         viewModelScope.launch {
-            val editedMediaItem = MediaItem.Builder()
-                .setUri(state.value.videoUri)
-                .setClippingConfiguration(
-                    MediaItem.ClippingConfiguration.Builder()
-                        .setStartPositionMs(state.value.seekBarRangeSelection.start)
-                        .setEndPositionMs(state.value.seekBarRangeSelection.endInclusive)
-                        .build()
-                )
-                .build()
+            if (state.value.seekBarRangeSelection.endInclusive - state.value.seekBarRangeSelection.start > 1000) {
+                val editedMediaItem = MediaItem.Builder()
+                    .setUri(state.value.videoUri)
+                    .setClippingConfiguration(
+                        MediaItem.ClippingConfiguration.Builder()
+                            .setStartPositionMs(state.value.seekBarRangeSelection.start)
+                            .setEndPositionMs(state.value.seekBarRangeSelection.endInclusive)
+                            .build()
+                    )
+                    .build()
 
-            player.setMediaItem(editedMediaItem)
+                player.setMediaItem(editedMediaItem)
 
-            _state.update { state ->
-                state.copy(
-                    editedMediaItem = editedMediaItem,
-                    edited = true
-                )
+                _state.update { state ->
+                    state.copy(
+                        editedMediaItem = editedMediaItem,
+                        edited = true
+                    )
+                }
+            } else {
+                Toast.makeText(context, "The recording is too short!", Toast.LENGTH_SHORT).show()
+                player.setMediaItem(state.value.mediaItem)
+
+                _state.update { state ->
+                    state.copy(
+                        editedMediaItem = state.mediaItem,
+                        edited = true
+                    )
+                }
             }
         }
     }
