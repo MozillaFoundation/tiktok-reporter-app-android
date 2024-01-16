@@ -114,7 +114,7 @@ fun ReportFormCompletedScreen(
                     )
                 ) {
                     withAnnotation("settings", "") {
-                        append(" Settings")
+                        append("Settings")
                     }
                 }
             }
