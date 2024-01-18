@@ -264,8 +264,10 @@ class ReportFormScreenViewModel @Inject constructor(
             val newFields = state.value.formFields.toMutableList()
             val newField = when (val field = state.value.formFields[fieldIndex]) {
                 is FormFieldUiComponent.TextField -> {
+                    val valueString = value as String
                     field.copy(
-                        value = value as String
+                        value = valueString,
+                        error = if (value.isNotBlank()) null else FormFieldError.Empty
                     )
                 }
 
