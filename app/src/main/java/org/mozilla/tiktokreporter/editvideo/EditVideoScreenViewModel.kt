@@ -5,6 +5,7 @@ import android.content.ContentValues
 import android.content.Context
 import android.net.Uri
 import android.provider.MediaStore
+import android.widget.Toast
 import androidx.annotation.OptIn
 import androidx.core.net.toUri
 import androidx.datastore.preferences.core.edit
@@ -134,22 +135,35 @@ class EditVideoScreenViewModel @Inject constructor(
 
     fun onSeekBarRangeChangeFinished() {
         viewModelScope.launch {
-            val editedMediaItem = MediaItem.Builder()
-                .setUri(state.value.videoUri)
-                .setClippingConfiguration(
-                    MediaItem.ClippingConfiguration.Builder()
-                        .setStartPositionMs(state.value.seekBarRangeSelection.start)
-                        .setEndPositionMs(state.value.seekBarRangeSelection.endInclusive)
-                        .build()
-                )
-                .build()
+            if (state.value.seekBarRangeSelection.endInclusive - state.value.seekBarRangeSelection.start > 1000) {
+                val editedMediaItem = MediaItem.Builder()
+                    .setUri(state.value.videoUri)
+                    .setClippingConfiguration(
+                        MediaItem.ClippingConfiguration.Builder()
+                            .setStartPositionMs(state.value.seekBarRangeSelection.start)
+                            .setEndPositionMs(state.value.seekBarRangeSelection.endInclusive)
+                            .build()
+                    )
+                    .build()
 
-            player.setMediaItem(editedMediaItem)
+                player.setMediaItem(editedMediaItem)
 
-            _state.update { state ->
-                state.copy(
-                    editedMediaItem = editedMediaItem
-                )
+                _state.update { state ->
+                    state.copy(
+                        editedMediaItem = editedMediaItem,
+                        edited = true
+                    )
+                }
+            } else {
+                Toast.makeText(context, "The recording is too short!", Toast.LENGTH_SHORT).show()
+                player.setMediaItem(state.value.mediaItem)
+
+                _state.update { state ->
+                    state.copy(
+                        editedMediaItem = state.mediaItem,
+                        edited = true
+                    )
+                }
             }
         }
     }
@@ -159,12 +173,17 @@ class EditVideoScreenViewModel @Inject constructor(
         viewModelScope.launch {
             _isLoading.update { true }
 
+            onSeekBarRangeChangeFinished()
+
             tempEditedVideoFile = File(
                 context.filesDir,
                 "edited_recording"
             )
-
-            transformer.start(state.value.editedMediaItem, tempEditedVideoFile!!.path)
+            if (state.value.edited) {
+                transformer.start(state.value.editedMediaItem, tempEditedVideoFile!!.path)
+            } else {
+                transformer.start(state.value.mediaItem, tempEditedVideoFile!!.path)
+            }
         }
     }
 
@@ -211,13 +230,14 @@ class EditVideoScreenViewModel @Inject constructor(
         val editedMediaItem: MediaItem = mediaItem,
         val videoUri: Uri = Uri.EMPTY,
         val videoDurationMs: Long = 0L,
-        val seekBarRangeSelection: ClosedRange<Long> = 0L..videoDurationMs
+        val seekBarRangeSelection: ClosedRange<Long> = 0L..videoDurationMs,
+        val edited: Boolean = false
     )
 
     sealed class UiAction {
         data object NavigateBack : UiAction()
         data class ShowError(
             val message: String
-        ): UiAction()
+        ) : UiAction()
     }
 }
