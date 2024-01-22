@@ -261,7 +261,7 @@ private fun OnboardingStepInfo(
             item {
                 AsyncImage(
                     modifier = Modifier
-                        .fillParentMaxWidth(.6f)
+                        .fillParentMaxWidth(.45f)
                         .padding(top = MozillaDimension.S),
                     model = ImageRequest.Builder(LocalContext.current)
                         .data(it)
