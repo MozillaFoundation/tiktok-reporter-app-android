@@ -58,7 +58,7 @@ fun DialogContainer(
                     .padding(MozillaDimension.L),
                 drawable = dialogData.drawable,
                 title = dialogData.title.asString(),
-                message = dialogData.message.asString(),
+                message = dialogData.message?.asString(),
                 action = if (dialogData.actionText != null && dialogData.action != null) {
                     {
                         SecondaryButton(
@@ -90,7 +90,7 @@ sealed class DialogState {
 
     data class ErrorDialog(
         val title: UiText,
-        val message: UiText,
+        val message: UiText? = null,
         @DrawableRes val drawable: Int? = null,
         val actionText: UiText? = null,
         val action: (() -> Unit)? = null

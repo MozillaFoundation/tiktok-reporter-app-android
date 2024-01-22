@@ -63,6 +63,7 @@
 
 
     <string name="error_title_general">Oops! Something went wrong</string>
+    <string name="error_title_internet">Oops! No internet connection</string>
     <string name="error_message_general">The system doesn\'t seem to respond. Our cat must have been chewing the wires again.\n\nPlease forgive Tom and try again later.</string>
     <string name="error_title_no_studies_available">No studies available</string>
     <string name="error_message_no_studies_available">We are sorry to announce that there are no studies available for your location.\n\nCome back at a later date to check if any new study has been opened.</string>
