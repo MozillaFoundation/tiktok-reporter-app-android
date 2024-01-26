@@ -53,12 +53,12 @@ import org.mozilla.tiktokreporter.R
 import org.mozilla.tiktokreporter.ScreenRecorderService
 import org.mozilla.tiktokreporter.TikTokReporterError
 import org.mozilla.tiktokreporter.UploadRecordingService
+import org.mozilla.tiktokreporter.common.FormFieldUiComponent
 import org.mozilla.tiktokreporter.common.TabModelType
 import org.mozilla.tiktokreporter.common.formcomponents.formComponentsItems
 import org.mozilla.tiktokreporter.ui.components.LoadingScreen
 import org.mozilla.tiktokreporter.ui.components.MozillaScaffold
 import org.mozilla.tiktokreporter.ui.components.MozillaTabRow
-import org.mozilla.tiktokreporter.ui.components.MozillaTextField
 import org.mozilla.tiktokreporter.ui.components.MozillaTextFieldWithLengthLimit
 import org.mozilla.tiktokreporter.ui.components.MozillaTopAppBar
 import org.mozilla.tiktokreporter.ui.components.PrimaryButton
@@ -450,7 +450,9 @@ private fun ReportFormScreenContent(
                         vertical = MozillaDimension.L
                     ),
                 onSubmitReport = onSubmitReport,
-                onCancelReport = onCancelReport
+                onCancelReport = onCancelReport,
+                tab = state.selectedTab,
+                fields = state.formFields
             )
         }
     }
@@ -579,6 +581,8 @@ private fun FormButtons(
     modifier: Modifier = Modifier,
     onSubmitReport: (() -> Unit)? = null,
     onCancelReport: (() -> Unit)? = null,
+    tab: Pair<TabModelType, Int>?,
+    fields: List<FormFieldUiComponent<*>>
 ) {
     Column(
         modifier = modifier,
@@ -592,13 +596,38 @@ private fun FormButtons(
                 isPrimaryVariant = true
             )
         }
-        onCancelReport?.let {
-            if (video != null) {
-                SecondaryButton(
-                    modifier = Modifier.fillMaxWidth(),
-                    text = stringResource(R.string.button_cancel_report),
-                    onClick = it
-                )
+
+        if (tab != null) {
+            when (tab.first) {
+                TabModelType.ReportLink -> {
+                    onCancelReport?.let {
+                        var fieldsEdited = false
+                        fields.forEach {
+                            if (it.edited == true) {
+                                fieldsEdited = true
+                            }
+                        }
+                        if (fieldsEdited) {
+                            SecondaryButton(
+                                modifier = Modifier.fillMaxWidth(),
+                                text = stringResource(R.string.button_cancel_report),
+                                onClick = it
+                            )
+                        }
+                    }
+                }
+
+                TabModelType.RecordSession -> {
+                    onCancelReport?.let {
+                        if (video != null) {
+                            SecondaryButton(
+                                modifier = Modifier.fillMaxWidth(),
+                                text = stringResource(R.string.button_cancel_report),
+                                onClick = it
+                            )
+                        }
+                    }
+                }
             }
         }
     }

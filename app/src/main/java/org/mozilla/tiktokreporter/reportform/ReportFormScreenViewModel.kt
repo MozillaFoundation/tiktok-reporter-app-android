@@ -267,13 +267,15 @@ class ReportFormScreenViewModel @Inject constructor(
                     val valueString = value as String
                     field.copy(
                         value = valueString,
-                        error = if (value.isNotBlank()) null else FormFieldError.Empty
+                        error = if (value.isNotBlank()) null else FormFieldError.Empty,
+                        edited = true
                     )
                 }
 
                 is FormFieldUiComponent.Slider -> {
                     field.copy(
-                        value = value as Int
+                        value = value as Int,
+                        edited = true
                     )
                 }
 
@@ -291,7 +293,8 @@ class ReportFormScreenViewModel @Inject constructor(
                     }
 
                     field.copy(
-                        value = value as String
+                        value = value as String,
+                        edited = true
                     )
                 }
             }
