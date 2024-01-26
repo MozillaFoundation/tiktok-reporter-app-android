@@ -11,7 +11,6 @@ import androidx.compose.ui.res.stringResource
 import org.mozilla.tiktokreporter.R
 import org.mozilla.tiktokreporter.common.FormFieldError
 import org.mozilla.tiktokreporter.common.FormFieldUiComponent
-import org.mozilla.tiktokreporter.ui.components.MozillaTextField
 import org.mozilla.tiktokreporter.ui.components.MozillaTextFieldWithLengthLimit
 import org.mozilla.tiktokreporter.ui.theme.MozillaDimension
 import org.mozilla.tiktokreporter.ui.theme.MozillaTypography
