@@ -256,7 +256,7 @@ class ReportFormScreenViewModel @Inject constructor(
 
     fun onFormFieldValueChanged(
         formFieldId: String,
-        value: Any
+        value: Any, maxLength: Int = 500
     ) {
         viewModelScope.launch(Dispatchers.Unconfined) {
             val fieldIndex = state.value.formFields.indexOfFirst { it.id == formFieldId }
@@ -265,11 +265,19 @@ class ReportFormScreenViewModel @Inject constructor(
             val newField = when (val field = state.value.formFields[fieldIndex]) {
                 is FormFieldUiComponent.TextField -> {
                     val valueString = value as String
-                    field.copy(
-                        value = valueString,
-                        error = if (value.isNotBlank()) null else FormFieldError.Empty,
-                        edited = true
-                    )
+                    if (valueString.length <= maxLength) {
+                        field.copy(
+                            value = valueString,
+                            error = if (value.isNotBlank()) null else FormFieldError.Empty,
+                            edited = true
+                        )
+                    } else {
+                        field.copy(
+                            value = valueString.substring(0, 500),
+                            edited = true
+                        )
+                    }
+
                 }
 
                 is FormFieldUiComponent.Slider -> {
