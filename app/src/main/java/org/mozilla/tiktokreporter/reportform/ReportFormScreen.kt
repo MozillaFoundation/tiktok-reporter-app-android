@@ -59,6 +59,7 @@ import org.mozilla.tiktokreporter.ui.components.LoadingScreen
 import org.mozilla.tiktokreporter.ui.components.MozillaScaffold
 import org.mozilla.tiktokreporter.ui.components.MozillaTabRow
 import org.mozilla.tiktokreporter.ui.components.MozillaTextField
+import org.mozilla.tiktokreporter.ui.components.MozillaTextFieldWithLengthLimit
 import org.mozilla.tiktokreporter.ui.components.MozillaTopAppBar
 import org.mozilla.tiktokreporter.ui.components.PrimaryButton
 import org.mozilla.tiktokreporter.ui.components.SecondaryButton
@@ -525,7 +526,7 @@ private fun LazyListScope.recordSessionItems(
     }
 
     item {
-        MozillaTextField(
+        MozillaTextFieldWithLengthLimit(
             modifier = Modifier.fillParentMaxWidth(),
             text = comments,
             onTextChanged = onCommentsChanged,

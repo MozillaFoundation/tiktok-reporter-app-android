@@ -305,12 +305,18 @@ class ReportFormScreenViewModel @Inject constructor(
         }
     }
 
-    fun onRecordSessionCommentsChanged(text: String) {
+    fun onRecordSessionCommentsChanged(text: String, maxLength: Int = 500) {
         viewModelScope.launch {
             _state.update {
-                it.copy(
-                    recordSessionComments = text
-                )
+                if (text.length <= maxLength) {
+                    it.copy(
+                        recordSessionComments = text
+                    )
+                } else {
+                    it.copy(
+                        recordSessionComments = text.substring(0, 500)
+                    )
+                }
             }
         }
     }

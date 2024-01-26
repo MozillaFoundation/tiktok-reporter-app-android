@@ -2,6 +2,7 @@ package org.mozilla.tiktokreporter.ui.components
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.selection.TextSelectionColors
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
@@ -11,7 +12,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import org.mozilla.tiktokreporter.ui.theme.MozillaColor
 import org.mozilla.tiktokreporter.ui.theme.MozillaTypography
 import org.mozilla.tiktokreporter.ui.theme.TikTokReporterTheme
@@ -67,6 +70,7 @@ fun mozillaTextFieldColors(
     disabledSuffixColor = MozillaColor.Disabled,
     errorSuffixColor = if (isFilled) MozillaColor.TextColor else MozillaColor.Inactive,
 )
+
 @Composable
 fun MozillaTextField(
     text: String,
@@ -117,6 +121,67 @@ fun MozillaTextField(
     )
 }
 
+@Composable
+fun MozillaTextFieldWithLengthLimit(
+    text: String,
+    onTextChanged: (String) -> Unit,
+    modifier: Modifier = Modifier,
+    errorText: String? = null,
+    label: String? = null,
+    placeholder: String? = null,
+    enabled: Boolean = true,
+    maxLines: Int = Int.MAX_VALUE,
+    multiline: Boolean = false,
+    readOnly: Boolean = false,
+    trailingIcon: (@Composable () -> Unit)? = null,
+    colors: TextFieldColors = mozillaTextFieldColors(text.isNotBlank()),
+    maxLength: Int = 500
+) {
+    Column {
+        OutlinedTextField(
+            value = text,
+            onValueChange = onTextChanged,
+            modifier = modifier,
+            enabled = enabled,
+            label = {
+                if (!label.isNullOrBlank()) {
+                    Text(text = label)
+                }
+            },
+            placeholder = {
+                if (!placeholder.isNullOrBlank()) {
+                    Text(text = placeholder)
+                }
+            },
+            maxLines = maxLines,
+            minLines = if (multiline) maxLines else 1,
+            singleLine = !multiline,
+            textStyle = MozillaTypography.Body1,
+            colors = colors,
+            readOnly = readOnly,
+            trailingIcon = trailingIcon,
+            shape = RectangleShape,
+            isError = errorText != null,
+            supportingText = errorText?.let {
+                {
+                    Text(
+                        text = it,
+                        style = MozillaTypography.Body2
+                    )
+                }
+            }
+        )
+        Text(
+            text = "${text.length} / $maxLength",
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 4.dp),
+            textAlign = TextAlign.End,
+            style = MozillaTypography.Body2
+        )
+    }
+}
+
 @Preview(
     showBackground = true
 )
@@ -163,6 +228,7 @@ private fun MozillaTextFieldPreviewEnabled() {
         }
     }
 }
+
 @Preview(
     showBackground = true
 )
