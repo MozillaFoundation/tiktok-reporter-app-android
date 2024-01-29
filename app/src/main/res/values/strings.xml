@@ -35,7 +35,6 @@
     <string name="about_app_content">"TikTok Reporter" serves as a vital tool in an ongoing sociological study, seeking to understand the broader implications of content shared on TikTok. By reporting harmful videos, users contribute to a wealth of data that will be instrumental in identifying and addressing the social issues, influences, and trends within the platform.\n\nJoin us in shaping the future of digital interaction by participating in this sociological study through “TikTok Reporter” Your reports make a difference in the quest to foster a safer, more informed, and socially conscious digital environment.\n\nAnonymous Reporting: SocialSafeguard ensures users can report troubling TikTok content discreetly, preserving their privacy.\n\nCategorization: Users can categorize the type of harm observed in videos, such as bullying, misinformation, hate speech, or other sociological factors.\n\nCommentary: The app allows users to provide context and insights, fostering a deeper understanding of the content’s impact.\n\nData Collection: Reports are collated into a comprehensive database, allowing sociologists to analyze and identify trends and patterns.</string>
 
 
-
     <string name="studies_list_title">Select a study to participate in</string>
     <string name="studies_list_subtitle">We may choose to run a few different studies simultaneously. These are the studies available to you based on the information you provided.</string>
 
@@ -61,7 +60,6 @@
     <string name="dialog_message_record_audio_permission">Enable record audio permission to record your TikTok session. Please grant permission in your device settings.</string>
 
 
-
     <string name="error_title_general">Oops! Something went wrong</string>
     <string name="error_title_internet">Oops! No internet connection</string>
     <string name="error_message_general">The system doesn\'t seem to respond. Our cat must have been chewing the wires again.\n\nPlease forgive Tom and try again later.</string>
@@ -70,6 +68,7 @@
     <string name="error_message_no_recording_available">Create a recording in order to submit the report.</string>
     <string name="error_message_empty_field">This field cannot be empty.</string>
     <string name="error_message_empty_category">Please suggest a category.</string>
+    <string name="error_message_tik_tok_link">Please paste a TikTok link</string>
     <string name="save">Save</string>
     <string name="button_trim_recording">Trim Recording</string>
     <string name="done_editing">I\'m done editing</string>

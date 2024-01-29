@@ -29,6 +29,7 @@ sealed class FormFieldUiComponent<T>(
         val placeholder: String,
         val multiline: Boolean,
         val maxLines: Int,
+        val isTikTokLink: Boolean? = false
     ) : FormFieldUiComponent<String>(id, value, isVisible, isRequired, readOnly, description, label)
 
     data class DropDown(
@@ -63,13 +64,13 @@ sealed class FormFieldUiComponent<T>(
 }
 
 data class OptionComponent(
-    val id: String,
-    val title: String
+    val id: String, val title: String
 )
 
 sealed class FormFieldError {
     data object Empty : FormFieldError()
     data object EmptyCategory : FormFieldError()
+    data object NoTikTokLink : FormFieldError()
 }
 
 fun FormField.toFormFieldComponent(): List<FormFieldUiComponent<*>>? {
@@ -85,13 +86,13 @@ fun FormField.toFormFieldComponent(): List<FormFieldUiComponent<*>>? {
                 label = label,
                 placeholder = placeholder,
                 multiline = multiline,
-                maxLines = maxLines
+                maxLines = maxLines,
+                isTikTokLink = isTikTokLink
             )
         )
 
         is FormField.DropDown -> {
-            val initialValue =
-                this.options.firstOrNull { it.id == this.selectedOptionId }?.title.orEmpty()
+            val initialValue = this.options.firstOrNull { it.id == this.selectedOptionId }?.title.orEmpty()
 
             val dropDown = FormFieldUiComponent.DropDown(
                 id = id,
@@ -102,15 +103,12 @@ fun FormField.toFormFieldComponent(): List<FormFieldUiComponent<*>>? {
                 description = description,
                 label = label,
                 options = buildList {
-                    addAll(
-                        options.map {
-                            OptionComponent(it.id, it.title)
-                        }
+                    addAll(options.map {
+                        OptionComponent(it.id, it.title)
+                    })
+                    if (this@toFormFieldComponent.hasOtherOption) add(
+                        OptionComponent(OTHER_DROP_DOWN_OPTION_ID, "Other")
                     )
-                    if (this@toFormFieldComponent.hasOtherOption)
-                        add(
-                            OptionComponent(OTHER_DROP_DOWN_OPTION_ID, "Other")
-                        )
                 },
                 placeholder = placeholder,
             )
@@ -170,8 +168,7 @@ fun List<FormField>.toUiComponents(
                 textField as FormFieldUiComponent.TextField
 
                 textField.copy(
-                    readOnly = true,
-                    value = tikTokUrl
+                    readOnly = true, value = tikTokUrl
                 )
             }
         } else {
