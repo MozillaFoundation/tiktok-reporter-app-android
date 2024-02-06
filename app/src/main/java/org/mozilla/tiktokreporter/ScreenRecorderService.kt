@@ -8,7 +8,10 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.pm.ServiceInfo
 import android.os.Build
+import android.os.Handler
 import android.os.IBinder
+import android.os.Looper
+import android.widget.Toast
 import androidx.activity.result.ActivityResult
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
@@ -67,13 +70,29 @@ class ScreenRecorderService : Service() {
 
 
                     scope.launch {
-                        screenRecorderManager.startRecording(
-                            code = activityResult.resultCode,
-                            data = activityResult.data ?: Intent()
-                        )
-                        this@ScreenRecorderService.dataStore.edit {
-                            it[Common.DATASTORE_KEY_IS_RECORDING] = true
+                        try {
+                            screenRecorderManager.startRecording(
+                                code = activityResult.resultCode,
+                                data = activityResult.data ?: Intent()
+                            )
+                            this@ScreenRecorderService.dataStore.edit {
+                                it[Common.DATASTORE_KEY_IS_RECORDING] = true
+                            }
+                        } catch (e: Exception) {
+                            Handler(Looper.getMainLooper()).post {
+                                Toast.makeText(
+                                    applicationContext,
+                                    "Device incompatible for screen recording. Please send the TikTok link!",
+                                    Toast.LENGTH_LONG
+                                ).show()
+                            }
+                            this@ScreenRecorderService.dataStore.edit {
+                                it[Common.DATASTORE_KEY_REDIRECT_FIRST_TAB] = true
+                                it[Common.DATASTORE_KEY_IS_RECORDING] = false
+                            }
+                            this@ScreenRecorderService.stopSelf()
                         }
+
                     }
                 }
             }
@@ -115,6 +134,7 @@ class ScreenRecorderService : Service() {
         },
         PendingIntent.FLAG_IMMUTABLE
     )
+
     private fun getStopRecordingIntent() = PendingIntent.getService(
         applicationContext,
         2,
@@ -123,6 +143,7 @@ class ScreenRecorderService : Service() {
         },
         PendingIntent.FLAG_IMMUTABLE
     )
+
     private fun createNotification() = NotificationCompat.Builder(this, "screen_recording_channel")
         .setSmallIcon(R.drawable.ic_launcher_foreground)
         .setContentTitle("Screen recording...")

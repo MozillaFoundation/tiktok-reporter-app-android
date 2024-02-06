@@ -1,9 +1,7 @@
 package org.mozilla.tiktokreporter.reportform
 
 import android.Manifest
-import android.app.Activity
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.media.projection.MediaProjectionManager
 import android.net.Uri
 import android.os.Build
@@ -35,7 +33,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.core.app.ActivityCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
@@ -268,79 +265,71 @@ fun ReportFormScreen(
                 },
                 onGoToSettings = onGoToSettings,
                 onStartRecording = {
-                    if (ActivityCompat.checkSelfPermission(
-                            context, Manifest.permission.RECORD_AUDIO
-                        ) != PackageManager.PERMISSION_GRANTED
-                    ) {
-                        ActivityCompat.requestPermissions(
-                            (context as Activity?)!!, arrayOf(Manifest.permission.RECORD_AUDIO), 1
-                        )
-                    } else {
-                        onSdkVersionAndUp(Build.VERSION_CODES.TIRAMISU) {
+                    onSdkVersionAndUp(Build.VERSION_CODES.TIRAMISU) {
 
-                            when (notificationsPermissionState?.status) {
-                                PermissionStatus.Granted -> {
-                                    mediaProjectionPermissionLauncher.launch(
-                                        context.getSystemService(MediaProjectionManager::class.java)
-                                            .createScreenCaptureIntent()
-                                    )
-                                }
-
-                                else -> {
-                                    if (notificationsPermissionState?.status?.shouldShowRationale == true) {
-                                        dialogState.value = DialogState.MessageDialog(
-                                            title = UiText.StringResource(R.string.dialog_title_notification_permission),
-                                            message = UiText.StringResource(R.string.dialog_message_notification_permission),
-                                            positiveButtonText = UiText.StringResource(R.string.settings),
-                                            onPositive = {
-                                                dialogState.value = DialogState.Nothing
-                                                val intent = Intent(
-                                                    Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
-                                                    Uri.fromParts("package", context.packageName, null)
-                                                )
-                                                context.startActivity(intent)
-                                            }
-                                        )
-                                    } else {
-                                        notificationsPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
-                                    }
-                                }
+                        when (notificationsPermissionState?.status) {
+                            PermissionStatus.Granted -> {
+                                mediaProjectionPermissionLauncher.launch(
+                                    context.getSystemService(MediaProjectionManager::class.java)
+                                        .createScreenCaptureIntent()
+                                )
                             }
 
-                        } ?: onSdkVersionAndDown(Build.VERSION_CODES.Q) {
-                            when (writeExternalStoragePermissionState.status) {
-                                PermissionStatus.Granted -> {
-                                    mediaProjectionPermissionLauncher.launch(
-                                        context.getSystemService(MediaProjectionManager::class.java)
-                                            .createScreenCaptureIntent()
+                            else -> {
+                                if (notificationsPermissionState?.status?.shouldShowRationale == true) {
+                                    dialogState.value = DialogState.MessageDialog(
+                                        title = UiText.StringResource(R.string.dialog_title_notification_permission),
+                                        message = UiText.StringResource(R.string.dialog_message_notification_permission),
+                                        positiveButtonText = UiText.StringResource(R.string.settings),
+                                        onPositive = {
+                                            dialogState.value = DialogState.Nothing
+                                            val intent = Intent(
+                                                Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                                                Uri.fromParts("package", context.packageName, null)
+                                            )
+                                            context.startActivity(intent)
+                                        }
                                     )
-                                }
-
-                                else -> {
-                                    if (notificationsPermissionState?.status?.shouldShowRationale == true) {
-                                        dialogState.value = DialogState.MessageDialog(
-                                            title = UiText.StringResource(R.string.dialog_title_write_external_storage_permission),
-                                            message = UiText.StringResource(R.string.dialog_message_write_external_storage_permission),
-                                            positiveButtonText = UiText.StringResource(R.string.got_it),
-                                            onPositive = {
-                                                dialogState.value = DialogState.Nothing
-                                                val intent = Intent(
-                                                    Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
-                                                    Uri.fromParts("package", context.packageName, null)
-                                                )
-                                                context.startActivity(intent)
-                                            }
-                                        )
-                                    } else {
-                                        writeExternalStoragePermissionLauncher.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                                    }
+                                } else {
+                                    notificationsPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
                                 }
                             }
-                        } ?: mediaProjectionPermissionLauncher.launch(
-                            context.getSystemService(MediaProjectionManager::class.java)
-                                .createScreenCaptureIntent()
-                        )
-                    }
+                        }
+
+                    } ?: onSdkVersionAndDown(Build.VERSION_CODES.Q) {
+                        when (writeExternalStoragePermissionState.status) {
+                            PermissionStatus.Granted -> {
+                                mediaProjectionPermissionLauncher.launch(
+                                    context.getSystemService(MediaProjectionManager::class.java)
+                                        .createScreenCaptureIntent()
+                                )
+                            }
+
+                            else -> {
+                                if (notificationsPermissionState?.status?.shouldShowRationale == true) {
+                                    dialogState.value = DialogState.MessageDialog(
+                                        title = UiText.StringResource(R.string.dialog_title_write_external_storage_permission),
+                                        message = UiText.StringResource(R.string.dialog_message_write_external_storage_permission),
+                                        positiveButtonText = UiText.StringResource(R.string.got_it),
+                                        onPositive = {
+                                            dialogState.value = DialogState.Nothing
+                                            val intent = Intent(
+                                                Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                                                Uri.fromParts("package", context.packageName, null)
+                                            )
+                                            context.startActivity(intent)
+                                        }
+                                    )
+                                } else {
+                                    writeExternalStoragePermissionLauncher.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                                }
+                            }
+                        }
+                    } ?: mediaProjectionPermissionLauncher.launch(
+                        context.getSystemService(MediaProjectionManager::class.java)
+                            .createScreenCaptureIntent()
+                    )
+
                 },
                 onStopRecording = {
                     Intent(context.applicationContext, ScreenRecorderService::class.java).also {

@@ -219,6 +219,25 @@ class ReportFormScreenViewModel @Inject constructor(
 
             }
         }
+
+        viewModelScope.launch {
+            context.dataStore.data.map {
+                it[Common.DATASTORE_KEY_REDIRECT_FIRST_TAB] ?: false
+            }.filterNotNull().collect { shouldRedirect ->
+                if (shouldRedirect) {
+                    _state.update { state ->
+                        state.copy(
+                            selectedTab = state.tabs.getOrNull(0)?.to(0)
+                        )
+                    }
+                }
+                context.dataStore.edit {
+                    it.remove(Common.DATASTORE_KEY_REDIRECT_FIRST_TAB)
+                }
+
+
+            }
+        }
     }
 
     fun onTabSelected(tabIndex: Int) {
