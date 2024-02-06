@@ -30,6 +30,8 @@ class TikTokReporterApp: Application() {
             )
         )
 
+        Glean.setDebugViewTag("tiktokreport-Android")
+        Glean.setLogPings(true)
         Glean.registerPings(Pings)
         Glean.initialize(
             applicationContext = applicationContext,
