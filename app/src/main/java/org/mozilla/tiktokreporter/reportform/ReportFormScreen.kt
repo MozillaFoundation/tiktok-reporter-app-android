@@ -10,6 +10,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -17,8 +18,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyListScope
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.Icon
@@ -101,9 +102,8 @@ fun ReportFormScreen(
         }
     }
 
-    val mediaProjectionPermissionLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.StartActivityForResult(),
-        onResult = { result ->
+    val mediaProjectionPermissionLauncher =
+        rememberLauncherForActivityResult(contract = ActivityResultContracts.StartActivityForResult(), onResult = { result ->
 
             if (result.resultCode == ComponentActivity.RESULT_OK) {
                 Intent(context.applicationContext, ScreenRecorderService::class.java).also {
@@ -113,17 +113,14 @@ fun ReportFormScreen(
                     context.startForegroundService(it)
                 }
             }
-        }
-    )
+        })
 
-    val writeExternalStoragePermissionState =
-        rememberPermissionState(permission = Manifest.permission.WRITE_EXTERNAL_STORAGE)
+    val writeExternalStoragePermissionState = rememberPermissionState(permission = Manifest.permission.WRITE_EXTERNAL_STORAGE)
     val writeExternalStoragePermissionLauncher =
         rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { wasGranted ->
             if (wasGranted) {
                 mediaProjectionPermissionLauncher.launch(
-                    context.getSystemService(MediaProjectionManager::class.java)
-                        .createScreenCaptureIntent()
+                    context.getSystemService(MediaProjectionManager::class.java).createScreenCaptureIntent()
                 )
             }
         }
@@ -131,15 +128,13 @@ fun ReportFormScreen(
     val notificationsPermissionState = onSdkVersionAndUp(Build.VERSION_CODES.TIRAMISU) {
         rememberPermissionState(permission = Manifest.permission.POST_NOTIFICATIONS)
     }
-    val notificationsPermissionLauncher =
-        rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { wasGranted ->
-            if (wasGranted) {
-                mediaProjectionPermissionLauncher.launch(
-                    context.getSystemService(MediaProjectionManager::class.java)
-                        .createScreenCaptureIntent()
-                )
-            }
+    val notificationsPermissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { wasGranted ->
+        if (wasGranted) {
+            mediaProjectionPermissionLauncher.launch(
+                context.getSystemService(MediaProjectionManager::class.java).createScreenCaptureIntent()
+            )
         }
+    }
 
     val state by viewModel.state.collectAsStateWithLifecycle()
     val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
@@ -168,15 +163,13 @@ fun ReportFormScreen(
                 }
 
                 is ReportFormScreenViewModel.UiAction.ShowStudyNotActive -> {
-                    dialogState.value = DialogState.MessageDialog(
-                        title = UiText.StringResource(R.string.dialog_title_inactive_study),
+                    dialogState.value = DialogState.MessageDialog(title = UiText.StringResource(R.string.dialog_title_inactive_study),
                         message = UiText.StringResource(R.string.dialog_message_inactive_study),
                         positiveButtonText = UiText.StringResource(R.string.settings),
                         onPositive = onGoToStudies,
                         negativeButtonText = UiText.StringResource(R.string.not_now),
                         onNegative = onGoBack,
-                        onDismissRequest = { dialogState.value = DialogState.Nothing }
-                    )
+                        onDismissRequest = { dialogState.value = DialogState.Nothing })
                 }
 
                 ReportFormScreenViewModel.UiAction.GoToReportSubmittedScreen -> {
@@ -187,28 +180,24 @@ fun ReportFormScreen(
                     when (action.error) {
                         // internet connection / server unresponsive / server error
                         is TikTokReporterError.NetworkError -> {
-                            dialogState.value = DialogState.ErrorDialog(
-                                title = UiText.StringResource(R.string.error_title_internet),
+                            dialogState.value = DialogState.ErrorDialog(title = UiText.StringResource(R.string.error_title_internet),
                                 drawable = R.drawable.error_cat,
                                 actionText = UiText.StringResource(R.string.button_refresh),
                                 action = {
                                     viewModel.refresh()
                                     dialogState.value = DialogState.Nothing
-                                }
-                            )
+                                })
                         }
 
                         is TikTokReporterError.ServerError -> {
-                            dialogState.value = DialogState.ErrorDialog(
-                                title = UiText.StringResource(R.string.error_title_general),
+                            dialogState.value = DialogState.ErrorDialog(title = UiText.StringResource(R.string.error_title_general),
                                 message = UiText.StringResource(R.string.error_message_general),
                                 drawable = R.drawable.error_cat,
                                 actionText = UiText.StringResource(R.string.button_refresh),
                                 action = {
                                     viewModel.refresh()
                                     dialogState.value = DialogState.Nothing
-                                }
-                            )
+                                })
                         }
 
                         is TikTokReporterError.UnknownError -> {
@@ -222,16 +211,14 @@ fun ReportFormScreen(
                 }
 
                 ReportFormScreenViewModel.UiAction.ShowFetchStudyError -> {
-                    dialogState.value = DialogState.ErrorDialog(
-                        title = UiText.StringResource(R.string.error_title_general),
+                    dialogState.value = DialogState.ErrorDialog(title = UiText.StringResource(R.string.error_title_general),
                         message = UiText.StringResource(R.string.error_message_general),
                         drawable = R.drawable.error_cat,
                         actionText = UiText.StringResource(R.string.button_refresh),
                         action = {
                             viewModel.refresh()
                             dialogState.value = DialogState.Nothing
-                        }
-                    )
+                        })
                 }
             }
         }
@@ -246,8 +233,7 @@ fun ReportFormScreen(
                 onTabSelected = viewModel::onTabSelected,
                 onSubmitReport = viewModel::onSubmitReport,
                 onCancelReport = {
-                    dialogState.value = DialogState.MessageDialog(
-                        title = UiText.StringResource(R.string.dialog_title_cancel_report),
+                    dialogState.value = DialogState.MessageDialog(title = UiText.StringResource(R.string.dialog_title_cancel_report),
                         message = UiText.StringResource(R.string.dialog_message_cancel_report),
                         positiveButtonText = UiText.StringResource(R.string.delete),
                         onPositive = {
@@ -260,8 +246,7 @@ fun ReportFormScreen(
                         },
                         onDismissRequest = {
                             dialogState.value = DialogState.Nothing
-                        }
-                    )
+                        })
                 },
                 onGoToSettings = onGoToSettings,
                 onStartRecording = {
@@ -270,26 +255,24 @@ fun ReportFormScreen(
                         when (notificationsPermissionState?.status) {
                             PermissionStatus.Granted -> {
                                 mediaProjectionPermissionLauncher.launch(
-                                    context.getSystemService(MediaProjectionManager::class.java)
-                                        .createScreenCaptureIntent()
+                                    context.getSystemService(MediaProjectionManager::class.java).createScreenCaptureIntent()
                                 )
                             }
 
                             else -> {
                                 if (notificationsPermissionState?.status?.shouldShowRationale == true) {
-                                    dialogState.value = DialogState.MessageDialog(
-                                        title = UiText.StringResource(R.string.dialog_title_notification_permission),
-                                        message = UiText.StringResource(R.string.dialog_message_notification_permission),
-                                        positiveButtonText = UiText.StringResource(R.string.settings),
-                                        onPositive = {
-                                            dialogState.value = DialogState.Nothing
-                                            val intent = Intent(
-                                                Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
-                                                Uri.fromParts("package", context.packageName, null)
-                                            )
-                                            context.startActivity(intent)
-                                        }
-                                    )
+                                    dialogState.value =
+                                        DialogState.MessageDialog(title = UiText.StringResource(R.string.dialog_title_notification_permission),
+                                            message = UiText.StringResource(R.string.dialog_message_notification_permission),
+                                            positiveButtonText = UiText.StringResource(R.string.settings),
+                                            onPositive = {
+                                                dialogState.value = DialogState.Nothing
+                                                val intent = Intent(
+                                                    Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                                                    Uri.fromParts("package", context.packageName, null)
+                                                )
+                                                context.startActivity(intent)
+                                            })
                                 } else {
                                     notificationsPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
                                 }
@@ -300,34 +283,31 @@ fun ReportFormScreen(
                         when (writeExternalStoragePermissionState.status) {
                             PermissionStatus.Granted -> {
                                 mediaProjectionPermissionLauncher.launch(
-                                    context.getSystemService(MediaProjectionManager::class.java)
-                                        .createScreenCaptureIntent()
+                                    context.getSystemService(MediaProjectionManager::class.java).createScreenCaptureIntent()
                                 )
                             }
 
                             else -> {
                                 if (notificationsPermissionState?.status?.shouldShowRationale == true) {
-                                    dialogState.value = DialogState.MessageDialog(
-                                        title = UiText.StringResource(R.string.dialog_title_write_external_storage_permission),
-                                        message = UiText.StringResource(R.string.dialog_message_write_external_storage_permission),
-                                        positiveButtonText = UiText.StringResource(R.string.got_it),
-                                        onPositive = {
-                                            dialogState.value = DialogState.Nothing
-                                            val intent = Intent(
-                                                Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
-                                                Uri.fromParts("package", context.packageName, null)
-                                            )
-                                            context.startActivity(intent)
-                                        }
-                                    )
+                                    dialogState.value =
+                                        DialogState.MessageDialog(title = UiText.StringResource(R.string.dialog_title_write_external_storage_permission),
+                                            message = UiText.StringResource(R.string.dialog_message_write_external_storage_permission),
+                                            positiveButtonText = UiText.StringResource(R.string.got_it),
+                                            onPositive = {
+                                                dialogState.value = DialogState.Nothing
+                                                val intent = Intent(
+                                                    Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                                                    Uri.fromParts("package", context.packageName, null)
+                                                )
+                                                context.startActivity(intent)
+                                            })
                                 } else {
                                     writeExternalStoragePermissionLauncher.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE)
                                 }
                             }
                         }
                     } ?: mediaProjectionPermissionLauncher.launch(
-                        context.getSystemService(MediaProjectionManager::class.java)
-                            .createScreenCaptureIntent()
+                        context.getSystemService(MediaProjectionManager::class.java).createScreenCaptureIntent()
                     )
 
                 },
@@ -358,96 +338,78 @@ private fun ReportFormScreenContent(
     onGoToEditVideo: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    MozillaScaffold(
-        modifier = modifier,
-        topBar = {
-            MozillaTopAppBar(
-                modifier = Modifier.fillMaxWidth(),
-                action = {
-                    IconButton(onClick = onGoToSettings) {
-                        Icon(
-                            imageVector = Icons.Outlined.Settings,
-                            contentDescription = "",
-                            tint = MozillaColor.TextColor
-                        )
-                    }
-                }
-            )
-        }
-    ) { innerPadding ->
-        Column(
+    MozillaScaffold(modifier = modifier, topBar = {
+        MozillaTopAppBar(modifier = Modifier.fillMaxWidth(), action = {
+            IconButton(onClick = onGoToSettings) {
+                Icon(
+                    imageVector = Icons.Outlined.Settings, contentDescription = "", tint = MozillaColor.TextColor
+                )
+            }
+        })
+    }) { innerPadding ->
+        val scrollState = rememberScrollState()
+
+        Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
-            LazyColumn(
+            Column(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f),
-                contentPadding = PaddingValues(
-                    horizontal = MozillaDimension.M,
-                    vertical = MozillaDimension.L
-                ),
-                verticalArrangement = Arrangement.spacedBy(MozillaDimension.L),
-                content = {
-                    item {
-                        MozillaTabRow(
-                            modifier = modifier,
-                            tabs = state.tabs.map {
-                                when (it) {
-                                    TabModelType.ReportLink -> stringResource(id = R.string.report_link)
-                                    TabModelType.RecordSession -> stringResource(id = R.string.record_session)
-                                }
-                            },
-                            onTabSelected = onTabSelected,
-                            selectedTabIndex = state.selectedTab?.second ?: 0
+                    .verticalScroll(scrollState)
+                    .padding(
+                        PaddingValues(
+                            horizontal = MozillaDimension.M, vertical = MozillaDimension.L
+                        )
+                    )
+            ) {
+                MozillaTabRow(
+                    modifier = modifier, tabs = state.tabs.map {
+                        when (it) {
+                            TabModelType.ReportLink -> stringResource(id = R.string.report_link)
+                            TabModelType.RecordSession -> stringResource(id = R.string.record_session)
+                        }
+                    }, onTabSelected = onTabSelected, selectedTabIndex = state.selectedTab?.second ?: 0
+                )
+                when (state.selectedTab?.first) {
+                    TabModelType.ReportLink -> {
+                        formComponentsItems(
+                            formFields = state.formFields, onFormFieldValueChanged = onFormFieldValueChanged
                         )
                     }
 
-                    when (state.selectedTab?.first) {
-                        TabModelType.ReportLink -> {
-                            formComponentsItems(
-                                formFields = state.formFields,
-                                onFormFieldValueChanged = onFormFieldValueChanged
-                            )
-                        }
-
-                        TabModelType.RecordSession -> {
-                            recordSessionItems(
-                                isRecording = state.isRecording,
-                                video = state.video,
-                                showSubmitNoVideoError = state.showSubmitNoVideoError,
-                                comments = state.recordSessionComments,
-                                onCommentsChanged = onRecordSessionCommentsChanged,
-                                onStartRecording = onStartRecording,
-                                onStopRecording = onStopRecording,
-                                onGoToEditVideo = onGoToEditVideo
-                            )
-                        }
-
-                        null -> Unit
+                    TabModelType.RecordSession -> {
+                        recordSessionItems(
+                            isRecording = state.isRecording,
+                            showSubmitNoVideoError = state.showSubmitNoVideoError,
+                            video = state.video,
+                            comments = state.recordSessionComments,
+                            onCommentsChanged = onRecordSessionCommentsChanged,
+                            onStartRecording = onStartRecording,
+                            onStopRecording = onStopRecording,
+                            onGoToEditVideo = onGoToEditVideo
+                        )
                     }
-                }
-            )
 
-            FormButtons(
-                video = state.video,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(
-                        horizontal = MozillaDimension.M,
-                        vertical = MozillaDimension.L
-                    ),
-                onSubmitReport = onSubmitReport,
-                onCancelReport = onCancelReport,
-                tab = state.selectedTab,
-                fields = state.formFields
-            )
+                    null -> Unit
+                }
+
+                FormButtons(
+                    video = state.video,
+                    modifier = Modifier.fillMaxWidth(),
+                    onSubmitReport = onSubmitReport,
+                    onCancelReport = onCancelReport,
+                    tab = state.selectedTab,
+                    fields = state.formFields
+                )
+            }
+
         }
     }
 }
 
-private fun LazyListScope.recordSessionItems(
+@Composable
+private fun recordSessionItems(
     isRecording: Boolean,
     showSubmitNoVideoError: Boolean,
     video: ReportFormScreenViewModel.VideoModel?,
@@ -457,75 +419,60 @@ private fun LazyListScope.recordSessionItems(
     onStopRecording: () -> Unit,
     onGoToEditVideo: () -> Unit
 ) {
-    item {
+    Box(modifier = Modifier.fillMaxWidth()) {
         val text = if (video == null) stringResource(id = R.string.start_recording_session)
         else stringResource(id = R.string.recording_session_available)
         Text(
-            modifier = Modifier.fillParentMaxWidth(),
-            text = text,
-            style = MozillaTypography.Body2
+            modifier = Modifier.fillMaxWidth(), text = text, style = MozillaTypography.Body2
         )
     }
 
     when {
         video == null && !isRecording -> {
-            item {
-                SecondaryButton(
-                    modifier = Modifier.fillParentMaxWidth(),
-                    text = stringResource(id = R.string.button_record_tiktok_session),
-                    onClick = onStartRecording
-                )
-            }
+            SecondaryButton(
+                modifier = Modifier.fillMaxWidth(),
+                text = stringResource(id = R.string.button_record_tiktok_session),
+                onClick = onStartRecording
+            )
         }
 
         video == null && isRecording -> {
-            item {
-                SecondaryButton(
-                    modifier = Modifier.fillParentMaxWidth(),
-                    text = stringResource(id = R.string.button_stop_recording),
-                    onClick = onStopRecording
-                )
-            }
+            SecondaryButton(
+                modifier = Modifier.fillMaxWidth(), text = stringResource(id = R.string.button_stop_recording), onClick = onStopRecording
+            )
         }
 
         else -> {
-            item {
+            Box(
+                modifier = Modifier.fillMaxWidth()
+            ) {
                 VideoEntry(
-                    modifier = Modifier.fillParentMaxWidth(),
-                    video = video!!
+                    modifier = Modifier.fillMaxWidth(), video = video!!
                 )
             }
 
-            item {
-                SecondaryButton(
-                    modifier = Modifier.fillParentMaxWidth(),
-                    text = stringResource(id = R.string.button_trim_recording),
-                    onClick = onGoToEditVideo
-                )
-            }
-        }
-    }
-
-    if (showSubmitNoVideoError) {
-        item {
-            Text(
-                text = stringResource(id = R.string.error_message_no_recording_available),
-                style = MozillaTypography.Body2,
-                color = MozillaColor.Error
+            SecondaryButton(
+                modifier = Modifier.fillMaxWidth(), text = stringResource(id = R.string.button_trim_recording), onClick = onGoToEditVideo
             )
         }
     }
 
-    item {
-        MozillaTextFieldWithLengthLimit(
-            modifier = Modifier.fillParentMaxWidth(),
-            text = comments,
-            onTextChanged = onCommentsChanged,
-            label = stringResource(id = R.string.text_field_label_comments_optional),
-            maxLines = 5,
-            multiline = true
+    if (showSubmitNoVideoError) {
+        Text(
+            text = stringResource(id = R.string.error_message_no_recording_available),
+            style = MozillaTypography.Body2,
+            color = MozillaColor.Error
         )
     }
+
+    MozillaTextFieldWithLengthLimit(
+        modifier = Modifier.fillMaxWidth(),
+        text = comments,
+        onTextChanged = onCommentsChanged,
+        label = stringResource(id = R.string.text_field_label_comments_optional),
+        maxLines = 5,
+        multiline = true
+    )
 }
 
 @Composable
@@ -540,22 +487,16 @@ private fun VideoEntry(
         verticalAlignment = Alignment.CenterVertically
     ) {
         AsyncImage(
-            model = ImageRequest.Builder(context)
-                .data(video.uri)
-                .videoFramePercent(.5)
-                .build(),
-            imageLoader = ImageLoader.Builder(context)
-                .components {
-                    add(VideoFrameDecoder.Factory())
-                }
-                .build(),
+            model = ImageRequest.Builder(context).data(video.uri).videoFramePercent(.5).build(),
+            imageLoader = ImageLoader.Builder(context).components {
+                add(VideoFrameDecoder.Factory())
+            }.build(),
             contentDescription = null,
             modifier = Modifier.size(80.dp),
         )
 
         Column(
-            modifier = Modifier.weight(1f),
-            verticalArrangement = Arrangement.spacedBy(MozillaDimension.XXS)
+            modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(MozillaDimension.XXS)
         ) {
             Text(text = stringResource(id = R.string.label_recorded_video))
             Text(text = stringResource(id = R.string.duration_seconds, video.duration))
@@ -574,8 +515,7 @@ private fun FormButtons(
     fields: List<FormFieldUiComponent<*>>
 ) {
     Column(
-        modifier = modifier,
-        verticalArrangement = Arrangement.spacedBy(MozillaDimension.S)
+        modifier = modifier, verticalArrangement = Arrangement.spacedBy(MozillaDimension.S)
     ) {
         onSubmitReport?.let {
             PrimaryButton(
@@ -598,9 +538,7 @@ private fun FormButtons(
                         }
                         if (fieldsEdited) {
                             SecondaryButton(
-                                modifier = Modifier.fillMaxWidth(),
-                                text = stringResource(R.string.button_cancel_report),
-                                onClick = it
+                                modifier = Modifier.fillMaxWidth(), text = stringResource(R.string.button_cancel_report), onClick = it
                             )
                         }
                     }
@@ -610,9 +548,7 @@ private fun FormButtons(
                     onCancelReport?.let {
                         if (video != null) {
                             SecondaryButton(
-                                modifier = Modifier.fillMaxWidth(),
-                                text = stringResource(R.string.button_cancel_report),
-                                onClick = it
+                                modifier = Modifier.fillMaxWidth(), text = stringResource(R.string.button_cancel_report), onClick = it
                             )
                         }
                     }
