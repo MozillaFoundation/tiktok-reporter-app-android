@@ -3,6 +3,7 @@ package org.mozilla.tiktokreporter.email
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -132,32 +133,40 @@ private fun EmailScreenContent(
     }) { innerPadding ->
         val scrollState = rememberScrollState()
 
-        Box(
+        Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
-            Column(
+            Box(
                 modifier = Modifier
-                    .verticalScroll(scrollState)
+                    .weight(1f)
                     .padding(
                         PaddingValues(
                             horizontal = MozillaDimension.M, vertical = MozillaDimension.L
                         )
                     )
             ) {
-                Text(
-                    modifier = Modifier.fillMaxWidth(), text = stringResource(R.string.sign_up_for_updates), style = MozillaTypography.H3
-                )
-                formComponentsItems(
-                    formFields = state.formFields, onFormFieldValueChanged = onFormFieldValueChanged
-                )
+                Column(
+                    modifier = Modifier.verticalScroll(scrollState)
+                ) {
+                    Text(
+                        modifier = Modifier.fillMaxWidth(),
+                        text = stringResource(R.string.sign_up_for_updates),
+                        style = MozillaTypography.H3
+                    )
+                    formComponentsItems(
+                        formFields = state.formFields, onFormFieldValueChanged = onFormFieldValueChanged
+                    )
+                }
+            }
 
-                OnboardingFormButtons(modifier = Modifier
+            Row(
+                modifier = Modifier
                     .fillMaxWidth()
-                    .padding(
-                        horizontal = MozillaDimension.M, vertical = MozillaDimension.L
-                    ), nextButton = {
+                    .padding(horizontal = MozillaDimension.M)
+            ) {
+                OnboardingFormButtons(modifier = Modifier.fillMaxWidth(), nextButton = {
                     if (isForOnboarding) {
                         PrimaryButton(
                             modifier = Modifier.fillMaxWidth(), text = stringResource(id = R.string.next), onClick = onSaveEmail
@@ -173,8 +182,8 @@ private fun EmailScreenContent(
             }
         }
     }
-
 }
+
 
 @Composable
 private fun OnboardingFormButtons(
