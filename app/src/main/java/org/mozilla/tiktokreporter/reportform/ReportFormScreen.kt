@@ -12,7 +12,6 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -351,67 +350,78 @@ private fun ReportFormScreenContent(
         val scrollState = rememberScrollState()
         val coroutineScope = rememberCoroutineScope()
 
-        Box(
+        Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
-            Column(
+            MozillaTabRow(
+                modifier = Modifier, tabs = state.tabs.map {
+                    when (it) {
+                        TabModelType.ReportLink -> stringResource(id = R.string.report_link)
+                        TabModelType.RecordSession -> stringResource(id = R.string.record_session)
+                    }
+                }, onTabSelected = onTabSelected, selectedTabIndex = state.selectedTab?.second ?: 0
+            )
+
+            Box(
                 modifier = Modifier
-                    .verticalScroll(scrollState)
+                    .weight(1f)
                     .padding(
-                        PaddingValues(
-                            horizontal = MozillaDimension.M, vertical = MozillaDimension.L
-                        )
+                        horizontal = MozillaDimension.M, vertical = MozillaDimension.L
+                    )
+                    .verticalScroll(scrollState)
+            ) {
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(MozillaDimension.L)) {
+                    when (state.selectedTab?.first) {
+                        TabModelType.ReportLink -> {
+                            formComponentsItems(
+                                formFields = state.formFields,
+                                onFormFieldValueChanged = onFormFieldValueChanged,
+                                coroutineScope = coroutineScope,
+                                scrollState = scrollState
+                            )
+                        }
+
+                        TabModelType.RecordSession -> {
+                            recordSessionItems(
+                                isRecording = state.isRecording,
+                                showSubmitNoVideoError = state.showSubmitNoVideoError,
+                                video = state.video,
+                                comments = state.recordSessionComments,
+                                onCommentsChanged = onRecordSessionCommentsChanged,
+                                onStartRecording = onStartRecording,
+                                onStopRecording = onStopRecording,
+                                onGoToEditVideo = onGoToEditVideo
+                            )
+                        }
+
+                        null -> Unit
+                    }
+                }
+            }
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(
+                        horizontal = MozillaDimension.M
                     )
             ) {
-                MozillaTabRow(
-                    modifier = modifier, tabs = state.tabs.map {
-                        when (it) {
-                            TabModelType.ReportLink -> stringResource(id = R.string.report_link)
-                            TabModelType.RecordSession -> stringResource(id = R.string.record_session)
-                        }
-                    }, onTabSelected = onTabSelected, selectedTabIndex = state.selectedTab?.second ?: 0
-                )
-                when (state.selectedTab?.first) {
-                    TabModelType.ReportLink -> {
-                        formComponentsItems(
-                            formFields = state.formFields,
-                            onFormFieldValueChanged = onFormFieldValueChanged,
-                            coroutineScope = coroutineScope,
-                            scrollState = scrollState
-                        )
-                    }
-
-                    TabModelType.RecordSession -> {
-                        recordSessionItems(
-                            isRecording = state.isRecording,
-                            showSubmitNoVideoError = state.showSubmitNoVideoError,
-                            video = state.video,
-                            comments = state.recordSessionComments,
-                            onCommentsChanged = onRecordSessionCommentsChanged,
-                            onStartRecording = onStartRecording,
-                            onStopRecording = onStopRecording,
-                            onGoToEditVideo = onGoToEditVideo
-                        )
-                    }
-
-                    null -> Unit
-                }
-
                 FormButtons(
                     video = state.video,
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.weight(1f),
                     onSubmitReport = onSubmitReport,
                     onCancelReport = onCancelReport,
                     tab = state.selectedTab,
                     fields = state.formFields
                 )
             }
-
         }
     }
 }
+
 
 @Composable
 private fun recordSessionItems(
