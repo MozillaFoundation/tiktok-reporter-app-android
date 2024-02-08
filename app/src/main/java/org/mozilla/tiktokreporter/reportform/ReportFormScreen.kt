@@ -28,6 +28,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -348,6 +349,7 @@ private fun ReportFormScreenContent(
         })
     }) { innerPadding ->
         val scrollState = rememberScrollState()
+        val coroutineScope = rememberCoroutineScope()
 
         Box(
             modifier = Modifier
@@ -374,7 +376,10 @@ private fun ReportFormScreenContent(
                 when (state.selectedTab?.first) {
                     TabModelType.ReportLink -> {
                         formComponentsItems(
-                            formFields = state.formFields, onFormFieldValueChanged = onFormFieldValueChanged
+                            formFields = state.formFields,
+                            onFormFieldValueChanged = onFormFieldValueChanged,
+                            coroutineScope = coroutineScope,
+                            scrollState = scrollState
                         )
                     }
 
