@@ -35,6 +35,7 @@ class DataHandlingScreenViewModel @Inject constructor(
                 DownloadData.identifier.set(UUID.fromString(tikTokReporterRepository.selectedStudyId))
                 DownloadData.email.set(email)
                 Pings.downloadData.submit()
+                _uiAction.send(UiAction.ShowDataDownloaded)
             } else {
                 _uiAction.send(UiAction.ShowNoEmailProvidedWarning)
             }
@@ -58,5 +59,6 @@ class DataHandlingScreenViewModel @Inject constructor(
         data object NavigateBack : UiAction()
         data object ShowNoEmailProvidedWarning : UiAction()
         data object ShowDataDeleted : UiAction()
+        data object ShowDataDownloaded : UiAction()
     }
 }

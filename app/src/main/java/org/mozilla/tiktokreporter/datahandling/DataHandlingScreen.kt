@@ -54,6 +54,10 @@ fun DataHandlingScreen(
                 is DataHandlingScreenViewModel.UiAction.ShowDataDeleted -> {
                     Toast.makeText(context, "Data successfully deleted!", Toast.LENGTH_SHORT).show()
                 }
+
+                is DataHandlingScreenViewModel.UiAction.ShowDataDownloaded -> {
+                    Toast.makeText(context, "Request received! An email containing your data will be sent.", Toast.LENGTH_SHORT).show()
+                }
             }
         })
 
