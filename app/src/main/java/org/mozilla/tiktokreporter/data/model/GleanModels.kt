@@ -8,6 +8,7 @@ import org.mozilla.tiktokreporter.data.remote.response.UploadedRecordingDTO
 @JsonClass(generateAdapter = true)
 data class GleanFormItem(
     @Json(name = "inputValue") val inputValue: Any,
+    @Json(name = "inputExtra") val inputExtra: Any? = null,
     @Json(name = "formItem") val formItem: FormFieldDTO
 )
 
@@ -20,6 +21,5 @@ data class GleanReportLinkFormRequest(
 
 @JsonClass(generateAdapter = true)
 data class GleanRecordSessionFormRequest(
-    @Json(name = "recordingInfo") val recordingInfo: UploadedRecordingDTO,
-    @Json(name = "comments") val comments: String?
+    @Json(name = "recordingInfo") val recordingInfo: UploadedRecordingDTO, @Json(name = "comments") val comments: String?
 )
