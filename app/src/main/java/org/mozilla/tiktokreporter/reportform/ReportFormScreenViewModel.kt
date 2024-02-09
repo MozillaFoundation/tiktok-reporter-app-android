@@ -281,7 +281,7 @@ class ReportFormScreenViewModel @Inject constructor(
                 is FormFieldUiComponent.DropDown -> {
                     val selectedOption = field.options.firstOrNull { it.title == value }
 
-                    val otherTextFieldIndex = newFields.indexOfFirst { it.id == OTHER_CATEGORY_TEXT_FIELD_ID }
+                    val otherTextFieldIndex = newFields.indexOfFirst { it.id.contains(OTHER_CATEGORY_TEXT_FIELD_ID) }
                     if (otherTextFieldIndex >= 0) {
                         val otherTextField = newFields[otherTextFieldIndex] as FormFieldUiComponent.TextField
                         newFields[otherTextFieldIndex] = otherTextField.copy(
@@ -429,7 +429,7 @@ class ReportFormScreenViewModel @Inject constructor(
         val errors = formFields.mapIndexedNotNull { index, field ->
             when (field) {
                 is FormFieldUiComponent.TextField -> {
-                    if (field.id != OTHER_CATEGORY_TEXT_FIELD_ID && field.isRequired && field.value.isEmpty()) {
+                    if (!field.id.contains(OTHER_CATEGORY_TEXT_FIELD_ID) && field.isRequired && field.value.isEmpty()) {
                         return@mapIndexedNotNull index to FormFieldError.Empty
                     }
                     if (field.isTikTokLink == true && !field.value.contains("tiktok.com")) {
@@ -445,7 +445,7 @@ class ReportFormScreenViewModel @Inject constructor(
                     if (field.isRequired) {
 
                         if (selectedOption?.id == OTHER_DROP_DOWN_OPTION_ID) {
-                            val otherTextFieldIndex = formFields.indexOfFirst { it.id == OTHER_CATEGORY_TEXT_FIELD_ID }
+                            val otherTextFieldIndex = formFields.indexOfFirst { it.id.contains(OTHER_CATEGORY_TEXT_FIELD_ID) }
                             if (otherTextFieldIndex >= 0) {
                                 val otherTextField = formFields[otherTextFieldIndex] as FormFieldUiComponent.TextField
 
