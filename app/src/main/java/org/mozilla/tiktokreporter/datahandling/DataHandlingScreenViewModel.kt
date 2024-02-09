@@ -18,7 +18,7 @@ import javax.inject.Inject
 @HiltViewModel
 class DataHandlingScreenViewModel @Inject constructor(
     private val tikTokReporterRepository: TikTokReporterRepository
-): ViewModel() {
+) : ViewModel() {
 
     private val _isLoading = MutableStateFlow(false)
     val isLoading = _isLoading.asStateFlow()
@@ -50,11 +50,13 @@ class DataHandlingScreenViewModel @Inject constructor(
 
             // allow user to report forms
             Glean.setUploadEnabled(true)
+            _uiAction.send(UiAction.ShowDataDeleted)
         }
     }
 
     sealed class UiAction {
-        data object NavigateBack: UiAction()
-        data object ShowNoEmailProvidedWarning: UiAction()
+        data object NavigateBack : UiAction()
+        data object ShowNoEmailProvidedWarning : UiAction()
+        data object ShowDataDeleted : UiAction()
     }
 }

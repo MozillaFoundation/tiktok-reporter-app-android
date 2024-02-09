@@ -44,6 +44,9 @@
     <string name="dialog_title_change_study">Change study</string>
     <string name="dialog_message_change_study">Are you sure you want to enroll in another study?</string>
 
+    <string name="dialog_title_delete_data">Delete data?</string>
+    <string name="dialog_message_delete_data">Are you sure you want to delete all your data from the system?</string>
+
     <string name="dialog_title_inactive_study">Select another study</string>
     <string name="dialog_message_inactive_study">The study you were participating into has ended. Please select another study to join.</string>
 
