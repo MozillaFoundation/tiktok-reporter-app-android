@@ -97,10 +97,7 @@ fun EmailScreen(
                 onFormFieldValueChanged = viewModel::onFormFieldValueChanged,
                 onNavigateBack = onNavigateBack,
                 onSaveEmail = viewModel::onSaveEmail,
-                onNextScreen = {
-                    viewModel.onSaveEmail()
-                    onNextScreen()
-                },
+                onNextScreen = onNextScreen,
                 isForOnboarding = isForOnboarding,
                 modifier = Modifier.fillMaxSize()
             )
@@ -169,7 +166,7 @@ private fun EmailScreenContent(
                 OnboardingFormButtons(modifier = Modifier.fillMaxWidth(), nextButton = {
                     if (isForOnboarding) {
                         PrimaryButton(
-                            modifier = Modifier.fillMaxWidth(), text = stringResource(id = R.string.next), onClick = onSaveEmail
+                            modifier = Modifier.fillMaxWidth(), text = stringResource(id = R.string.save), onClick = onSaveEmail
                         )
                     }
                 }, skipButton = {
