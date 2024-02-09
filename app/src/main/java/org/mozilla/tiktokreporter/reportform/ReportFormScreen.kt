@@ -26,6 +26,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
@@ -47,6 +48,7 @@ import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.PermissionStatus
 import com.google.accompanist.permissions.rememberPermissionState
 import com.google.accompanist.permissions.shouldShowRationale
+import kotlinx.coroutines.launch
 import org.mozilla.tiktokreporter.R
 import org.mozilla.tiktokreporter.ScreenRecorderService
 import org.mozilla.tiktokreporter.TikTokReporterError
@@ -373,14 +375,12 @@ private fun ReportFormScreenContent(
                     .verticalScroll(scrollState)
             ) {
                 Column(
-                    verticalArrangement = Arrangement.spacedBy(MozillaDimension.L)) {
+                    verticalArrangement = Arrangement.spacedBy(MozillaDimension.L)
+                ) {
                     when (state.selectedTab?.first) {
                         TabModelType.ReportLink -> {
                             formComponentsItems(
-                                formFields = state.formFields,
-                                onFormFieldValueChanged = onFormFieldValueChanged,
-                                coroutineScope = coroutineScope,
-                                scrollState = scrollState
+                                formFields = state.formFields, onFormFieldValueChanged = onFormFieldValueChanged
                             )
                         }
 
@@ -417,6 +417,17 @@ private fun ReportFormScreenContent(
                     tab = state.selectedTab,
                     fields = state.formFields
                 )
+            }
+        }
+
+        if (state.formFields.indexOfFirst { it.error != null } >= 0) {
+            LaunchedEffect(Unit) {
+                coroutineScope.launch {
+                    if (state.formFields.indexOfFirst { it.error != null } < state.formFields.size / 2) scrollState.animateScrollTo(0)
+                    if (state.formFields.indexOfFirst { it.error != null } > state.formFields.size / 2) scrollState.animateScrollTo(
+                        scrollState.maxValue
+                    )
+                }
             }
         }
     }
