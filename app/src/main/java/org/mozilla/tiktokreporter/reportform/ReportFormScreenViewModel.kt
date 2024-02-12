@@ -512,9 +512,18 @@ class ReportFormScreenViewModel @Inject constructor(
             val uiFormFieldValue = state.value.formFields.firstOrNull { uiFormField -> uiFormField.id == formField.id }?.value
 
             uiFormFieldValue?.let {
-                GleanFormItem(
-                    inputValue = uiFormFieldValue, formItem = formField.toFormFieldDTO()
-                )
+                if (uiFormFieldValue.toString().contains("Other")) {
+                    GleanFormItem(
+                        inputValue = uiFormFieldValue,
+                        formItem = formField.toFormFieldDTO(),
+                        inputExtra = state.value.formFields.first { it.id.contains(OTHER_CATEGORY_TEXT_FIELD_ID) }.value
+                    )
+
+                } else {
+                    GleanFormItem(
+                        inputValue = uiFormFieldValue, formItem = formField.toFormFieldDTO()
+                    )
+                }
             }
         }
 
