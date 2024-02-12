@@ -53,10 +53,8 @@ class ScreenRecorderManager @Inject constructor(
         mediaRecorder?.apply {
 
             setVideoSource(MediaRecorder.VideoSource.SURFACE)
-            setAudioSource(MediaRecorder.AudioSource.DEFAULT)
             setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
             setVideoEncoder(MediaRecorder.VideoEncoder.H264)
-            setAudioEncoder(MediaRecorder.AudioEncoder.DEFAULT)
             setVideoSize(recordingInfo.width, recordingInfo.height)
             setVideoFrameRate(recordingInfo.frameRate)
             setVideoEncodingBitRate(8 * 1000 * 1000)
@@ -72,13 +70,17 @@ class ScreenRecorderManager @Inject constructor(
 
         videoUri = context.contentResolver.insert(videosCollection, contentValues) ?: return
 
-        context.contentResolver.openFileDescriptor(videoUri!!, "w").use {
-            it?.let {
-                mediaRecorder?.apply {
-                    setOutputFile(it.fileDescriptor)
-                    prepare()
+        try {
+            context.contentResolver.openFileDescriptor(videoUri!!, "w").use {
+                it?.let {
+                    mediaRecorder?.apply {
+                        setOutputFile(it.fileDescriptor)
+                        prepare()
+                    }
                 }
             }
+        } catch (e: Exception) {
+            throw e
         }
 
         mediaProjection!!.registerCallback(mediaProjectionCallback, Handler(Looper.getMainLooper()))
@@ -103,7 +105,11 @@ class ScreenRecorderManager @Inject constructor(
     ) {
         val recordingInfo = getRecordingInfo()
         if (mediaProjection == null || mediaRecorder == null)
-            setupMediaProjectionAndRecorder(code, data, recordingInfo)
+            try {
+                setupMediaProjectionAndRecorder(code, data, recordingInfo)
+            } catch (e: Exception) {
+                throw e
+            }
 
         setupVirtualDisplay(recordingInfo)
         mediaRecorder?.start()

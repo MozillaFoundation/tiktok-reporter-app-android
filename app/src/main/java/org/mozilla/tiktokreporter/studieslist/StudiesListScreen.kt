@@ -74,7 +74,19 @@ fun StudiesListScreen(
                     is StudiesListScreenViewModel.UiAction.ShowError -> {
                         when (action.error) {
                             // internet connection / server unresponsive / server error
-                            is TikTokReporterError.NetworkError, is TikTokReporterError.ServerError -> {
+                            is TikTokReporterError.NetworkError -> {
+                                dialogState.value = DialogState.ErrorDialog(
+                                    title = UiText.StringResource(R.string.error_title_internet),
+                                    drawable = R.drawable.error_cat,
+                                    actionText = UiText.StringResource(R.string.button_refresh),
+                                    action = {
+                                        viewModel.refresh()
+                                        dialogState.value = DialogState.Nothing
+                                    }
+                                )
+                            }
+
+                            is TikTokReporterError.ServerError -> {
                                 dialogState.value = DialogState.ErrorDialog(
                                     title = UiText.StringResource(R.string.error_title_general),
                                     message = UiText.StringResource(R.string.error_message_general),
@@ -96,6 +108,7 @@ fun StudiesListScreen(
                             }
                         }
                     }
+
                     StudiesListScreenViewModel.UiAction.ShowChangeStudyWarning -> {
                         dialogState.value = DialogState.MessageDialog(
                             title = UiText.StringResource(R.string.dialog_title_change_study),

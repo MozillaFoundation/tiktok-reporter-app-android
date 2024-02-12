@@ -11,7 +11,7 @@ import androidx.compose.ui.res.stringResource
 import org.mozilla.tiktokreporter.R
 import org.mozilla.tiktokreporter.common.FormFieldError
 import org.mozilla.tiktokreporter.common.FormFieldUiComponent
-import org.mozilla.tiktokreporter.ui.components.MozillaTextField
+import org.mozilla.tiktokreporter.ui.components.MozillaTextFieldWithLengthLimit
 import org.mozilla.tiktokreporter.ui.theme.MozillaDimension
 import org.mozilla.tiktokreporter.ui.theme.MozillaTypography
 
@@ -23,8 +23,7 @@ fun FormTextField(
 ) {
     if (field.readOnly) {
         Text(
-            text = field.value,
-            style = MozillaTypography.Body1
+            text = field.value, style = MozillaTypography.Body1
         )
     } else {
         Column(
@@ -32,15 +31,12 @@ fun FormTextField(
         ) {
             if (field.description.isNotBlank()) {
                 Text(
-                    modifier = Modifier.fillMaxWidth(),
-                    text = field.description,
-                    style = MozillaTypography.Body2
+                    modifier = Modifier.fillMaxWidth(), text = field.description, style = MozillaTypography.Body2
                 )
                 Spacer(modifier = Modifier.height(MozillaDimension.S))
             }
 
-            MozillaTextField(
-                modifier = Modifier.fillMaxWidth(),
+            MozillaTextFieldWithLengthLimit(modifier = Modifier.fillMaxWidth(),
                 text = field.value,
                 onTextChanged = onTextChanged,
                 label = field.label,
@@ -52,9 +48,9 @@ fun FormTextField(
                     when (it) {
                         FormFieldError.Empty -> stringResource(id = R.string.error_message_empty_field)
                         FormFieldError.EmptyCategory -> stringResource(id = R.string.error_message_empty_category)
+                        FormFieldError.NoTikTokLink -> stringResource(id = R.string.error_message_tik_tok_link)
                     }
-                }
-            )
+                })
         }
     }
 }

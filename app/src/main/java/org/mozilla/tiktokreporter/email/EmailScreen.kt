@@ -1,12 +1,14 @@
 package org.mozilla.tiktokreporter.email
 
-import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.Icon
@@ -36,53 +38,56 @@ import org.mozilla.tiktokreporter.util.UiText
 
 @Composable
 fun EmailScreen(
-    viewModel: EmailScreenViewModel = hiltViewModel(),
-    isForOnboarding: Boolean = true,
-    onNextScreen: () -> Unit,
-    onNavigateBack: () -> Unit
+    viewModel: EmailScreenViewModel = hiltViewModel(), isForOnboarding: Boolean = true, onNextScreen: () -> Unit, onNavigateBack: () -> Unit
 ) {
     DialogContainer { dialogState ->
 
         val state by viewModel.state.collectAsStateWithLifecycle()
         val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
 
-        CollectWithLifecycle(
-            flow = viewModel.uiAction,
-            onCollect = { action ->
-                when (action) {
-                    EmailScreenViewModel.UiAction.GoToReportForm -> onNextScreen()
-                    EmailScreenViewModel.UiAction.EmailSaved -> {
-                        if (isForOnboarding) onNextScreen()
-                        else onNavigateBack()
-                    }
-                    is EmailScreenViewModel.UiAction.ShowError -> {
-                        when (action.error) {
-                            // internet connection / server unresponsive / server error
-                            is TikTokReporterError.NetworkError, is TikTokReporterError.ServerError -> {
-                                dialogState.value = DialogState.ErrorDialog(
-                                    title = UiText.StringResource(R.string.error_title_general),
-                                    message = UiText.StringResource(R.string.error_message_general),
-                                    drawable = R.drawable.error_cat,
-                                    actionText = UiText.StringResource(R.string.button_refresh),
-                                    action = {
-                                        viewModel.refresh()
-                                        dialogState.value = DialogState.Nothing
-                                    }
-                                )
-                            }
+        CollectWithLifecycle(flow = viewModel.uiAction, onCollect = { action ->
+            when (action) {
+                EmailScreenViewModel.UiAction.GoToReportForm -> onNextScreen()
+                EmailScreenViewModel.UiAction.EmailSaved -> {
+                    if (isForOnboarding) onNextScreen()
+                    else onNavigateBack()
+                }
 
-                            is TikTokReporterError.UnknownError -> {
-                                dialogState.value = DialogState.ErrorDialog(
-                                    title = UiText.StringResource(R.string.error_title_general),
-                                    message = UiText.StringResource(R.string.error_message_general),
-                                    drawable = R.drawable.error_cat
-                                )
-                            }
+                is EmailScreenViewModel.UiAction.ShowError -> {
+                    when (action.error) {
+                        // internet connection / server unresponsive / server error
+                        is TikTokReporterError.NetworkError -> {
+                            dialogState.value = DialogState.ErrorDialog(title = UiText.StringResource(R.string.error_title_internet),
+                                drawable = R.drawable.error_cat,
+                                actionText = UiText.StringResource(R.string.button_refresh),
+                                action = {
+                                    viewModel.refresh()
+                                    dialogState.value = DialogState.Nothing
+                                })
+                        }
+
+                        is TikTokReporterError.ServerError -> {
+                            dialogState.value = DialogState.ErrorDialog(title = UiText.StringResource(R.string.error_title_general),
+                                message = UiText.StringResource(R.string.error_message_general),
+                                drawable = R.drawable.error_cat,
+                                actionText = UiText.StringResource(R.string.button_refresh),
+                                action = {
+                                    viewModel.refresh()
+                                    dialogState.value = DialogState.Nothing
+                                })
+                        }
+
+                        is TikTokReporterError.UnknownError -> {
+                            dialogState.value = DialogState.ErrorDialog(
+                                title = UiText.StringResource(R.string.error_title_general),
+                                message = UiText.StringResource(R.string.error_message_general),
+                                drawable = R.drawable.error_cat
+                            )
                         }
                     }
                 }
             }
-        )
+        })
 
         if (isLoading) {
             LoadingScreen()
@@ -92,10 +97,7 @@ fun EmailScreen(
                 onFormFieldValueChanged = viewModel::onFormFieldValueChanged,
                 onNavigateBack = onNavigateBack,
                 onSaveEmail = viewModel::onSaveEmail,
-                onNextScreen = {
-                    viewModel.onSaveEmail()
-                    onNextScreen()
-                },
+                onNextScreen = onNextScreen,
                 isForOnboarding = isForOnboarding,
                 modifier = Modifier.fillMaxSize()
             )
@@ -113,83 +115,72 @@ private fun EmailScreenContent(
     isForOnboarding: Boolean,
     modifier: Modifier = Modifier
 ) {
-    MozillaScaffold(
-        modifier = modifier,
-        topBar = if (isForOnboarding) null else {
-            {
-                MozillaTopAppBar(
-                    modifier = Modifier.fillMaxWidth(),
-                    navItem = {
-                        IconButton(
-                            onClick = onNavigateBack
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.ArrowBack,
-                                contentDescription = "",
-                                tint = MozillaColor.TextColor
-                            )
-                        }
-                    }
-                )
-            }
+    MozillaScaffold(modifier = modifier, topBar = if (isForOnboarding) null else {
+        {
+            MozillaTopAppBar(modifier = Modifier.fillMaxWidth(), navItem = {
+                IconButton(
+                    onClick = onNavigateBack
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.ArrowBack, contentDescription = "", tint = MozillaColor.TextColor
+                    )
+                }
+            })
         }
-    ) { innerPadding ->
+    }) { innerPadding ->
+        val scrollState = rememberScrollState()
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
-            LazyColumn(
+            Box(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f),
-                contentPadding = PaddingValues(
-                    horizontal = MozillaDimension.M,
-                    vertical = MozillaDimension.L
-                ),
-                verticalArrangement = Arrangement.spacedBy(MozillaDimension.L),
-                content = {
-                    item {
-                        Text(
-                            modifier = Modifier.fillMaxWidth(),
-                            text = stringResource(R.string.sign_up_for_updates),
-                            style = MozillaTypography.H3
+                    .weight(1f)
+                    .padding(
+                        PaddingValues(
+                            horizontal = MozillaDimension.M, vertical = MozillaDimension.L
                         )
-                    }
+                    )
+            ) {
+                Column(
+                    modifier = Modifier.verticalScroll(scrollState)
+                ) {
+                    Text(
+                        modifier = Modifier.fillMaxWidth(),
+                        text = stringResource(R.string.sign_up_for_updates),
+                        style = MozillaTypography.H3
+                    )
                     formComponentsItems(
-                        formFields = state.formFields,
-                        onFormFieldValueChanged = onFormFieldValueChanged
+                        formFields = state.formFields, onFormFieldValueChanged = onFormFieldValueChanged
                     )
                 }
-            )
+            }
 
-            OnboardingFormButtons(
+            Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(
-                        horizontal = MozillaDimension.M,
-                        vertical = MozillaDimension.L
-                    ),
-                nextButton = {
+                    .padding(horizontal = MozillaDimension.M)
+            ) {
+                OnboardingFormButtons(modifier = Modifier.fillMaxWidth(), nextButton = {
                     if (isForOnboarding) {
                         PrimaryButton(
-                            modifier = Modifier.fillMaxWidth(),
-                            text = stringResource(id = R.string.next),
-                            onClick = onSaveEmail
+                            modifier = Modifier.fillMaxWidth(), text = stringResource(id = R.string.save), onClick = onSaveEmail
                         )
                     }
-                },
-                skipButton = {
+                }, skipButton = {
                     SecondaryButton(
                         modifier = Modifier.fillMaxWidth(),
                         text = if (isForOnboarding) stringResource(id = R.string.skip) else stringResource(id = R.string.save),
                         onClick = if (isForOnboarding) onNextScreen else onSaveEmail
                     )
-                }
-            )
+                })
+            }
         }
     }
 }
+
 
 @Composable
 private fun OnboardingFormButtons(

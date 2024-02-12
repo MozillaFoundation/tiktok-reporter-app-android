@@ -11,6 +11,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import org.mozilla.tiktokreporter.ui.theme.MozillaColor
 import org.mozilla.tiktokreporter.ui.theme.MozillaTypography
@@ -31,8 +32,7 @@ fun mozillaTextFieldColors(
     cursorColor = MozillaColor.TextColor,
     errorCursorColor = MozillaColor.TextColor,
     selectionColors = TextSelectionColors(
-        handleColor = MozillaColor.TextColor,
-        backgroundColor = MozillaColor.Divider
+        handleColor = MozillaColor.TextColor, backgroundColor = MozillaColor.Divider
     ),
     focusedBorderColor = MozillaColor.Blue,
     unfocusedBorderColor = if (isFilled) MozillaColor.TextColor else MozillaColor.Inactive,
@@ -67,6 +67,7 @@ fun mozillaTextFieldColors(
     disabledSuffixColor = MozillaColor.Disabled,
     errorSuffixColor = if (isFilled) MozillaColor.TextColor else MozillaColor.Inactive,
 )
+
 @Composable
 fun MozillaTextField(
     text: String,
@@ -82,8 +83,7 @@ fun MozillaTextField(
     trailingIcon: (@Composable () -> Unit)? = null,
     colors: TextFieldColors = mozillaTextFieldColors(text.isNotBlank()),
 ) {
-    OutlinedTextField(
-        value = text,
+    OutlinedTextField(value = text,
         onValueChange = onTextChanged,
         modifier = modifier,
         enabled = enabled,
@@ -109,12 +109,70 @@ fun MozillaTextField(
         supportingText = errorText?.let {
             {
                 Text(
-                    text = it,
-                    style = MozillaTypography.Body2
+                    text = it, style = MozillaTypography.Body2
                 )
             }
-        }
-    )
+        })
+}
+
+@Composable
+fun MozillaTextFieldWithLengthLimit(
+    text: String,
+    onTextChanged: (String) -> Unit,
+    modifier: Modifier = Modifier,
+    errorText: String? = null,
+    label: String? = null,
+    placeholder: String? = null,
+    enabled: Boolean = true,
+    maxLines: Int = Int.MAX_VALUE,
+    multiline: Boolean = false,
+    readOnly: Boolean = false,
+    trailingIcon: (@Composable () -> Unit)? = null,
+    colors: TextFieldColors = mozillaTextFieldColors(text.isNotBlank()),
+    maxLength: Int = 500
+) {
+    Column {
+        OutlinedTextField(value = text,
+            onValueChange = onTextChanged,
+            modifier = modifier,
+            enabled = enabled,
+            label = {
+                if (!label.isNullOrBlank()) {
+                    Text(text = label)
+                }
+            },
+            placeholder = {
+                if (!placeholder.isNullOrBlank()) {
+                    Text(text = placeholder)
+                }
+            },
+            maxLines = maxLines,
+            minLines = if (multiline) maxLines else 1,
+            singleLine = !multiline,
+            textStyle = MozillaTypography.Body1,
+            colors = colors,
+            readOnly = readOnly,
+            trailingIcon = trailingIcon,
+            shape = RectangleShape,
+            isError = errorText != null,
+            supportingText = {
+                Text(
+                    text = "${text.length} / $maxLength",
+                    modifier = Modifier.fillMaxWidth(),
+                    textAlign = TextAlign.End,
+                    style = MozillaTypography.Body2
+                )
+                errorText?.let {
+                    Text(
+                        text = it,
+                        style = MozillaTypography.Body2,
+                        textAlign = TextAlign.Start,
+                    )
+                }
+            }
+
+        )
+    }
 }
 
 @Preview(
@@ -125,32 +183,16 @@ private fun MozillaTextFieldPreviewEnabled() {
     TikTokReporterTheme {
         Column(Modifier.fillMaxWidth()) {
             MozillaTextField(
-                text = "",
-                label = "label",
-                placeholder = "",
-                onTextChanged = { },
-                enabled = true
+                text = "", label = "label", placeholder = "", onTextChanged = { }, enabled = true
             )
             MozillaTextField(
-                text = "text",
-                label = "label",
-                placeholder = "",
-                onTextChanged = { },
-                enabled = true
+                text = "text", label = "label", placeholder = "", onTextChanged = { }, enabled = true
             )
             MozillaTextField(
-                text = "",
-                label = "label",
-                placeholder = "placeholder",
-                onTextChanged = { },
-                enabled = true
+                text = "", label = "label", placeholder = "placeholder", onTextChanged = { }, enabled = true
             )
             MozillaTextField(
-                text = "",
-                label = "",
-                placeholder = "placeholder",
-                onTextChanged = { },
-                enabled = true
+                text = "", label = "", placeholder = "placeholder", onTextChanged = { }, enabled = true
             )
             MozillaTextField(
                 text = "",
@@ -163,6 +205,7 @@ private fun MozillaTextFieldPreviewEnabled() {
         }
     }
 }
+
 @Preview(
     showBackground = true
 )
@@ -171,31 +214,17 @@ private fun MozillaTextFieldPreviewDisabled() {
     TikTokReporterTheme {
         Column(Modifier.fillMaxWidth()) {
             MozillaTextField(
-                text = "",
-                label = "label",
-                onTextChanged = { },
-                enabled = false
+                text = "", label = "label", onTextChanged = { }, enabled = false
             )
             MozillaTextField(
-                text = "text",
-                label = "label",
-                onTextChanged = { },
-                enabled = false
+                text = "text", label = "label", onTextChanged = { }, enabled = false
             )
             MozillaTextField(
-                text = "",
-                label = "label",
-                placeholder = "placeholder",
-                onTextChanged = { },
-                enabled = false
+                text = "", label = "label", placeholder = "placeholder", onTextChanged = { }, enabled = false
             )
 
             MozillaTextField(
-                text = "",
-                label = "",
-                placeholder = "placeholder",
-                onTextChanged = { },
-                enabled = false
+                text = "", label = "", placeholder = "placeholder", onTextChanged = { }, enabled = false
             )
         }
     }

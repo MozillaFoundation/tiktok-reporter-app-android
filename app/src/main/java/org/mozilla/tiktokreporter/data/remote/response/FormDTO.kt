@@ -28,8 +28,10 @@ sealed class FormFieldDTO(
         @Json(name = "placeholder") val placeholder: String,
         @Json(name = "multiline") val multiline: Boolean,
         @Json(name = "maxLines") val maxLines: Int,
-        @Json(name = "description") val description: String
-    ): FormFieldDTO(id, isRequired, FormFieldTypeDTO.TextField)
+        @Json(name = "description") val description: String,
+        @Json(name = "isTikTokLink") val isTikTokLink: Boolean?
+    ) : FormFieldDTO(id, isRequired, FormFieldTypeDTO.TextField)
+
     @JsonClass(generateAdapter = true)
     data class DropDown(
         @Json(name = "id") override val id: String,
@@ -40,7 +42,7 @@ sealed class FormFieldDTO(
         @Json(name = "description") val description: String,
         @Json(name = "placeholder") val placeholder: String,
         @Json(name = "hasOtherOption") val hasOtherOption: Boolean
-    ): FormFieldDTO(id, isRequired, FormFieldTypeDTO.DropDown)
+    ) : FormFieldDTO(id, isRequired, FormFieldTypeDTO.DropDown)
 
     @JsonClass(generateAdapter = true)
     data class Slider(
@@ -52,58 +54,51 @@ sealed class FormFieldDTO(
         @Json(name = "leftLabel") val leftLabel: String,
         @Json(name = "rightLabel") val rightLabel: String,
         @Json(name = "description") val description: String
-    ): FormFieldDTO(id, isRequired, FormFieldTypeDTO.Slider)
+    ) : FormFieldDTO(id, isRequired, FormFieldTypeDTO.Slider)
 
     @JsonClass(generateAdapter = true)
     data class CheckboxGroup(
-        @Json(name = "id") override val id: String,
-        @Json(name = "isRequired") override val isRequired: Boolean
-    ): FormFieldDTO(id, isRequired, FormFieldTypeDTO.CheckboxGroup)
+        @Json(name = "id") override val id: String, @Json(name = "isRequired") override val isRequired: Boolean
+    ) : FormFieldDTO(id, isRequired, FormFieldTypeDTO.CheckboxGroup)
 
     @JsonClass(generateAdapter = true)
     data class RadioGroup(
-        @Json(name = "id") override val id: String,
-        @Json(name = "isRequired") override val isRequired: Boolean
-    ): FormFieldDTO(id, isRequired, FormFieldTypeDTO.RadioGroup)
+        @Json(name = "id") override val id: String, @Json(name = "isRequired") override val isRequired: Boolean
+    ) : FormFieldDTO(id, isRequired, FormFieldTypeDTO.RadioGroup)
 
     @JsonClass(generateAdapter = true)
     data class MultiSelect(
-        @Json(name = "id") override val id: String,
-        @Json(name = "isRequired") override val isRequired: Boolean
-    ): FormFieldDTO(id, isRequired, FormFieldTypeDTO.MultiSelect)
+        @Json(name = "id") override val id: String, @Json(name = "isRequired") override val isRequired: Boolean
+    ) : FormFieldDTO(id, isRequired, FormFieldTypeDTO.MultiSelect)
 
-    data object Unknown: FormFieldDTO("unknown", false, FormFieldTypeDTO.Unknown)
+    data object Unknown : FormFieldDTO("unknown", false, FormFieldTypeDTO.Unknown)
 }
 
 @JsonClass(generateAdapter = true)
 data class OptionDTO(
-    @Json(name = "id") val id: String,
-    @Json(name = "title") val title: String
+    @Json(name = "id") val id: String, @Json(name = "title") val title: String
 )
 
 
 enum class FormFieldTypeDTO {
-    TextField,
-    DropDown,
-    MultiSelect,
-    RadioGroup,
-    CheckboxGroup,
-    Slider,
-    Unknown
+    TextField, DropDown, MultiSelect, RadioGroup, CheckboxGroup, Slider, Unknown
 }
 
 fun Option.toOptionDTO(): OptionDTO = OptionDTO(id, title)
 fun FormField.toFormFieldDTO(): FormFieldDTO {
-    return when(this) {
+    return when (this) {
         is FormField.TextField -> FormFieldDTO.TextField(
-            id, isRequired, label, placeholder, multiline, maxLines, description
+            id, isRequired, label, placeholder, multiline, maxLines, description, isTikTokLink
         )
+
         is FormField.DropDown -> FormFieldDTO.DropDown(
             id, isRequired, label, options.map { it.toOptionDTO() }, selectedOptionId, description, placeholder, hasOtherOption
         )
+
         is FormField.Slider -> FormFieldDTO.Slider(
             id, isRequired, max, step, label, leftLabel, rightLabel, description
         )
+
         FormField.CheckboxGroup -> FormFieldDTO.CheckboxGroup(id, isRequired)
         FormField.MultiSelect -> FormFieldDTO.MultiSelect(id, isRequired)
         FormField.RadioGroup -> FormFieldDTO.RadioGroup(id, isRequired)

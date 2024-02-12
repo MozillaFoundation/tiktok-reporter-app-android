@@ -33,6 +33,7 @@ object Common {
     val DATASTORE_KEY_IS_RECORDING = booleanPreferencesKey("is_recording")
     val DATASTORE_KEY_VIDEO_URI = stringPreferencesKey("video_uri")
     val DATASTORE_KEY_RECORDING_UPLOADED = booleanPreferencesKey("recording_uploaded")
+    val DATASTORE_KEY_REDIRECT_FIRST_TAB = booleanPreferencesKey("first_tab")
 }
 
 
@@ -41,13 +42,13 @@ val videosCollection: Uri = onSdkVersionAndUp(Build.VERSION_CODES.Q) {
 } ?: MediaStore.Video.Media.EXTERNAL_CONTENT_URI
 
 
-inline fun <T> onSdkVersionAndUp(version: Int, block: () -> T) : T? {
+inline fun <T> onSdkVersionAndUp(version: Int, block: () -> T): T? {
     return if (Build.VERSION.SDK_INT >= version) {
         block()
     } else null
 }
 
-inline fun <T> onSdkVersionAndDown(version: Int, block: () -> T) : T? {
+inline fun <T> onSdkVersionAndDown(version: Int, block: () -> T): T? {
     return if (Build.VERSION.SDK_INT <= version) {
         block()
     } else null

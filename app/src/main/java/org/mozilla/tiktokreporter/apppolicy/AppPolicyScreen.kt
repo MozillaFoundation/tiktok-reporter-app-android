@@ -13,7 +13,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -22,6 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import dev.jeziellago.compose.markdowntext.MarkdownText
 import org.mozilla.tiktokreporter.R
 import org.mozilla.tiktokreporter.TikTokReporterError
 import org.mozilla.tiktokreporter.ui.components.LoadingScreen
@@ -88,7 +88,19 @@ fun AppPolicyScreen(
 
                     when (action.error) {
                         // internet connection / server unresponsive / server error
-                        is TikTokReporterError.NetworkError, is TikTokReporterError.ServerError -> {
+                        is TikTokReporterError.NetworkError -> {
+                            dialogState.value = DialogState.ErrorDialog(
+                                title = UiText.StringResource(R.string.error_title_internet),
+                                drawable = R.drawable.error_cat,
+                                actionText = UiText.StringResource(R.string.button_refresh),
+                                action = {
+                                    viewModel.refresh()
+                                    dialogState.value = DialogState.Nothing
+                                }
+                            )
+                        }
+
+                        is TikTokReporterError.ServerError -> {
                             dialogState.value = DialogState.ErrorDialog(
                                 title = UiText.StringResource(R.string.error_title_general),
                                 message = UiText.StringResource(R.string.error_message_general),
@@ -110,6 +122,7 @@ fun AppPolicyScreen(
                         }
                     }
                 }
+
                 AppPolicyScreenViewModel.UiAction.ShowNoPolicyFound -> Unit
             }
         }
@@ -170,22 +183,22 @@ private fun AppPolicyScreenContent(
                 state = scrollState
             ) {
                 item {
-                    Text(
-                        text = state.title,
+                    MarkdownText(
+                        markdown = state.title,
                         style = MozillaTypography.H3
                     )
                     Spacer(modifier = Modifier.height(MozillaDimension.L))
                 }
                 item {
-                    Text(
-                        text = state.subtitle,
+                    MarkdownText(
+                        markdown = state.subtitle,
                         style = MozillaTypography.H5
                     )
                     Spacer(modifier = Modifier.height(MozillaDimension.M))
                 }
                 item {
-                    Text(
-                        text = state.content,
+                    MarkdownText(
+                        markdown = state.content,
                         style = MozillaTypography.Body2
                     )
                     Spacer(modifier = Modifier.height(MozillaDimension.L))
