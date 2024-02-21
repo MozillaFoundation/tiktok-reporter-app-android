@@ -205,7 +205,7 @@ fun ReportFormScreen(
                         is TikTokReporterError.UnknownError -> {
                             dialogState.value = DialogState.ErrorDialog(
                                 title = UiText.StringResource(R.string.error_title_general),
-                                message = UiText.StringResource(R.string.error_message_general),
+                                message = UiText.StringResource(R.string.error_message_policy),
                                 drawable = R.drawable.error_cat
                             )
                         }
