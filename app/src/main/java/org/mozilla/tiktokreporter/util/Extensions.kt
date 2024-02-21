@@ -12,7 +12,8 @@ import kotlin.time.Duration.Companion.seconds
 fun Long.millisToMinSecString(): String {
     val seconds = this.milliseconds.inWholeSeconds
     val minutes = seconds.seconds.inWholeMinutes
-    val secondsString = seconds.let {
+    val secondsRemaining = if (minutes > 0) { seconds - (minutes*60)} else seconds
+    val secondsString = secondsRemaining.let {
         if (it < 10) {
             "0$it"
         } else "$it"
