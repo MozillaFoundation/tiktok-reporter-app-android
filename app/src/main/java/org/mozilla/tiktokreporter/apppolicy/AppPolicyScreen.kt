@@ -18,6 +18,7 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -199,7 +200,8 @@ private fun AppPolicyScreenContent(
                 item {
                     MarkdownText(
                         markdown = state.content,
-                        style = MozillaTypography.Body2
+                        style = MozillaTypography.Body2,
+                        linkColor = Color.Blue
                     )
                     Spacer(modifier = Modifier.height(MozillaDimension.L))
                 }

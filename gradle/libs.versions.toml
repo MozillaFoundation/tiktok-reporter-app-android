@@ -26,7 +26,7 @@ coil-compose = "2.5.0"
 accompanist = "0.33.2-alpha"
 media3 = "1.2.0"
 glean = "55.0.0"
-compose-markdown = "0.4.0"
+compose-markdown = "0.4.1"
 
 
 [libraries]

@@ -20,8 +20,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class AppPolicyScreenViewModel @Inject constructor(
-    private val tikTokReporterRepository: TikTokReporterRepository,
-    savedStateHandle: SavedStateHandle
+    private val tikTokReporterRepository: TikTokReporterRepository, savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(State())
@@ -43,60 +42,58 @@ class AppPolicyScreenViewModel @Inject constructor(
         policyType = NestedDestination.AppPolicy.Type.valueOf(type)
 
         viewModelScope.launch(Dispatchers.Unconfined) {
-            _refreshAction
-                .collect {
-                    _isLoading.update { true }
+            _refreshAction.collect {
+                _isLoading.update { true }
 
-                    val policies =
-                        if (policyType == NestedDestination.AppPolicy.Type.Study || !isForOnboarding) {
-                            val selectedStudy = tikTokReporterRepository.getSelectedStudy()
+                val policies = if (policyType == NestedDestination.AppPolicy.Type.Study || !isForOnboarding) {
+                    val selectedStudy = tikTokReporterRepository.getSelectedStudy()
 
-                            if (selectedStudy.isFailure) {
-                                val error = selectedStudy.exceptionOrNull()!!.toTikTokReporterError()
-                                _isLoading.update { false }
-                                _uiAction.send(UiAction.ShowError(error))
-                                return@collect
-                            }
-
-                            selectedStudy.getOrNull()!!.policies
-                        } else {
-
-                            val policyResult = tikTokReporterRepository.getAppPolicies()
-                            if (policyResult.isFailure) {
-                                val error = policyResult.exceptionOrNull()!!.toTikTokReporterError()
-                                _isLoading.update { false }
-                                _uiAction.send(UiAction.ShowError(error))
-                                return@collect
-                            }
-
-                            policyResult.getOrNull().orEmpty()
-                        }
-
-                    val policy = policies.firstOrNull { policy ->
-                        when (policyType) {
-                            NestedDestination.AppPolicy.Type.TermsAndConditions -> policy.type == Policy.Type.TermsAndConditions
-                            NestedDestination.AppPolicy.Type.PrivacyPolicy -> policy.type == Policy.Type.Privacy
-                            NestedDestination.AppPolicy.Type.Study -> policy.type == Policy.Type.TermsAndConditions
-                        }
-                    } ?: kotlin.run {
+                    if (selectedStudy.isFailure) {
+                        val error = selectedStudy.exceptionOrNull()!!.toTikTokReporterError()
                         _isLoading.update { false }
-
-                        val uiAction = if (policyType == NestedDestination.AppPolicy.Type.Study) UiAction.OnGoToStudyOnboarding
-                        else UiAction.OnGoToStudies
-                        _uiAction.send(uiAction)
-
+                        _uiAction.send(UiAction.ShowError(error))
                         return@collect
                     }
 
-                    _isLoading.update { false }
-                    _state.update {
-                        it.copy(
-                            title = policy.title,
-                            subtitle = policy.subtitle,
-                            content = policy.text,
-                        )
+                    selectedStudy.getOrNull()!!.policies
+                } else {
+
+                    val policyResult = tikTokReporterRepository.getAppPolicies()
+                    if (policyResult.isFailure) {
+                        val error = policyResult.exceptionOrNull()!!.toTikTokReporterError()
+                        _isLoading.update { false }
+                        _uiAction.send(UiAction.ShowError(error))
+                        return@collect
                     }
+
+                    policyResult.getOrNull().orEmpty()
                 }
+
+                val policy = policies.firstOrNull { policy ->
+                    when (policyType) {
+                        NestedDestination.AppPolicy.Type.TermsAndConditions -> policy.type == Policy.Type.TermsAndConditions
+                        NestedDestination.AppPolicy.Type.PrivacyPolicy -> policy.type == Policy.Type.Privacy
+                        NestedDestination.AppPolicy.Type.Study -> policy.type == Policy.Type.TermsAndConditions
+                    }
+                } ?: kotlin.run {
+                    _isLoading.update { false }
+
+                    val uiAction = if (policyType == NestedDestination.AppPolicy.Type.Study) UiAction.OnGoToStudyOnboarding
+                    else UiAction.OnGoToStudies
+                    _uiAction.send(uiAction)
+
+                    return@collect
+                }
+
+                _isLoading.update { false }
+                _state.update {
+                    it.copy(
+                        title = policy.title,
+                        subtitle = policy.subtitle,
+                        content = policy.text.replace("\\n", "\n").replace("#", "").replace("\n*", "\n")
+                    )
+                }
+            }
         }
     }
 
@@ -118,10 +115,7 @@ class AppPolicyScreenViewModel @Inject constructor(
     }
 
     data class State(
-        val title: String = "",
-        val subtitle: String = "",
-        val content: String = "",
-        val showError: Boolean = false
+        val title: String = "", val subtitle: String = "", val content: String = "", val showError: Boolean = false
     )
 
     sealed class UiAction {
