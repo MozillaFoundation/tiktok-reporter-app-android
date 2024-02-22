@@ -1,6 +1,7 @@
 package org.mozilla.tiktokreporter
 
 import android.content.Context
+import android.content.Intent
 import android.net.Uri
 import androidx.datastore.preferences.core.edit
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -26,29 +27,25 @@ import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
 
+
 @Singleton
 class TikTokReporterRepository @Inject constructor(
-    private val tikTokReporterService: TikTokReporterService,
-    @ApplicationContext private val context: Context
+    private val tikTokReporterService: TikTokReporterService, @ApplicationContext private val context: Context
 ) {
     var userEmail by context.sharedPreferences(
-        name = Common.PREFERENCES_USER_EMAIL_KEY,
-        defaultValue = ""
+        name = Common.PREFERENCES_USER_EMAIL_KEY, defaultValue = ""
     )
         private set
     var selectedStudyId by context.sharedPreferences(
-        name = Common.PREFERENCES_SELECTED_STUDY_KEY,
-        defaultValue = ""
+        name = Common.PREFERENCES_SELECTED_STUDY_KEY, defaultValue = ""
     )
         private set
 
     private var onboardingCompleted by context.sharedPreferences(
-        name = Common.PREFERENCES_ONBOARDING_COMPLETED_KEY,
-        defaultValue = false
+        name = Common.PREFERENCES_ONBOARDING_COMPLETED_KEY, defaultValue = false
     )
     private var termsAccepted by context.sharedPreferences(
-        name = Common.PREFERENCES_TERMS_ACCEPTED_KEY,
-        defaultValue = false
+        name = Common.PREFERENCES_TERMS_ACCEPTED_KEY, defaultValue = false
     )
 
     private var selectedStudy: StudyDetails? = null
@@ -60,8 +57,7 @@ class TikTokReporterRepository @Inject constructor(
     suspend fun getAppPolicies(): Result<List<Policy>> {
         val policies = try {
             withContext(Dispatchers.IO) {
-                return@withContext tikTokReporterService.getAppTermsAndConditions()
-                    .map { it.toPolicy() }
+                return@withContext tikTokReporterService.getAppTermsAndConditions().map { it.toPolicy() }
             }
         } catch (e: Exception) {
             return Result.failure(e)
@@ -72,15 +68,13 @@ class TikTokReporterRepository @Inject constructor(
 
     suspend fun fetchStudies(): Result<List<StudyOverview>> {
         val remoteStudies = try {
-            tikTokReporterService.getStudies()
-                .mapIndexed { index, study ->
-                    val isSelected =
-                        if (selectedStudyId.isBlank()) index == 0 else study.id == selectedStudyId
+            tikTokReporterService.getStudies().mapIndexed { index, study ->
+                val isSelected = if (selectedStudyId.isBlank()) index == 0 else study.id == selectedStudyId
 
-                    study.toStudyOverview(
-                        isSelected = isSelected
-                    )
-                }
+                study.toStudyOverview(
+                    isSelected = isSelected
+                )
+            }
         } catch (e: Exception) {
             return Result.failure(e)
         }
@@ -133,6 +127,14 @@ class TikTokReporterRepository @Inject constructor(
         }
     }
 
+    fun reopenApp() {
+        val pm = context.packageManager
+        val intent = pm.getLaunchIntentForPackage(context.packageName)
+        val mainIntent = Intent.makeRestartActivityTask(intent!!.component)
+        context.startActivity(mainIntent)
+        Runtime.getRuntime().exit(0)
+    }
+
     suspend fun tikTokUrlShared(url: String?) {
         _tikTokUrl.emit(url)
     }
@@ -168,9 +170,7 @@ class TikTokReporterRepository @Inject constructor(
 
                 uploadedRecording = tikTokReporterService.uploadRecording(
                     file = MultipartBody.Part.createFormData(
-                        name = "file",
-                        filename = file.name,
-                        body = file.asRequestBody(contentType = "video/mp4".toMediaType())
+                        name = "file", filename = file.name, body = file.asRequestBody(contentType = "video/mp4".toMediaType())
                     )
                 )
 

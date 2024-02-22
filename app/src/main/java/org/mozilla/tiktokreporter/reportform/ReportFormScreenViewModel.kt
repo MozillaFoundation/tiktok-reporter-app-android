@@ -57,12 +57,12 @@ import java.time.ZoneId
 import java.util.UUID
 import javax.inject.Inject
 
+
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class ReportFormScreenViewModel @Inject constructor(
     private val tikTokReporterRepository: TikTokReporterRepository, @ApplicationContext context: Context, private val moshi: Moshi
 ) : ViewModel() {
-
     private val _state = MutableStateFlow(State())
     val state: StateFlow<State> = _state
 
@@ -581,5 +581,17 @@ class ReportFormScreenViewModel @Inject constructor(
         data class ShowError(
             val error: TikTokReporterError
         ) : UiAction()
+    }
+
+    fun setOnboardingCompleted(completed: Boolean) {
+        viewModelScope.launch {
+            tikTokReporterRepository.setOnboardingCompleted(completed)
+        }
+    }
+
+    fun reopenApp() {
+        viewModelScope.launch {
+            tikTokReporterRepository.reopenApp()
+        }
     }
 }
