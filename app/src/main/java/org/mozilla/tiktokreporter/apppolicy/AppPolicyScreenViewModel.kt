@@ -85,7 +85,6 @@ class AppPolicyScreenViewModel @Inject constructor(
                     return@collect
                 }
 
-                _isLoading.update { false }
                 _state.update {
                     it.copy(
                         title = policy.title,
@@ -93,6 +92,7 @@ class AppPolicyScreenViewModel @Inject constructor(
                         content = policy.text.replace("\\n", "\n").replace("#", "").replace("\n*", "\n")
                     )
                 }
+                _isLoading.update { false }
             }
         }
     }

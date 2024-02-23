@@ -63,17 +63,16 @@ fun AppPolicyScreen(
                 onAgree = viewModel::acceptTerms,
                 onDisagree = {
                     if (isForOnboarding) {
-                        dialogState.value = DialogState.MessageDialog(
-                            title = UiText.StringResource(R.string.dialog_title_review_terms_and_conditions),
-                            message = UiText.StringResource(R.string.dialog_message_review_terms_and_conditions),
-                            negativeButtonText = UiText.StringResource(R.string.got_it),
-                            onNegative = {
-                                dialogState.value = DialogState.Nothing
-                            },
-                            onDismissRequest = {
-                                dialogState.value = DialogState.Nothing
-                            }
-                        )
+                        dialogState.value =
+                            DialogState.MessageDialog(title = UiText.StringResource(R.string.dialog_title_review_terms_and_conditions),
+                                message = UiText.StringResource(R.string.dialog_message_review_terms_and_conditions),
+                                negativeButtonText = UiText.StringResource(R.string.got_it),
+                                onNegative = {
+                                    dialogState.value = DialogState.Nothing
+                                },
+                                onDismissRequest = {
+                                    dialogState.value = DialogState.Nothing
+                                })
                     }
                 },
                 modifier = Modifier.fillMaxSize()
@@ -90,28 +89,24 @@ fun AppPolicyScreen(
                     when (action.error) {
                         // internet connection / server unresponsive / server error
                         is TikTokReporterError.NetworkError -> {
-                            dialogState.value = DialogState.ErrorDialog(
-                                title = UiText.StringResource(R.string.error_title_internet),
+                            dialogState.value = DialogState.ErrorDialog(title = UiText.StringResource(R.string.error_title_internet),
                                 drawable = R.drawable.error_cat,
                                 actionText = UiText.StringResource(R.string.button_refresh),
                                 action = {
                                     viewModel.refresh()
                                     dialogState.value = DialogState.Nothing
-                                }
-                            )
+                                })
                         }
 
                         is TikTokReporterError.ServerError -> {
-                            dialogState.value = DialogState.ErrorDialog(
-                                title = UiText.StringResource(R.string.error_title_general),
+                            dialogState.value = DialogState.ErrorDialog(title = UiText.StringResource(R.string.error_title_general),
                                 message = UiText.StringResource(R.string.error_message_general),
                                 drawable = R.drawable.error_cat,
                                 actionText = UiText.StringResource(R.string.button_refresh),
                                 action = {
                                     viewModel.refresh()
                                     dialogState.value = DialogState.Nothing
-                                }
-                            )
+                                })
                         }
 
                         is TikTokReporterError.UnknownError -> {
@@ -146,27 +141,19 @@ private fun AppPolicyScreenContent(
         }
     }
 
-    MozillaScaffold(
-        modifier = modifier,
-        topBar = if (isForOnboarding) null else {
-            {
-                MozillaTopAppBar(
-                    modifier = Modifier.fillMaxWidth(),
-                    navItem = {
-                        IconButton(
-                            onClick = onNavigateBack
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.ArrowBack,
-                                contentDescription = "",
-                                tint = MozillaColor.TextColor
-                            )
-                        }
-                    }
-                )
-            }
+    MozillaScaffold(modifier = modifier, topBar = if (isForOnboarding) null else {
+        {
+            MozillaTopAppBar(modifier = Modifier.fillMaxWidth(), navItem = {
+                IconButton(
+                    onClick = onNavigateBack
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.ArrowBack, contentDescription = "", tint = MozillaColor.TextColor
+                    )
+                }
+            })
         }
-    ) { innerPadding ->
+    }) { innerPadding ->
 
         Column(
             modifier = Modifier
@@ -176,62 +163,52 @@ private fun AppPolicyScreenContent(
             LazyColumn(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .weight(1f),
-                contentPadding = PaddingValues(
-                    horizontal = MozillaDimension.M,
-                    vertical = MozillaDimension.L
-                ),
-                state = scrollState
+                    .weight(1f), contentPadding = PaddingValues(
+                    horizontal = MozillaDimension.M, vertical = MozillaDimension.L
+                ), state = scrollState
             ) {
-                item {
-                    MarkdownText(
-                        markdown = state.title,
-                        style = MozillaTypography.H3
-                    )
-                    Spacer(modifier = Modifier.height(MozillaDimension.L))
-                }
-                item {
-                    MarkdownText(
-                        markdown = state.subtitle,
-                        style = MozillaTypography.H5
-                    )
-                    Spacer(modifier = Modifier.height(MozillaDimension.M))
-                }
-                item {
-                    MarkdownText(
-                        markdown = state.content,
-                        style = MozillaTypography.Body2,
-                        linkColor = Color.Blue
-                    )
-                    Spacer(modifier = Modifier.height(MozillaDimension.L))
+                if (state.title.isNotEmpty() && state.subtitle.isNotEmpty() && state.content.isNotEmpty()) {
+                    item {
+                        MarkdownText(
+                            markdown = state.title, style = MozillaTypography.H3
+                        )
+                        Spacer(modifier = Modifier.height(MozillaDimension.L))
+                    }
+                    item {
+                        MarkdownText(
+                            markdown = state.subtitle, style = MozillaTypography.H5
+                        )
+                        Spacer(modifier = Modifier.height(MozillaDimension.M))
+                    }
+                    item {
+                        MarkdownText(
+                            markdown = state.content, style = MozillaTypography.Body2, linkColor = Color.Blue
+                        )
+                        Spacer(modifier = Modifier.height(MozillaDimension.L))
+                    }
                 }
             }
 
             if (isForOnboarding) {
-                AppPolicyButtons(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(
-                            horizontal = MozillaDimension.M,
-                            vertical = MozillaDimension.L
-                        ),
-                    agreeButton = {
-                        PrimaryButton(
-                            modifier = Modifier.fillMaxWidth(),
-                            text = stringResource(id = R.string.i_agree),
-                            onClick = onAgree,
-                            enabled = buttonsEnabled
-                        )
-                    },
-                    disagreeButton = {
-                        SecondaryButton(
-                            modifier = Modifier.fillMaxWidth(),
-                            text = stringResource(id = R.string.i_disagree),
-                            onClick = onDisagree,
-                            enabled = buttonsEnabled
-                        )
-                    }
-                )
+                AppPolicyButtons(modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(
+                        horizontal = MozillaDimension.M, vertical = MozillaDimension.L
+                    ), agreeButton = {
+                    PrimaryButton(
+                        modifier = Modifier.fillMaxWidth(),
+                        text = stringResource(id = R.string.i_agree),
+                        onClick = onAgree,
+                        enabled = buttonsEnabled
+                    )
+                }, disagreeButton = {
+                    SecondaryButton(
+                        modifier = Modifier.fillMaxWidth(),
+                        text = stringResource(id = R.string.i_disagree),
+                        onClick = onDisagree,
+                        enabled = buttonsEnabled
+                    )
+                })
             }
         }
     }
