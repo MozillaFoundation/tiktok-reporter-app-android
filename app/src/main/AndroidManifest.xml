@@ -28,6 +28,8 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.TikTokReporter"
         android:enableOnBackInvokedCallback="true"
+        android:hardwareAccelerated="false"
+        android:largeHeap="true"
         tools:targetApi="33">
 
         <activity
