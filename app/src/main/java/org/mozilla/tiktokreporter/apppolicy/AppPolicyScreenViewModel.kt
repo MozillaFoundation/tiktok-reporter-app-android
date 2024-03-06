@@ -89,7 +89,7 @@ class AppPolicyScreenViewModel @Inject constructor(
                     it.copy(
                         title = policy.title,
                         subtitle = policy.subtitle,
-                        content = policy.text.replace("\\\\n", "\n").replace("        ●   ", " - ").replace("    ●   ", " ● ")
+                        content = policy.text.replace("\\n", "\n").replace("        ●   ", "     * ").replace("    ●   ", " * ")
                     )
                 }
                 _isLoading.update { false }
