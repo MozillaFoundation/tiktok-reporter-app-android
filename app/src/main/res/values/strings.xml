@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">TikTok Reporter</string>
+    <string name="app_name">TT Reporter</string>
 
     <string name="i_agree">I Agree</string>
     <string name="i_disagree">I Disagree</string>
@@ -16,7 +16,7 @@
     <string name="not_now">Not now</string>
     <string name="delete">Delete</string>
     <string name="keep">Keep</string>
-    <string name="report_link">Report a link</string>
+    <string name="report_link">Share a link</string>
     <string name="record_session">Record a session</string>
     <string name="text_field_label_comments_optional">Comments (optional)</string>
     <string name="start_recording_session">To start screen recording, tap the button below. Then, open your TikTok app and record your session while you scroll the FYP. To stop recording, press the “Stop Recording” button. You’ll be asked to share more information and submit this form.</string>
@@ -32,14 +32,14 @@
     <string name="terms_and_conditions">Terms &amp; conditions</string>
     <string name="privacy_policy">Privacy policy</string>
     <string name="data_handling">Data handling</string>
-    <string name="about_app_content">"TikTok Reporter" serves as a vital tool in an ongoing sociological study, seeking to understand the broader implications of content shared on TikTok. By reporting harmful videos, users contribute to a wealth of data that will be instrumental in identifying and addressing the social issues, influences, and trends within the platform.\n\nJoin us in shaping the future of digital interaction by participating in this sociological study through “TikTok Reporter” Your reports make a difference in the quest to foster a safer, more informed, and socially conscious digital environment.\n\nAnonymous Reporting: SocialSafeguard ensures users can report troubling TikTok content discreetly, preserving their privacy.\n\nCategorization: Users can categorize the type of harm observed in videos, such as bullying, misinformation, hate speech, or other sociological factors.\n\nCommentary: The app allows users to provide context and insights, fostering a deeper understanding of the content’s impact.\n\nData Collection: Reports are collated into a comprehensive database, allowing sociologists to analyze and identify trends and patterns.</string>
+    <string name="about_app_content">"TT Reporter" serves as a vital tool in an ongoing sociological study, seeking to understand the broader implications of content shared on TikTok. By reporting harmful videos, users contribute to a wealth of data that will be instrumental in identifying and addressing the social issues, influences, and trends within the platform.\n\nJoin us in shaping the future of digital interaction by participating in this sociological study through “TT Reporter”. Your reports make a difference in the quest to foster a safer, more informed, and socially conscious digital environment.\n\nAnonymous Reporting: SocialSafeguard ensures users can report troubling TikTok content discreetly, preserving their privacy.\n\nCategorization: Users can categorize the type of harm observed in videos, such as bullying, misinformation, hate speech, or other sociological factors.\n\nCommentary: The app allows users to provide context and insights, fostering a deeper understanding of the content’s impact.\n\nData Collection: Reports are collated into a comprehensive database, allowing sociologists to analyze and identify trends and patterns.</string>
 
 
     <string name="studies_list_title">Select a study to participate in</string>
-    <string name="studies_list_subtitle">We may choose to run a few different studies simultaneously. These are the studies available to you based on the information you provided.</string>
+    <string name="studies_list_subtitle">We may choose to run a few different studies simultaneously. These are the studies available to you based on location information from your IP address.</string>
 
     <string name="dialog_title_review_terms_and_conditions">Review the terms &amp; conditions</string>
-    <string name="dialog_message_review_terms_and_conditions">Please read these terms and conditions carefully before using TikTok Reporter</string>
+    <string name="dialog_message_review_terms_and_conditions">Please read these terms and conditions carefully before using TT Reporter</string>
 
     <string name="dialog_title_change_study">Change study</string>
     <string name="dialog_message_change_study">Are you sure you want to enroll in another study?</string>
