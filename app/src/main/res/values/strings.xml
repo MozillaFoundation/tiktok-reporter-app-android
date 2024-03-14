@@ -83,6 +83,6 @@
     <string name="recorded_on_at">Recorded on: %1$s at %2$s</string>
     <string name="button_submit_report">Submit Report</string>
     <string name="button_cancel_report">Cancel Report</string>
-    <string name="loading_tiktok_reporter">Loading TikTok Reporter…</string>
+    <string name="loading_tiktok_reporter">Loading…</string>
     <string name="button_refresh">Refresh</string>
 </resources>
