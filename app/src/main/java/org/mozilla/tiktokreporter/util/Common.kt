@@ -14,6 +14,7 @@ import androidx.compose.ui.util.lerp
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
+import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import androidx.lifecycle.Lifecycle
@@ -32,7 +33,7 @@ object Common {
     const val PREFERENCES_USER_EMAIL_KEY = "user_email"
     val DATASTORE_KEY_IS_RECORDING = booleanPreferencesKey("is_recording")
     val DATASTORE_KEY_VIDEO_URI = stringPreferencesKey("video_uri")
-    val DATASTORE_KEY_RECORDING_UPLOADED = booleanPreferencesKey("recording_uploaded")
+    val DATASTORE_KEY_RECORDING_UPLOADED = intPreferencesKey("recording_uploaded")
     val DATASTORE_KEY_REDIRECT_FIRST_TAB = booleanPreferencesKey("first_tab")
 }
 
@@ -82,21 +83,13 @@ fun <T> CollectWithLifecycle(
 
 // Scale num from min..max range to targetMin..targetMax range
 fun scale(
-    min: Float,
-    max: Float,
-    num: Float,
-    targetMin: Float,
-    targetMax: Float
+    min: Float, max: Float, num: Float, targetMin: Float, targetMax: Float
 ) = lerp(targetMin, targetMax, calcFraction(min, max, num))
 
 // Scale range.start, range.end from min..max range to targetMin..targetMax range
 @Suppress("unused")
 fun scale(
-    min: Float,
-    max: Float,
-    range: ClosedFloatingPointRange<Float>,
-    targetMin: Float,
-    targetMax: Float
+    min: Float, max: Float, range: ClosedFloatingPointRange<Float>, targetMin: Float, targetMax: Float
 ): ClosedRange<Float> {
     val scaledMin = scale(min, max, range.start, targetMin, targetMax)
     val scaledMax = scale(min, max, range.endInclusive, targetMin, targetMax)
@@ -105,5 +98,4 @@ fun scale(
 }
 
 // Calculate the 0..1 fraction that `pos` value represents between `min` and `max`
-fun calcFraction(min: Float, max: Float, pos: Float) =
-    (if (max - min == 0f) 0f else (pos - min) / (max - min)).coerceIn(0f, 1f)
+fun calcFraction(min: Float, max: Float, pos: Float) = (if (max - min == 0f) 0f else (pos - min) / (max - min)).coerceIn(0f, 1f)
