@@ -22,6 +22,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.mozilla.tiktokreporter.R
 import org.mozilla.tiktokreporter.TikTokReporterError
+import org.mozilla.tiktokreporter.common.FormFieldError
+import org.mozilla.tiktokreporter.common.FormFieldUiComponent
 import org.mozilla.tiktokreporter.common.formcomponents.formComponentsItems
 import org.mozilla.tiktokreporter.ui.components.LoadingScreen
 import org.mozilla.tiktokreporter.ui.components.MozillaScaffold
@@ -36,9 +38,15 @@ import org.mozilla.tiktokreporter.ui.theme.MozillaTypography
 import org.mozilla.tiktokreporter.util.CollectWithLifecycle
 import org.mozilla.tiktokreporter.util.UiText
 
+enum class EmailScreenMode {
+    ONBOARDING,
+    SETTINGS_UPDATES,
+    SETTINGS_DATA_HANDLING
+}
+
 @Composable
 fun EmailScreen(
-    viewModel: EmailScreenViewModel = hiltViewModel(), isForOnboarding: Boolean = true, onNextScreen: () -> Unit, onNavigateBack: () -> Unit
+    viewModel: EmailScreenViewModel = hiltViewModel(), mode: EmailScreenMode = EmailScreenMode.ONBOARDING, onNextScreen: () -> Unit, onNavigateBack: () -> Unit
 ) {
     DialogContainer { dialogState ->
 
@@ -49,7 +57,7 @@ fun EmailScreen(
             when (action) {
                 EmailScreenViewModel.UiAction.GoToReportForm -> onNextScreen()
                 EmailScreenViewModel.UiAction.EmailSaved -> {
-                    if (isForOnboarding) onNextScreen()
+                    if (mode == EmailScreenMode.ONBOARDING) onNextScreen()
                     else onNavigateBack()
                 }
 
@@ -96,9 +104,9 @@ fun EmailScreen(
                 state = state,
                 onFormFieldValueChanged = viewModel::onFormFieldValueChanged,
                 onNavigateBack = onNavigateBack,
-                onSaveEmail = viewModel::onSaveEmail,
+                onSaveEmail = if (mode === EmailScreenMode.SETTINGS_DATA_HANDLING) viewModel::onSaveDataHandlingEmail else viewModel::onSaveEmail,
                 onNextScreen = onNextScreen,
-                isForOnboarding = isForOnboarding,
+                mode = mode,
                 modifier = Modifier.fillMaxSize()
             )
         }
@@ -112,10 +120,10 @@ private fun EmailScreenContent(
     onNavigateBack: () -> Unit,
     onSaveEmail: () -> Unit,
     onNextScreen: () -> Unit,
-    isForOnboarding: Boolean,
+    mode: EmailScreenMode,
     modifier: Modifier = Modifier
 ) {
-    MozillaScaffold(modifier = modifier, topBar = if (isForOnboarding) null else {
+    MozillaScaffold(modifier = modifier, topBar = if (mode == EmailScreenMode.ONBOARDING) null else {
         {
             MozillaTopAppBar(modifier = Modifier.fillMaxWidth(), navItem = {
                 IconButton(
@@ -129,6 +137,12 @@ private fun EmailScreenContent(
         }
     }) { innerPadding ->
         val scrollState = rememberScrollState()
+        var headingText = stringResource(R.string.sign_up_for_updates)
+        var formFields = state.formFields
+        if (mode == EmailScreenMode.SETTINGS_DATA_HANDLING) {
+            headingText = stringResource(R.string.email_for_data_download)
+            formFields = state.dataFormFields
+        }
 
         Column(
             modifier = Modifier
@@ -149,11 +163,11 @@ private fun EmailScreenContent(
                 ) {
                     Text(
                         modifier = Modifier.fillMaxWidth(),
-                        text = stringResource(R.string.sign_up_for_updates),
+                        text = headingText,
                         style = MozillaTypography.H3
                     )
                     formComponentsItems(
-                        formFields = state.formFields, onFormFieldValueChanged = onFormFieldValueChanged
+                        formFields = formFields, onFormFieldValueChanged = onFormFieldValueChanged
                     )
                 }
             }
@@ -164,17 +178,21 @@ private fun EmailScreenContent(
                     .padding(horizontal = MozillaDimension.M)
             ) {
                 OnboardingFormButtons(modifier = Modifier.fillMaxWidth(), nextButton = {
-                    if (isForOnboarding) {
+                    if (mode != EmailScreenMode.SETTINGS_UPDATES) {
                         PrimaryButton(
                             modifier = Modifier.fillMaxWidth(), text = stringResource(id = R.string.save), onClick = onSaveEmail
                         )
                     }
                 }, skipButton = {
-                    SecondaryButton(
-                        modifier = Modifier.fillMaxWidth(),
-                        text = if (isForOnboarding) stringResource(id = R.string.skip) else stringResource(id = R.string.save),
-                        onClick = if (isForOnboarding) onNextScreen else onSaveEmail
-                    )
+                    if (mode != EmailScreenMode.SETTINGS_DATA_HANDLING) {
+                        SecondaryButton(
+                            modifier = Modifier.fillMaxWidth(),
+                            text = if (mode == EmailScreenMode.ONBOARDING) stringResource(id = R.string.skip) else stringResource(
+                                id = R.string.save
+                            ),
+                            onClick = if (mode == EmailScreenMode.ONBOARDING) onNextScreen else onSaveEmail
+                        )
+                    }
                 })
             }
         }

@@ -1,5 +1,6 @@
 package org.mozilla.tiktokreporter.email
 
+import android.widget.Toast
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -17,6 +18,7 @@ import org.mozilla.tiktokreporter.TikTokReporterError
 import org.mozilla.tiktokreporter.TikTokReporterRepository
 import org.mozilla.tiktokreporter.common.FormFieldUiComponent
 import org.mozilla.tiktokreporter.common.toUiComponents
+import org.mozilla.tiktokreporter.data.model.Form
 import org.mozilla.tiktokreporter.data.model.StudyDetails
 import org.mozilla.tiktokreporter.toTikTokReporterError
 import java.util.UUID
@@ -69,11 +71,27 @@ class EmailScreenViewModel @Inject constructor(
                         )
                     }
                 }
+
+                val dataDownloadForm = study?.dataDownloadForm
+                val dataDownloadFields = if (dataDownloadForm is Form) {
+                        dataDownloadForm.fields.toUiComponents().toMutableList().apply {
+                            if (userEmail.isNotBlank()) {
+                                val index = this.indexOfFirst { it is FormFieldUiComponent.TextField }
+                                val field = this[index] as FormFieldUiComponent.TextField
+                                this[index] = field.copy(
+                                    value = userEmail
+                                )
+                            }
+                        }
+                    }
+                    else fields
+
                 _isLoading.update { false }
                 _state.update { state ->
                     state.copy(
                         studyDetails = study,
-                        formFields = fields
+                        formFields = fields,
+                        dataFormFields = dataDownloadFields
                     )
                 }
             }
@@ -130,6 +148,25 @@ class EmailScreenViewModel @Inject constructor(
         }
     }
 
+    fun onSaveDataHandlingEmail() {
+        viewModelScope.launch {
+            val emailField = state.value.dataFormFields.firstOrNull { it is FormFieldUiComponent.TextField }
+            val email = emailField?.value.toString()
+            if (email.isNotBlank()) {
+                tikTokReporterRepository.saveUserEmail(email)
+
+                Email.identifier.set(UUID.fromString(state.value.studyDetails?.id))
+                Email.email.set(email)
+                Pings.email.submit()
+
+                _uiAction.send(UiAction.EmailSaved)
+            } else {
+                // TODO: update state to show error on form field,
+                // for now the user just can't submit
+            }
+        }
+    }
+
     fun refresh() {
         viewModelScope.launch {
             _refreshAction.update { !_refreshAction.value }
@@ -138,7 +175,8 @@ class EmailScreenViewModel @Inject constructor(
 
     data class State(
         val studyDetails: StudyDetails? = null,
-        val formFields: List<FormFieldUiComponent<*>> = emptyList()
+        val formFields: List<FormFieldUiComponent<*>> = emptyList(),
+        val dataFormFields: List<FormFieldUiComponent<*>> = emptyList()
     )
 
     sealed class UiAction {
