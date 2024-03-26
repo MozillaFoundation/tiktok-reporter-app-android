@@ -77,6 +77,7 @@
     <string name="save">Save</string>
     <string name="button_trim_recording">Trim Recording</string>
     <string name="done_editing">I\'m done editing</string>
+    <string name="toast_download_my_data">Request received! An email containing your data will be sent.</string>
     <string name="button_download_my_data">Download My Data</string>
     <string name="button_delete_my_data">Delete My Data</string>
     <string name="label_recorded_video">Recorded Video</string>

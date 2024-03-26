@@ -1,5 +1,6 @@
 package org.mozilla.tiktokreporter.email
 
+import android.widget.Toast
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -17,6 +18,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -48,6 +50,7 @@ enum class EmailScreenMode {
 fun EmailScreen(
     viewModel: EmailScreenViewModel = hiltViewModel(), mode: EmailScreenMode = EmailScreenMode.ONBOARDING, onNextScreen: () -> Unit, onNavigateBack: () -> Unit
 ) {
+    val context = LocalContext.current
     DialogContainer { dialogState ->
 
         val state by viewModel.state.collectAsStateWithLifecycle()
@@ -59,6 +62,9 @@ fun EmailScreen(
                 EmailScreenViewModel.UiAction.EmailSaved -> {
                     if (mode == EmailScreenMode.ONBOARDING) onNextScreen()
                     else onNavigateBack()
+                }
+                EmailScreenViewModel.UiAction.ShowDataDownloaded -> {
+                    Toast.makeText(context, R.string.toast_download_my_data, Toast.LENGTH_SHORT).show()
                 }
 
                 is EmailScreenViewModel.UiAction.ShowError -> {
@@ -116,7 +122,7 @@ fun EmailScreen(
 @Composable
 private fun EmailScreenContent(
     state: EmailScreenViewModel.State,
-    onFormFieldValueChanged: (formFieldId: String, value: Any) -> Unit,
+    onFormFieldValueChanged: (formFieldId: String, value: Any, mode: EmailScreenMode) -> Unit,
     onNavigateBack: () -> Unit,
     onSaveEmail: () -> Unit,
     onNextScreen: () -> Unit,
@@ -167,7 +173,9 @@ private fun EmailScreenContent(
                         style = MozillaTypography.H3
                     )
                     formComponentsItems(
-                        formFields = formFields, onFormFieldValueChanged = onFormFieldValueChanged
+                        formFields = formFields, onFormFieldValueChanged = fun(formFieldId, value) {
+                            onFormFieldValueChanged(formFieldId, value, mode)
+                        }
                     )
                 }
             }

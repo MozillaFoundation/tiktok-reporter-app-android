@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import org.mozilla.tiktokreporter.GleanMetrics.DownloadData
 import org.mozilla.tiktokreporter.GleanMetrics.Email
 import org.mozilla.tiktokreporter.GleanMetrics.Pings
 import org.mozilla.tiktokreporter.TikTokReporterError
@@ -20,6 +21,7 @@ import org.mozilla.tiktokreporter.common.FormFieldUiComponent
 import org.mozilla.tiktokreporter.common.toUiComponents
 import org.mozilla.tiktokreporter.data.model.Form
 import org.mozilla.tiktokreporter.data.model.StudyDetails
+import org.mozilla.tiktokreporter.datahandling.DataHandlingScreenViewModel
 import org.mozilla.tiktokreporter.toTikTokReporterError
 import java.util.UUID
 import javax.inject.Inject
@@ -100,11 +102,13 @@ class EmailScreenViewModel @Inject constructor(
 
     fun onFormFieldValueChanged(
         formFieldId: String,
-        value: Any
+        value: Any,
+        mode: EmailScreenMode
     ) {
         viewModelScope.launch(Dispatchers.Unconfined) {
-            val fieldIndex = state.value.formFields.indexOfFirst { it.id == formFieldId }
-            val newField = when (val field = state.value.formFields[fieldIndex]) {
+            val formFields = if (mode == EmailScreenMode.SETTINGS_DATA_HANDLING) state.value.dataFormFields else state.value.formFields
+            val fieldIndex = formFields.indexOfFirst { it.id == formFieldId }
+            val newField = when (val field = formFields[fieldIndex]) {
                 is FormFieldUiComponent.TextField -> {
                     field.copy(
                         value = value as String
@@ -122,13 +126,21 @@ class EmailScreenViewModel @Inject constructor(
                 }
             }
 
-            val newFields = state.value.formFields.toMutableList()
+            val newFields = formFields.toMutableList()
             newFields[fieldIndex] = newField
 
-            _state.update {
-                it.copy(
-                    formFields = newFields
-                )
+            if (mode == EmailScreenMode.SETTINGS_DATA_HANDLING) {
+                _state.update {
+                    it.copy(
+                        dataFormFields = newFields
+                    )
+                }
+            } else {
+                _state.update {
+                    it.copy(
+                        formFields = newFields
+                    )
+                }
             }
         }
     }
@@ -155,10 +167,10 @@ class EmailScreenViewModel @Inject constructor(
             if (email.isNotBlank()) {
                 tikTokReporterRepository.saveUserEmail(email)
 
-                Email.identifier.set(UUID.fromString(state.value.studyDetails?.id))
-                Email.email.set(email)
-                Pings.email.submit()
-
+                DownloadData.identifier.set(UUID.fromString(tikTokReporterRepository.selectedStudyId))
+                DownloadData.email.set(email)
+                Pings.downloadData.submit()
+                _uiAction.send(UiAction.ShowDataDownloaded)
                 _uiAction.send(UiAction.EmailSaved)
             } else {
                 // TODO: update state to show error on form field,
@@ -182,6 +194,7 @@ class EmailScreenViewModel @Inject constructor(
     sealed class UiAction {
         data object GoToReportForm: UiAction()
         data object EmailSaved: UiAction()
+        data object ShowDataDownloaded: UiAction()
         data class ShowError(
             val error: TikTokReporterError
         ): UiAction()

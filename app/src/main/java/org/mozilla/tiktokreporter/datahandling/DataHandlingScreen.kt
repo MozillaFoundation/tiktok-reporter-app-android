@@ -50,7 +50,7 @@ fun DataHandlingScreen(
                 }
 
                 is DataHandlingScreenViewModel.UiAction.ShowDataDownloaded -> {
-                    Toast.makeText(context, "Request received! An email containing your data will be sent.", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, R.string.toast_download_my_data, Toast.LENGTH_SHORT).show()
                 }
             }
         })
