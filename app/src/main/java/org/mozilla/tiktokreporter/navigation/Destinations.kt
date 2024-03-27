@@ -67,6 +67,7 @@ sealed class NestedDestination(
     data object StudyOnboarding: NestedDestination("studyOnboarding")
     data object Email: NestedDestination("email")
     data object DataHandling: NestedDestination("dataHandling")
+    data object DataHandlingEmail: NestedDestination("dataHandlingEmail")
     data object AboutApp: NestedDestination("aboutApp")
 
 

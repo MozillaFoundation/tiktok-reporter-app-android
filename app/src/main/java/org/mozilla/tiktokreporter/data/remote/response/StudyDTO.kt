@@ -12,5 +12,6 @@ data class StudyDTO(
     @Json(name = "policies") val policyDTOs: List<PolicyDTO>,
     @Json(name = "onboarding") val onboardingDTO: OnboardingDTO?,
     @Json(name = "form") val formDTO: FormDTO?,
+    @Json(name = "dataDownloadForm") val dataDownloadFormDTO: FormDTO?,
     @Json(name = "supportsRecording") val supportsRecording: Boolean,
 )

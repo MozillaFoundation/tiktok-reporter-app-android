@@ -20,6 +20,7 @@ import org.mozilla.tiktokreporter.apppolicy.AppPolicyScreen
 import org.mozilla.tiktokreporter.datahandling.DataHandlingScreen
 import org.mozilla.tiktokreporter.editvideo.EditVideoScreen
 import org.mozilla.tiktokreporter.email.EmailScreen
+import org.mozilla.tiktokreporter.email.EmailScreenMode
 import org.mozilla.tiktokreporter.reportform.ReportFormScreen
 import org.mozilla.tiktokreporter.reportformcompleted.ReportFormCompletedScreen
 import org.mozilla.tiktokreporter.settings.SettingsScreen
@@ -293,6 +294,7 @@ private fun NavGraphBuilder.addSettings(
             root = Destination.Settings
         )
         addDataHandling(navController)
+        addDataHandlingEmail(navController)
     }
 }
 
@@ -492,7 +494,7 @@ private fun NavGraphBuilder.addEmail(
         route = startDestination
     ) {
         EmailScreen(
-            isForOnboarding = isForOnboarding,
+            mode = if (isForOnboarding) EmailScreenMode.ONBOARDING else EmailScreenMode.SETTINGS_UPDATES,
             onNextScreen = {
                 val destination = NestedDestination.ReportFormNested.createRoute(Destination.ReportForm)
                 navController.navigate(destination) {
@@ -515,6 +517,28 @@ private fun NavGraphBuilder.addDataHandling(
         route = NestedDestination.DataHandling.createRoute(Destination.Settings)
     ) {
         DataHandlingScreen(
+            onNavigateBack = {
+                navController.navigateUp()
+            },
+            onGoToDataEmail = {
+                val destination = NestedDestination.DataHandlingEmail.createRoute(Destination.Settings)
+                navController.navigate(destination)
+            }
+        )
+    }
+}
+
+private fun NavGraphBuilder.addDataHandlingEmail(
+    navController: NavController
+) {
+    composable(
+        route = NestedDestination.DataHandlingEmail.createRoute(Destination.Settings)
+    ) {
+        EmailScreen(
+            mode = EmailScreenMode.SETTINGS_DATA_HANDLING,
+            onNextScreen = { /*TODO*/
+
+            },
             onNavigateBack = {
                 navController.navigateUp()
             }
