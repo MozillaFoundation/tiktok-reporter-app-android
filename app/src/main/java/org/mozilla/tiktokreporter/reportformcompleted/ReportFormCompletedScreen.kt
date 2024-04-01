@@ -96,37 +96,6 @@ fun ReportFormCompletedScreen(
                 text = stringResource(id = R.string.button_im_done),
                 onClick = onNavigateBack
             )
-
-            Spacer(modifier = Modifier.height(MozillaDimension.L))
-
-            val text = buildAnnotatedString {
-                withStyle(
-                    SpanStyle(
-                        color = MozillaColor.Inactive
-                    )
-                ) {
-                    append(stringResource(id = R.string.report_copy_go_to))
-                }
-                withStyle(
-                    SpanStyle(
-                        color = MozillaColor.Red,
-                        textDecoration = TextDecoration.Underline
-                    )
-                ) {
-                    withAnnotation("settings", "") {
-                        append("Settings")
-                    }
-                }
-            }
-            ClickableText(
-                text = text,
-                style = MozillaTypography.Body2,
-                onClick = {
-                    text.getStringAnnotations(it, it).firstOrNull()?.tag?.let { _ ->
-                        onGoToSettings()
-                    }
-                }
-            )
         }
     }
 }
