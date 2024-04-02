@@ -37,6 +37,7 @@ data class StudyDetails(
     val onboarding: Onboarding?,
     val policies: List<Policy>,
     val form: Form?,
+    val dataDownloadForm: Form?,
     val supportsRecording: Boolean
 )
 
@@ -49,6 +50,7 @@ fun StudyDTO.toStudyDetails(): StudyDetails {
         onboarding = onboardingDTO?.toOnboarding(),
         policies = policyDTOs.map { it.toPolicy() },
         form = formDTO?.toForm(),
+        dataDownloadForm = dataDownloadFormDTO?.toForm(),
         supportsRecording = supportsRecording
     )
 }

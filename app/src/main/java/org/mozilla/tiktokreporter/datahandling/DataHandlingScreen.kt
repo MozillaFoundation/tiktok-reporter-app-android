@@ -11,6 +11,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -27,12 +28,13 @@ import org.mozilla.tiktokreporter.ui.components.dialog.DialogContainer
 import org.mozilla.tiktokreporter.ui.components.dialog.DialogState
 import org.mozilla.tiktokreporter.ui.theme.MozillaColor
 import org.mozilla.tiktokreporter.ui.theme.MozillaDimension
+import org.mozilla.tiktokreporter.ui.theme.MozillaTypography
 import org.mozilla.tiktokreporter.util.CollectWithLifecycle
 import org.mozilla.tiktokreporter.util.UiText
 
 @Composable
 fun DataHandlingScreen(
-    viewModel: DataHandlingScreenViewModel = hiltViewModel(), onNavigateBack: () -> Unit
+    viewModel: DataHandlingScreenViewModel = hiltViewModel(), onNavigateBack: () -> Unit, onGoToDataEmail: () -> Unit
 ) {
     val context = LocalContext.current
     DialogContainer { dialogState ->
@@ -42,21 +44,13 @@ fun DataHandlingScreen(
         CollectWithLifecycle(flow = viewModel.uiAction, onCollect = { action ->
             when (action) {
                 is DataHandlingScreenViewModel.UiAction.NavigateBack -> onNavigateBack()
-                is DataHandlingScreenViewModel.UiAction.ShowNoEmailProvidedWarning -> {
-                    dialogState.value = DialogState.MessageDialog(title = UiText.DynamicString("No email provided"),
-                        message = UiText.DynamicString("Please provide an email in order to get a copy of your data."),
-                        negativeButtonText = UiText.StringResource(R.string.got_it),
-                        onNegative = {
-                            dialogState.value = DialogState.Nothing
-                        })
-                }
-
+                is DataHandlingScreenViewModel.UiAction.ShowEmailRequestForm -> onGoToDataEmail()
                 is DataHandlingScreenViewModel.UiAction.ShowDataDeleted -> {
                     Toast.makeText(context, "Data successfully deleted!", Toast.LENGTH_SHORT).show()
                 }
 
                 is DataHandlingScreenViewModel.UiAction.ShowDataDownloaded -> {
-                    Toast.makeText(context, "Request received! An email containing your data will be sent.", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, R.string.toast_download_my_data, Toast.LENGTH_SHORT).show()
                 }
             }
         })
