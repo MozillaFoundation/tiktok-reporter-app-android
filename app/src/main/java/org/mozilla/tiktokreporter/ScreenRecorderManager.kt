@@ -22,7 +22,11 @@ import org.mozilla.tiktokreporter.util.dataStore
 import org.mozilla.tiktokreporter.util.onSdkVersionAndUp
 import org.mozilla.tiktokreporter.util.videosCollection
 import javax.inject.Inject
+import kotlin.math.min
 
+
+private const val MAX_VIDEO_FRAMERATE = 20
+private const val MAX_VIDEO_BITRATE = 1000 * 1000
 
 class ScreenRecorderManager @Inject constructor(
     @ApplicationContext private val context: Context
@@ -50,14 +54,16 @@ class ScreenRecorderManager @Inject constructor(
             MediaRecorder(context)
         } ?: MediaRecorder()
 
-        mediaRecorder?.apply {
 
+        var frameRate = min(recordingInfo.frameRate, MAX_VIDEO_FRAMERATE)
+
+        mediaRecorder?.apply {
             setVideoSource(MediaRecorder.VideoSource.SURFACE)
             setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
-            setVideoEncoder(MediaRecorder.VideoEncoder.H264)
             setVideoSize(recordingInfo.width, recordingInfo.height)
-            setVideoFrameRate(recordingInfo.frameRate)
-            setVideoEncodingBitRate(8 * 1000 * 1000)
+            setVideoFrameRate(frameRate)
+            setVideoEncoder(MediaRecorder.VideoEncoder.H264)
+            setVideoEncodingBitRate(MAX_VIDEO_BITRATE)
         }
 
         val currentTimeMillis = System.currentTimeMillis()
@@ -142,7 +148,8 @@ class ScreenRecorderManager @Inject constructor(
         val configuration = context.resources.configuration
         val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
 
-        val camcorderProfile = CamcorderProfile.get(CamcorderProfile.QUALITY_HIGH)  // TODO: check warning
+        val quality = if (CamcorderProfile.hasProfile(CamcorderProfile.QUALITY_480P)) CamcorderProfile.QUALITY_480P else CamcorderProfile.QUALITY_HIGH
+        val camcorderProfile = CamcorderProfile.get(quality)  // TODO: use getAll but watch for lower API levels
 
         val cameraWidth = camcorderProfile?.videoFrameWidth ?: -1
         val cameraHeight = camcorderProfile?.videoFrameHeight ?: -1
