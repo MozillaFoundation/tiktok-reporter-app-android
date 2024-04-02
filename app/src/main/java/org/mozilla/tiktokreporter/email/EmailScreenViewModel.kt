@@ -91,6 +91,7 @@ class EmailScreenViewModel @Inject constructor(
                 _isLoading.update { false }
                 _state.update { state ->
                     state.copy(
+                        userEmail = userEmail,
                         studyDetails = study,
                         formFields = fields,
                         dataFormFields = dataDownloadFields
@@ -145,6 +146,31 @@ class EmailScreenViewModel @Inject constructor(
         }
     }
 
+    fun onRemoveEmail(mode: EmailScreenMode) {
+        viewModelScope.launch {
+            val emptyEmail = ""
+
+            tikTokReporterRepository.saveUserEmail(emptyEmail)
+
+            Email.identifier.set(UUID.fromString(state.value.studyDetails?.id))
+            Email.email.set(emptyEmail)
+            Pings.email.submit()
+
+            _state.update {
+                it.copy(
+                    userEmail = ""
+                )
+            }
+
+            val emailField = state.value.formFields.firstOrNull { it is FormFieldUiComponent.TextField }
+            if (emailField != null) {
+                onFormFieldValueChanged(emailField.id, emptyEmail, mode)
+            }
+
+            _uiAction.send(UiAction.EmailRemoved)
+        }
+    }
+
     fun onSaveEmail() {
         viewModelScope.launch {
             val emailField = state.value.formFields.firstOrNull { it is FormFieldUiComponent.TextField }
@@ -157,6 +183,12 @@ class EmailScreenViewModel @Inject constructor(
             Pings.email.submit()
 
             _uiAction.send(UiAction.EmailSaved)
+
+            _state.update {
+                it.copy(
+                    userEmail = email
+                )
+            }
         }
     }
 
@@ -165,11 +197,15 @@ class EmailScreenViewModel @Inject constructor(
             val emailField = state.value.dataFormFields.firstOrNull { it is FormFieldUiComponent.TextField }
             val email = emailField?.value.toString()
             if (email.isNotBlank()) {
-                tikTokReporterRepository.saveUserEmail(email)
-
                 DownloadData.identifier.set(UUID.fromString(tikTokReporterRepository.selectedStudyId))
                 DownloadData.email.set(email)
                 Pings.downloadData.submit()
+
+                _state.update {
+                    it.copy(
+                        userEmail = email
+                    )
+                }
                 _uiAction.send(UiAction.ShowDataDownloaded)
                 _uiAction.send(UiAction.EmailSaved)
             } else {
@@ -186,6 +222,7 @@ class EmailScreenViewModel @Inject constructor(
     }
 
     data class State(
+        val userEmail: String = "",
         val studyDetails: StudyDetails? = null,
         val formFields: List<FormFieldUiComponent<*>> = emptyList(),
         val dataFormFields: List<FormFieldUiComponent<*>> = emptyList()
@@ -194,6 +231,7 @@ class EmailScreenViewModel @Inject constructor(
     sealed class UiAction {
         data object GoToReportForm: UiAction()
         data object EmailSaved: UiAction()
+        data object EmailRemoved: UiAction()
         data object ShowDataDownloaded: UiAction()
         data class ShowError(
             val error: TikTokReporterError

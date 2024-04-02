@@ -63,6 +63,9 @@ fun EmailScreen(
                     if (mode == EmailScreenMode.ONBOARDING) onNextScreen()
                     else onNavigateBack()
                 }
+                EmailScreenViewModel.UiAction.EmailRemoved -> {
+                    Toast.makeText(context, R.string.email_removed, Toast.LENGTH_SHORT).show()
+                }
                 EmailScreenViewModel.UiAction.ShowDataDownloaded -> {
                     Toast.makeText(context, R.string.toast_download_my_data, Toast.LENGTH_SHORT).show()
                 }
@@ -111,6 +114,7 @@ fun EmailScreen(
                 onFormFieldValueChanged = viewModel::onFormFieldValueChanged,
                 onNavigateBack = onNavigateBack,
                 onSaveEmail = if (mode === EmailScreenMode.SETTINGS_DATA_HANDLING) viewModel::onSaveDataHandlingEmail else viewModel::onSaveEmail,
+                onRemoveEmail = viewModel::onRemoveEmail,
                 onNextScreen = onNextScreen,
                 mode = mode,
                 modifier = Modifier.fillMaxSize()
@@ -125,6 +129,7 @@ private fun EmailScreenContent(
     onFormFieldValueChanged: (formFieldId: String, value: Any, mode: EmailScreenMode) -> Unit,
     onNavigateBack: () -> Unit,
     onSaveEmail: () -> Unit,
+    onRemoveEmail: (mode: EmailScreenMode) -> Unit,
     onNextScreen: () -> Unit,
     mode: EmailScreenMode,
     modifier: Modifier = Modifier
@@ -192,6 +197,20 @@ private fun EmailScreenContent(
                     if (mode != EmailScreenMode.SETTINGS_UPDATES) {
                         PrimaryButton(
                             modifier = Modifier.fillMaxWidth(), text = stringResource(id = R.string.save), onClick = onSaveEmail
+                        )
+                    } else if (state.userEmail.isNotEmpty()) {
+                        MarkdownText(
+                            modifier = Modifier.fillMaxWidth().padding(PaddingValues(
+                                vertical = MozillaDimension.M
+                            )),
+                            markdown = stringResource(R.string.email_remove_description), style = MozillaTypography.Body2, linkColor = Color.Blue
+                        )
+                        SecondaryButton(
+                            modifier = Modifier.fillMaxWidth(),
+                            text = stringResource(R.string.email_remove),
+                            onClick = fun() {
+                                onRemoveEmail(mode)
+                            }
                         )
                     }
                 }, skipButton = {
