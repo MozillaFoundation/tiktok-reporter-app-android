@@ -18,14 +18,14 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import dev.jeziellago.compose.markdowntext.MarkdownText
 import org.mozilla.tiktokreporter.R
 import org.mozilla.tiktokreporter.TikTokReporterError
-import org.mozilla.tiktokreporter.common.FormFieldError
-import org.mozilla.tiktokreporter.common.FormFieldUiComponent
 import org.mozilla.tiktokreporter.common.formcomponents.formComponentsItems
 import org.mozilla.tiktokreporter.ui.components.LoadingScreen
 import org.mozilla.tiktokreporter.ui.components.MozillaScaffold
@@ -176,6 +176,9 @@ private fun EmailScreenContent(
                         formFields = formFields, onFormFieldValueChanged = fun(formFieldId, value) {
                             onFormFieldValueChanged(formFieldId, value, mode)
                         }
+                    )
+                    MarkdownText(
+                        markdown = stringResource(R.string.email_policy_markdown), style = MozillaTypography.Body2, linkColor = Color.Blue
                     )
                 }
             }
