@@ -174,11 +174,13 @@ private fun AppPolicyScreenContent(
                         )
                         Spacer(modifier = Modifier.height(MozillaDimension.L))
                     }
-                    item {
-                        MarkdownText(
-                            markdown = state.subtitle, style = MozillaTypography.H5
-                        )
-                        Spacer(modifier = Modifier.height(MozillaDimension.M))
+                    if (state.subtitle.trim().isNotEmpty()) {
+                        item {
+                            MarkdownText(
+                                markdown = state.subtitle, style = MozillaTypography.H5
+                            )
+                            Spacer(modifier = Modifier.height(MozillaDimension.M))
+                        }
                     }
                     item {
                         MarkdownText(

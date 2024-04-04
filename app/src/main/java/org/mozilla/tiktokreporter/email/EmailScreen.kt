@@ -18,14 +18,14 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import dev.jeziellago.compose.markdowntext.MarkdownText
 import org.mozilla.tiktokreporter.R
 import org.mozilla.tiktokreporter.TikTokReporterError
-import org.mozilla.tiktokreporter.common.FormFieldError
-import org.mozilla.tiktokreporter.common.FormFieldUiComponent
 import org.mozilla.tiktokreporter.common.formcomponents.formComponentsItems
 import org.mozilla.tiktokreporter.ui.components.LoadingScreen
 import org.mozilla.tiktokreporter.ui.components.MozillaScaffold
@@ -62,6 +62,9 @@ fun EmailScreen(
                 EmailScreenViewModel.UiAction.EmailSaved -> {
                     if (mode == EmailScreenMode.ONBOARDING) onNextScreen()
                     else onNavigateBack()
+                }
+                EmailScreenViewModel.UiAction.EmailRemoved -> {
+                    Toast.makeText(context, R.string.email_removed, Toast.LENGTH_SHORT).show()
                 }
                 EmailScreenViewModel.UiAction.ShowDataDownloaded -> {
                     Toast.makeText(context, R.string.toast_download_my_data, Toast.LENGTH_SHORT).show()
@@ -111,6 +114,7 @@ fun EmailScreen(
                 onFormFieldValueChanged = viewModel::onFormFieldValueChanged,
                 onNavigateBack = onNavigateBack,
                 onSaveEmail = if (mode === EmailScreenMode.SETTINGS_DATA_HANDLING) viewModel::onSaveDataHandlingEmail else viewModel::onSaveEmail,
+                onRemoveEmail = viewModel::onRemoveEmail,
                 onNextScreen = onNextScreen,
                 mode = mode,
                 modifier = Modifier.fillMaxSize()
@@ -125,6 +129,7 @@ private fun EmailScreenContent(
     onFormFieldValueChanged: (formFieldId: String, value: Any, mode: EmailScreenMode) -> Unit,
     onNavigateBack: () -> Unit,
     onSaveEmail: () -> Unit,
+    onRemoveEmail: (mode: EmailScreenMode) -> Unit,
     onNextScreen: () -> Unit,
     mode: EmailScreenMode,
     modifier: Modifier = Modifier
@@ -177,6 +182,9 @@ private fun EmailScreenContent(
                             onFormFieldValueChanged(formFieldId, value, mode)
                         }
                     )
+                    MarkdownText(
+                        markdown = stringResource(R.string.email_policy_markdown), style = MozillaTypography.Body2, linkColor = Color.Blue
+                    )
                 }
             }
 
@@ -189,6 +197,20 @@ private fun EmailScreenContent(
                     if (mode != EmailScreenMode.SETTINGS_UPDATES) {
                         PrimaryButton(
                             modifier = Modifier.fillMaxWidth(), text = stringResource(id = R.string.save), onClick = onSaveEmail
+                        )
+                    } else if (state.userEmail.isNotEmpty()) {
+                        MarkdownText(
+                            modifier = Modifier.fillMaxWidth().padding(PaddingValues(
+                                vertical = MozillaDimension.M
+                            )),
+                            markdown = stringResource(R.string.email_remove_description), style = MozillaTypography.Body2, linkColor = Color.Blue
+                        )
+                        SecondaryButton(
+                            modifier = Modifier.fillMaxWidth(),
+                            text = stringResource(R.string.email_remove),
+                            onClick = fun() {
+                                onRemoveEmail(mode)
+                            }
                         )
                     }
                 }, skipButton = {
