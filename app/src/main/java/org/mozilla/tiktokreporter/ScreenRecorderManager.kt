@@ -22,14 +22,14 @@ import org.mozilla.tiktokreporter.util.dataStore
 import org.mozilla.tiktokreporter.util.onSdkVersionAndUp
 import org.mozilla.tiktokreporter.util.videosCollection
 import javax.inject.Inject
+import kotlin.math.min
 
 
 class ScreenRecorderManager @Inject constructor(
     @ApplicationContext private val context: Context
 ) {
 
-    private var mediaProjectionManager: MediaProjectionManager =
-        context.getSystemService(MediaProjectionManager::class.java)
+    private var mediaProjectionManager: MediaProjectionManager = context.getSystemService(MediaProjectionManager::class.java)
     private var mediaProjection: MediaProjection? = null
     private var virtualDisplay: VirtualDisplay? = null
     private var mediaRecorder: MediaRecorder? = null
@@ -39,25 +39,25 @@ class ScreenRecorderManager @Inject constructor(
     private val mediaProjectionCallback = object : MediaProjection.Callback() {}
 
     private fun setupMediaProjectionAndRecorder(
-        code: Int,
-        data: Intent,
-        recordingInfo: RecordingInfo
+        code: Int, data: Intent, recordingInfo: RecordingInfo
     ) {
+        val videoWidth: Int = min(context.resources.getInteger(R.integer.video_width), recordingInfo.width)
+        val videoHeight: Int = min(context.resources.getInteger(R.integer.video_height), recordingInfo.height)
+        val videoFrameRate: Int = context.resources.getInteger(R.integer.video_frame_rate)
+        val videoBitRate: Int = context.resources.getInteger(R.integer.video_bit_rate)
         mediaProjection = mediaProjectionManager.getMediaProjection(code, data)
 
         @Suppress("DEPRECATION")
         mediaRecorder = onSdkVersionAndUp(Build.VERSION_CODES.S) {
             MediaRecorder(context)
         } ?: MediaRecorder()
-
         mediaRecorder?.apply {
-
             setVideoSource(MediaRecorder.VideoSource.SURFACE)
             setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
-            setVideoEncoder(MediaRecorder.VideoEncoder.H264)
-            setVideoSize(recordingInfo.width, recordingInfo.height)
-            setVideoFrameRate(recordingInfo.frameRate)
-            setVideoEncodingBitRate(8 * 1000 * 1000)
+            setVideoSize(videoWidth, videoHeight)
+            setVideoFrameRate(videoFrameRate)
+            setVideoEncodingBitRate(videoBitRate)
+            setVideoEncoder(MediaRecorder.VideoEncoder.DEFAULT)
         }
 
         val currentTimeMillis = System.currentTimeMillis()
@@ -100,16 +100,14 @@ class ScreenRecorderManager @Inject constructor(
     }
 
     fun startRecording(
-        code: Int,
-        data: Intent
+        code: Int, data: Intent
     ) {
         val recordingInfo = getRecordingInfo()
-        if (mediaProjection == null || mediaRecorder == null)
-            try {
-                setupMediaProjectionAndRecorder(code, data, recordingInfo)
-            } catch (e: Exception) {
-                throw e
-            }
+        if (mediaProjection == null || mediaRecorder == null) try {
+            setupMediaProjectionAndRecorder(code, data, recordingInfo)
+        } catch (e: Exception) {
+            throw e
+        }
 
         setupVirtualDisplay(recordingInfo)
         mediaRecorder?.start()
@@ -174,10 +172,7 @@ class ScreenRecorderManager @Inject constructor(
 
         if (cameraWidth == -1 && cameraHeight == -1) {
             return RecordingInfo(
-                width = actualDisplayWidth,
-                height = actualDisplayHeight,
-                frameRate = cameraFrameRate,
-                density = displayDensity
+                width = actualDisplayWidth, height = actualDisplayHeight, frameRate = cameraFrameRate, density = displayDensity
             )
         }
 
@@ -187,10 +182,7 @@ class ScreenRecorderManager @Inject constructor(
         if (frameWidth >= actualDisplayWidth && frameHeight >= actualDisplayHeight) {
             // Frame can hold the entire display. Use exact values.
             return RecordingInfo(
-                width = actualDisplayWidth,
-                height = actualDisplayHeight,
-                frameRate = cameraFrameRate,
-                density = displayDensity
+                width = actualDisplayWidth, height = actualDisplayHeight, frameRate = cameraFrameRate, density = displayDensity
             )
         }
 
@@ -201,10 +193,7 @@ class ScreenRecorderManager @Inject constructor(
         }
 
         return RecordingInfo(
-            width = frameWidth,
-            height = frameHeight,
-            frameRate = cameraFrameRate,
-            density = displayDensity
+            width = frameWidth, height = frameHeight, frameRate = cameraFrameRate, density = displayDensity
         )
     }
 
