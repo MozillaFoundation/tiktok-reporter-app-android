@@ -167,7 +167,7 @@ private fun AppPolicyScreenContent(
                     horizontal = MozillaDimension.M, vertical = MozillaDimension.L
                 ), state = scrollState
             ) {
-                if (state.title.isNotEmpty() && state.subtitle.isNotEmpty() && state.content.isNotEmpty()) {
+                if (state.title.isNotEmpty() && state.content.isNotEmpty()) {
                     item {
                         MarkdownText(
                             markdown = state.title, style = MozillaTypography.H3

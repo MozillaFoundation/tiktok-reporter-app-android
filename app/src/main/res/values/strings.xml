@@ -12,7 +12,7 @@
     <string name="skip">Skip</string>
     <string name="back">Back</string>
     <string name="sign_up_for_updates">Sign up for updates</string>
-    <string name="email_for_data_download">Email address for data download</string>
+    <string name="email_for_data_download">No email provided</string>
     <string name="email_policy_markdown">By providing your email address, you agree to Mozilla\'s [Privacy Notice](https://www.mozilla.org/privacy/).</string>
     <string name="email_remove_description">You can remove your email address or opt-out of any communications at any time.</string>
     <string name="email_remove">Remove email</string>
@@ -24,18 +24,18 @@
     <string name="report_link">Share a link</string>
     <string name="record_session">Record a session</string>
     <string name="text_field_label_comments_optional">Comments (optional)</string>
-    <string name="start_recording_session">To start screen recording, tap the button below. Then, open your TikTok app and record your session while you scroll the FYP. To stop recording, press the “Stop Recording” button. You’ll be asked to share more information and submit this form.</string>
+    <string name="start_recording_session">Tap ‘Record my TikTok session’ to start screen recording. Open TikTok and record your session while you scroll the For You Page (FYP). Once you’re done, tap ‘Stop Recording.’ You’ll be asked to share more information and submit this form.</string>
     <string name="recording_session_available">You’ve recorded a TikTok session. Fill out some information then submit the form.</string>
     <string name="button_record_tiktok_session">Record My TikTok Session</string>
     <string name="button_stop_recording">Stop Recording</string>
     <string name="report_submitted">Thank you!\nReport submitted.</string>
     <string name="button_im_done">I\'m done</string>
     <string name="about">About</string>
-    <string name="studies">Studies</string>
-    <string name="email_address">Email address</string>
+    <string name="studies">Pick a study</string>
+    <string name="email_address">Sign up for updates</string>
     <string name="terms_and_conditions">Terms &amp; conditions</string>
     <string name="privacy_policy">Privacy policy</string>
-    <string name="data_handling">Data handling</string>
+    <string name="data_handling">Manage your data</string>
     <string name="about_app_content">"TT Reporter" serves as a vital tool in an ongoing sociological study, seeking to understand the broader implications of content shared on TikTok. By reporting harmful videos, users contribute to a wealth of data that will be instrumental in identifying and addressing the social issues, influences, and trends within the platform.\n\nJoin us in shaping the future of digital interaction by participating in this sociological study through “TT Reporter”. Your reports make a difference in the quest to foster a safer, more informed, and socially conscious digital environment.\n\nAnonymous Reporting: SocialSafeguard ensures users can report troubling TikTok content discreetly, preserving their privacy.\n\nCategorization: Users can categorize the type of harm observed in videos, such as bullying, misinformation, hate speech, or other sociological factors.\n\nCommentary: The app allows users to provide context and insights, fostering a deeper understanding of the content’s impact.\n\nData Collection: Reports are collated into a comprehensive database, allowing sociologists to analyze and identify trends and patterns.</string>
 
 
@@ -48,8 +48,8 @@
     <string name="dialog_title_change_study">Change study</string>
     <string name="dialog_message_change_study">Are you sure you want to enroll in another study?</string>
 
-    <string name="dialog_title_delete_data">Delete data?</string>
-    <string name="dialog_message_delete_data">Are you sure you want to delete all your data from the system?</string>
+    <string name="dialog_title_delete_data">Delete your data?</string>
+    <string name="dialog_message_delete_data">Are you sure you want to delete all your data from our system?</string>
 
     <string name="dialog_title_inactive_study">Select another study</string>
     <string name="dialog_message_inactive_study">The study you were participating into has ended. Please select another study to join.</string>
@@ -81,8 +81,8 @@
     <string name="button_trim_recording">Trim Recording</string>
     <string name="done_editing">I\'m done editing</string>
     <string name="toast_download_my_data">Request received! An email containing your data will be sent.</string>
-    <string name="button_download_my_data">Download My Data</string>
-    <string name="button_delete_my_data">Delete My Data</string>
+    <string name="button_download_my_data">Download Your Data</string>
+    <string name="button_delete_my_data">Delete Your Data</string>
     <string name="label_recorded_video">Recorded Video</string>
     <string name="duration_seconds">Duration: %1$s seconds</string>
     <string name="recorded_on_at">Recorded on: %1$s at %2$s</string>
