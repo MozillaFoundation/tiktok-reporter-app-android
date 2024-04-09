@@ -1,3 +1,5 @@
+import com.android.build.gradle.internal.cxx.configure.gradleLocalProperties
+
 @Suppress("DSL_SCOPE_VIOLATION") // TODO: Remove once KTIJ-19369 is fixed
 plugins {
     alias(libs.plugins.androidApplication)
@@ -28,6 +30,15 @@ android {
 
     buildTypes {
 
+        var baseUrl = System.getenv("TTREPORTER_BASE_URL")
+        if (baseUrl == null) {
+            baseUrl = gradleLocalProperties(rootDir).getProperty("baseUrl") ?: "https://tiktok-reporter-app-be-tf52yqfkfq-uc.a.run.app/";
+        }
+        var uploadApiKey = System.getenv("TTREPORTER_UPLOAD_API_KEY")
+        if (uploadApiKey == null) {
+            uploadApiKey = gradleLocalProperties(rootDir).getProperty("ttreporterUploadKey") ?: "";
+        }
+
         release {
             isDebuggable = false
             isMinifyEnabled = true
@@ -37,16 +48,16 @@ android {
                 "proguard-rules.pro"
             )
 
-            buildConfigField("String", "BASE_URL", "\"https://tiktok-reporter-app-be-jbrlktowcq-ew.a.run.app/\"")
-            buildConfigField("String", "UPLOAD_RECORDING_API_KEY", "\"f0bfa33e-333b-4704-b57e-bbe6e766ba65\"")
+            buildConfigField("String", "BASE_URL", "\"$baseUrl\"")
+            buildConfigField("String", "UPLOAD_RECORDING_API_KEY", "\"$uploadApiKey\"")
         }
 
         debug {
             isDebuggable = true
             isMinifyEnabled = false
 
-            buildConfigField("String", "BASE_URL", "\"https://tiktok-reporter-app-be-jbrlktowcq-ew.a.run.app/\"")
-            buildConfigField("String", "UPLOAD_RECORDING_API_KEY", "\"f0bfa33e-333b-4704-b57e-bbe6e766ba65\"")
+            buildConfigField("String", "BASE_URL", "\"$baseUrl\"")
+            buildConfigField("String", "UPLOAD_RECORDING_API_KEY", "\"$uploadApiKey\"")
         }
     }
     compileOptions {
