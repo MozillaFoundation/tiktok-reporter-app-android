@@ -21,5 +21,5 @@ data class GleanReportLinkFormRequest(
 
 @JsonClass(generateAdapter = true)
 data class GleanRecordSessionFormRequest(
-    @Json(name = "recordingInfo") val recordingInfo: UploadedRecordingDTO, @Json(name = "comments") val comments: String?
+    @Json(name = "recordingInfo") val recordingInfo: UploadedRecordingDTO?, @Json(name = "comments") val comments: String?
 )

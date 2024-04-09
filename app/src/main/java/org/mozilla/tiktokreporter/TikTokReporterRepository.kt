@@ -161,12 +161,12 @@ class TikTokReporterRepository @Inject constructor(
         recordingUri: Uri
     ): Result<UploadedRecordingDTO> {
         return withContext(Dispatchers.IO) {
-            try {
-                val file = File(context.filesDir, "tiktok_recording.mp4")
+            val file = File(context.filesDir, "tiktok_recording.mp4")
 
-                context.contentResolver.openInputStream(recordingUri)?.use {
-                    it.copyTo(file.outputStream())
-                } ?: return@withContext Result.failure(Exception("Open input stream failure"))
+            context.contentResolver.openInputStream(recordingUri)?.use {
+                it.copyTo(file.outputStream())
+            } ?: return@withContext Result.failure(Exception("Open input stream failure"))
+            try {
 
                 uploadedRecording = tikTokReporterService.uploadRecording(
                     file = MultipartBody.Part.createFormData(
@@ -177,11 +177,16 @@ class TikTokReporterRepository @Inject constructor(
                 file.delete()
 
                 context.dataStore.edit {
-                    it[Common.DATASTORE_KEY_RECORDING_UPLOADED] = true
+                    it[Common.DATASTORE_KEY_RECORDING_UPLOADED] = 1
                 }
 
                 return@withContext Result.success(uploadedRecording!!)
             } catch (e: Exception) {
+                file.delete()
+
+                context.dataStore.edit {
+                    it[Common.DATASTORE_KEY_RECORDING_UPLOADED] = -1
+                }
                 return@withContext Result.failure(e)
             }
         }

@@ -44,7 +44,8 @@ class ScreenRecorderService : Service() {
     private val scope = CoroutineScope(Dispatchers.IO + job)
 
     private lateinit var notification: Notification
-
+    private lateinit var timer: Job
+    private var videoLength: Int = 0
     override fun onBind(p0: Intent?): IBinder? = null
 
     override fun onCreate() {
@@ -57,7 +58,6 @@ class ScreenRecorderService : Service() {
         when (intent?.action) {
             Actions.START.toString() -> {
                 val activityResult = intent.parcelable<ActivityResult>("activityResult")
-
                 if (activityResult != null) {
 
                     onSdkVersionAndUp(Build.VERSION_CODES.Q) {
@@ -66,6 +66,7 @@ class ScreenRecorderService : Service() {
                         )
                     } ?: startForeground(1, notification)
 
+                    videoLength = applicationContext.resources.getInteger(R.integer.video_length)
                     startTimer()
 
                     scope.launch {
@@ -149,7 +150,7 @@ class ScreenRecorderService : Service() {
 
 
     private fun startCoroutineTimer() = scope.launch(Dispatchers.IO) {
-        delay(600000)
+        delay(videoLength.toLong())
         scope.launch {
             screenRecorderManager.stopRecording()
 
@@ -161,9 +162,8 @@ class ScreenRecorderService : Service() {
         }
     }
 
-    private val timer: Job = startCoroutineTimer()
-
     private fun startTimer() {
+        timer = startCoroutineTimer()
         timer.start()
     }
 

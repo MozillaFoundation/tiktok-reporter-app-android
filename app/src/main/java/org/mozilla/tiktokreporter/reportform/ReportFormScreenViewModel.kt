@@ -206,17 +206,17 @@ class ReportFormScreenViewModel @Inject constructor(
 
         viewModelScope.launch {
             context.dataStore.data.map {
-                it[Common.DATASTORE_KEY_RECORDING_UPLOADED] ?: false
+                it[Common.DATASTORE_KEY_RECORDING_UPLOADED] ?: 0
             }.filterNotNull().collect { recordingUploaded ->
                 val recordingInfo = tikTokReporterRepository.uploadedRecording
-                if (recordingUploaded && recordingInfo != null) {
+                if (recordingUploaded == 1 && recordingInfo != null) {
                     submitRecordedSessionForm(recordingInfo)
-
-                    context.dataStore.edit {
-                        it.remove(Common.DATASTORE_KEY_RECORDING_UPLOADED)
-                    }
+                } else if (recordingUploaded == -1) {
+                    submitRecordedSessionFormNoRecording()
                 }
-
+                context.dataStore.edit {
+                    it.remove(Common.DATASTORE_KEY_RECORDING_UPLOADED)
+                }
             }
         }
 
@@ -420,6 +420,21 @@ class ReportFormScreenViewModel @Inject constructor(
         _isLoading.update { false }
     }
 
+    private suspend fun submitRecordedSessionFormNoRecording() {
+        withContext(Dispatchers.Unconfined) {
+            val serializedForm = serializeRecordSessionFormNoRecording()
+
+            val studyUUID = UUID.fromString(state.value.studyDetails?.id)
+            TiktokScreenRecording.identifier.set(studyUUID)
+            TiktokScreenRecording.data.set(serializedForm)
+            Pings.screenRecording.submit()
+        }
+
+        onCancelReport()
+        _uiAction.send(UiAction.StopUploadRecordingService)
+        _isLoading.update { false }
+    }
+
     /**
      * @return map containing the error (value) for each field located index (key)
      */
@@ -543,6 +558,15 @@ class ReportFormScreenViewModel @Inject constructor(
         return jsonAdapter.toJson(
             GleanRecordSessionFormRequest(
                 recordingInfo = recordingInfo, comments = state.value.recordSessionComments
+            )
+        )
+    }
+
+    private fun serializeRecordSessionFormNoRecording(): String {
+        val jsonAdapter = moshi.adapter(GleanRecordSessionFormRequest::class.java)
+        return jsonAdapter.toJson(
+            GleanRecordSessionFormRequest(
+                recordingInfo = null, comments = state.value.recordSessionComments
             )
         )
     }
