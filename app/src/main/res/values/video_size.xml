@@ -7,7 +7,7 @@
     <!--    Maximum video height in pixels-->
     <integer name="video_height">540</integer>
     <!--    Video frame rate-->
-    <integer name="video_frame_rate">10</integer>
+    <integer name="video_frame_rate">6</integer>
     <!--    Video bit rate-->
-    <integer name="video_bit_rate">92000</integer>
+    <integer name="video_bit_rate">120000</integer>
 </resources>
