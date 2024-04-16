@@ -16,7 +16,7 @@ import dagger.hilt.components.SingletonComponent
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import org.mozilla.tiktokreporter.BuildConfig
-import org.mozilla.tiktokreporter.common.FormFieldUiComponent
+import org.mozilla.tiktokreporter.data.remote.GCSService
 import org.mozilla.tiktokreporter.data.remote.TikTokReporterService
 import org.mozilla.tiktokreporter.data.remote.response.FormFieldDTO
 import org.mozilla.tiktokreporter.data.remote.response.FormFieldTypeDTO
@@ -36,43 +36,50 @@ object AppModule {
         moshi: Moshi
     ): TikTokReporterService {
 
-        val client = OkHttpClient.Builder()
-            .connectTimeout(30, TimeUnit.SECONDS)
-            .readTimeout(30, TimeUnit.SECONDS)
-            .apply {
-                if (BuildConfig.DEBUG) {
-                    val loggingInterceptor = HttpLoggingInterceptor()
-                    loggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY)
+        val client = OkHttpClient.Builder().connectTimeout(30, TimeUnit.SECONDS).readTimeout(30, TimeUnit.SECONDS).apply {
+            if (BuildConfig.DEBUG) {
+                val loggingInterceptor = HttpLoggingInterceptor()
+                loggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY)
 
-                    addInterceptor(loggingInterceptor)
-                }
+                addInterceptor(loggingInterceptor)
             }
-            .build()
+        }.build()
 
-        return Retrofit.Builder()
-            .client(client)
-            .addConverterFactory(MoshiConverterFactory.create(moshi))
-            .baseUrl(BuildConfig.BASE_URL)
-            .build()
-            .create(TikTokReporterService::class.java)
+        return Retrofit.Builder().client(client).addConverterFactory(MoshiConverterFactory.create(moshi)).baseUrl(BuildConfig.BASE_URL)
+            .build().create(TikTokReporterService::class.java)
+    }
+
+
+    @Provides
+    @Singleton
+    fun provideGCSService(
+        moshi: Moshi
+    ): GCSService {
+
+        val client = OkHttpClient.Builder().connectTimeout(30, TimeUnit.SECONDS).readTimeout(30, TimeUnit.SECONDS).apply {
+            if (BuildConfig.DEBUG) {
+                val loggingInterceptor = HttpLoggingInterceptor()
+                loggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY)
+
+                addInterceptor(loggingInterceptor)
+            }
+        }.build()
+
+        return Retrofit.Builder().client(client).addConverterFactory(MoshiConverterFactory.create(moshi)).baseUrl(BuildConfig.STORAGE_URL)
+            .build().create(GCSService::class.java)
     }
 
     @Provides
     @Singleton
-    fun provideMoshi(): Moshi = Moshi.Builder()
-        .add(
-            PolymorphicJsonAdapterFactory.of(FormFieldDTO::class.java, "type")
-                .withSubtype(FormFieldDTO.TextField::class.java, FormFieldTypeDTO.TextField.name)
-                .withSubtype(FormFieldDTO.DropDown::class.java, FormFieldTypeDTO.DropDown.name)
-                .withSubtype(FormFieldDTO.Slider::class.java, FormFieldTypeDTO.Slider.name)
-                .withSubtype(FormFieldDTO.CheckboxGroup::class.java, FormFieldTypeDTO.CheckboxGroup.name)
-                .withSubtype(FormFieldDTO.RadioGroup::class.java, FormFieldTypeDTO.RadioGroup.name)
-                .withSubtype(FormFieldDTO.MultiSelect::class.java, FormFieldTypeDTO.MultiSelect.name)
-                .withDefaultValue(FormFieldDTO.Unknown)
-        )
-        .add(KotlinJsonAdapterFactory())
-        .add(LocalDateTimeAdapter())
-        .build()
+    fun provideMoshi(): Moshi = Moshi.Builder().add(
+        PolymorphicJsonAdapterFactory.of(FormFieldDTO::class.java, "type")
+            .withSubtype(FormFieldDTO.TextField::class.java, FormFieldTypeDTO.TextField.name)
+            .withSubtype(FormFieldDTO.DropDown::class.java, FormFieldTypeDTO.DropDown.name)
+            .withSubtype(FormFieldDTO.Slider::class.java, FormFieldTypeDTO.Slider.name)
+            .withSubtype(FormFieldDTO.CheckboxGroup::class.java, FormFieldTypeDTO.CheckboxGroup.name)
+            .withSubtype(FormFieldDTO.RadioGroup::class.java, FormFieldTypeDTO.RadioGroup.name)
+            .withSubtype(FormFieldDTO.MultiSelect::class.java, FormFieldTypeDTO.MultiSelect.name).withDefaultValue(FormFieldDTO.Unknown)
+    ).add(KotlinJsonAdapterFactory()).add(LocalDateTimeAdapter()).build()
 }
 
 @Module
@@ -84,7 +91,6 @@ object ViewModelModule {
     fun providePlayer(
         @ApplicationContext context: Context
     ): Player {
-        return ExoPlayer.Builder(context)
-            .build()
+        return ExoPlayer.Builder(context).build()
     }
 }

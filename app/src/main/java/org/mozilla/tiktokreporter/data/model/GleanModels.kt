@@ -3,7 +3,7 @@ package org.mozilla.tiktokreporter.data.model
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 import org.mozilla.tiktokreporter.data.remote.response.FormFieldDTO
-import org.mozilla.tiktokreporter.data.remote.response.UploadedRecordingDTO
+import org.mozilla.tiktokreporter.data.remote.response.SignedUrlDTO
 
 @JsonClass(generateAdapter = true)
 data class GleanFormItem(
@@ -21,5 +21,5 @@ data class GleanReportLinkFormRequest(
 
 @JsonClass(generateAdapter = true)
 data class GleanRecordSessionFormRequest(
-    @Json(name = "recordingInfo") val recordingInfo: UploadedRecordingDTO?, @Json(name = "comments") val comments: String?
+    @Json(name = "recordingInfo") val recordingUrl: SignedUrlDTO?, @Json(name = "comments") val comments: String?
 )

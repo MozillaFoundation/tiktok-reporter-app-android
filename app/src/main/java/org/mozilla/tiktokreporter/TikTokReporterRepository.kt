@@ -9,8 +9,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.withContext
-import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.MultipartBody
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.asRequestBody
 import org.mozilla.tiktokreporter.data.model.Policy
 import org.mozilla.tiktokreporter.data.model.StudyDetails
@@ -18,8 +18,9 @@ import org.mozilla.tiktokreporter.data.model.StudyOverview
 import org.mozilla.tiktokreporter.data.model.toPolicy
 import org.mozilla.tiktokreporter.data.model.toStudyDetails
 import org.mozilla.tiktokreporter.data.model.toStudyOverview
+import org.mozilla.tiktokreporter.data.remote.GCSService
 import org.mozilla.tiktokreporter.data.remote.TikTokReporterService
-import org.mozilla.tiktokreporter.data.remote.response.UploadedRecordingDTO
+import org.mozilla.tiktokreporter.data.remote.response.SignedUrlDTO
 import org.mozilla.tiktokreporter.util.Common
 import org.mozilla.tiktokreporter.util.dataStore
 import org.mozilla.tiktokreporter.util.sharedPreferences
@@ -30,7 +31,9 @@ import javax.inject.Singleton
 
 @Singleton
 class TikTokReporterRepository @Inject constructor(
-    private val tikTokReporterService: TikTokReporterService, @ApplicationContext private val context: Context
+    private val tikTokReporterService: TikTokReporterService,
+    private val gcsService: GCSService,
+    @ApplicationContext private val context: Context
 ) {
     var userEmail by context.sharedPreferences(
         name = Common.PREFERENCES_USER_EMAIL_KEY, defaultValue = ""
@@ -49,7 +52,7 @@ class TikTokReporterRepository @Inject constructor(
     )
 
     private var selectedStudy: StudyDetails? = null
-    var uploadedRecording: UploadedRecordingDTO? = null
+    var signedUrl: SignedUrlDTO? = null
 
     private val _tikTokUrl = MutableSharedFlow<String?>(1)
     val tikTokUrl = _tikTokUrl.asSharedFlow()
@@ -159,19 +162,17 @@ class TikTokReporterRepository @Inject constructor(
 
     suspend fun uploadRecording(
         recordingUri: Uri
-    ): Result<UploadedRecordingDTO> {
+    ): Result<Boolean> {
         return withContext(Dispatchers.IO) {
             val file = File(context.filesDir, "tiktok_recording.mp4")
-
             context.contentResolver.openInputStream(recordingUri)?.use {
                 it.copyTo(file.outputStream())
             } ?: return@withContext Result.failure(Exception("Open input stream failure"))
             try {
-
-                uploadedRecording = tikTokReporterService.uploadRecording(
-                    file = MultipartBody.Part.createFormData(
-                        name = "file", filename = file.name, body = file.asRequestBody(contentType = "video/mp4".toMediaType())
-                    )
+                signedUrl = tikTokReporterService.getSignedUrl()
+                val videoBody: RequestBody = file.asRequestBody("video/*".toMediaTypeOrNull())
+                gcsService.uploadRecording(
+                    url = signedUrl!!.url, file = videoBody
                 )
 
                 file.delete()
@@ -180,7 +181,7 @@ class TikTokReporterRepository @Inject constructor(
                     it[Common.DATASTORE_KEY_RECORDING_UPLOADED] = 1
                 }
 
-                return@withContext Result.success(uploadedRecording!!)
+                return@withContext Result.success(true)
             } catch (e: Exception) {
                 file.delete()
 
