@@ -30,13 +30,13 @@ android {
 
     buildTypes {
 
-        var baseUrl = System.getenv("TTREPORTER_BASE_URL")
+        var baseUrl = System.getenv("FYP_REPORTER_BASE_URL")
         if (baseUrl == null) {
             baseUrl = gradleLocalProperties(rootDir).getProperty("baseUrl") ?: "https://tiktok-reporter-app-be-tf52yqfkfq-uc.a.run.app/";
         }
-        var uploadApiKey = System.getenv("TTREPORTER_UPLOAD_API_KEY")
+        var uploadApiKey = System.getenv("FYP_REPORTER_UPLOAD_API_KEY")
         if (uploadApiKey == null) {
-            uploadApiKey = gradleLocalProperties(rootDir).getProperty("ttreporterUploadKey") ?: "";
+            uploadApiKey = gradleLocalProperties(rootDir).getProperty("fypReporterUploadKey") ?: "insert upload key uuid here!";
         }
 
         release {
