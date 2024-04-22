@@ -36,7 +36,7 @@ android {
         }
         var storageUrl = System.getenv("FYP_REPORTER_STORAGE_URL")
         if (storageUrl == null) {
-            storageUrl = gradleLocalProperties(rootDir).getProperty("baseUrl") ?: "https://storage.googleapis.com/ttreporter_recordings/";
+            storageUrl = gradleLocalProperties(rootDir).getProperty("fypReporterStorageUrl") ?: "https://storage.googleapis.com/ttreporter_recordings/";
         }
 
         var uploadApiKey = System.getenv("FYP_REPORTER_UPLOAD_API_KEY")
