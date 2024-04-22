@@ -34,6 +34,11 @@ android {
         if (baseUrl == null) {
             baseUrl = gradleLocalProperties(rootDir).getProperty("baseUrl") ?: "https://tiktok-reporter-app-be-tf52yqfkfq-uc.a.run.app/";
         }
+        var storageUrl = System.getenv("FYP_REPORTER_STORAGE_URL")
+        if (storageUrl == null) {
+            storageUrl = gradleLocalProperties(rootDir).getProperty("baseUrl") ?: "https://storage.googleapis.com/ttreporter_recordings/";
+        }
+
         var uploadApiKey = System.getenv("FYP_REPORTER_UPLOAD_API_KEY")
         if (uploadApiKey == null) {
             uploadApiKey = gradleLocalProperties(rootDir).getProperty("fypReporterUploadKey") ?: "insert upload key uuid here!";
@@ -44,11 +49,11 @@ android {
             isMinifyEnabled = true
 
             proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
+                getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
             )
 
             buildConfigField("String", "BASE_URL", "\"$baseUrl\"")
+            buildConfigField("String", "STORAGE_URL", "\"$storageUrl\"")
             buildConfigField("String", "UPLOAD_RECORDING_API_KEY", "\"$uploadApiKey\"")
         }
 
@@ -57,6 +62,7 @@ android {
             isMinifyEnabled = false
 
             buildConfigField("String", "BASE_URL", "\"$baseUrl\"")
+            buildConfigField("String", "STORAGE_URL", "\"$storageUrl\"")
             buildConfigField("String", "UPLOAD_RECORDING_API_KEY", "\"$uploadApiKey\"")
         }
     }

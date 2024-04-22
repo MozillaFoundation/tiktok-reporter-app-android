@@ -44,7 +44,7 @@ import org.mozilla.tiktokreporter.data.model.GleanFormItem
 import org.mozilla.tiktokreporter.data.model.GleanRecordSessionFormRequest
 import org.mozilla.tiktokreporter.data.model.GleanReportLinkFormRequest
 import org.mozilla.tiktokreporter.data.model.StudyDetails
-import org.mozilla.tiktokreporter.data.remote.response.UploadedRecordingDTO
+import org.mozilla.tiktokreporter.data.remote.response.SignedUrlDTO
 import org.mozilla.tiktokreporter.data.remote.response.toFormFieldDTO
 import org.mozilla.tiktokreporter.toTikTokReporterError
 import org.mozilla.tiktokreporter.util.Common
@@ -208,9 +208,9 @@ class ReportFormScreenViewModel @Inject constructor(
             context.dataStore.data.map {
                 it[Common.DATASTORE_KEY_RECORDING_UPLOADED] ?: 0
             }.filterNotNull().collect { recordingUploaded ->
-                val recordingInfo = tikTokReporterRepository.uploadedRecording
-                if (recordingUploaded == 1 && recordingInfo != null) {
-                    submitRecordedSessionForm(recordingInfo)
+                val signedUrl = tikTokReporterRepository.signedUrl
+                if (recordingUploaded == 1 && signedUrl != null) {
+                    submitRecordedSessionForm(signedUrl)
                 } else if (recordingUploaded == -1) {
                     submitRecordedSessionFormNoRecording()
                 }
@@ -404,10 +404,10 @@ class ReportFormScreenViewModel @Inject constructor(
     }
 
     private suspend fun submitRecordedSessionForm(
-        uploadedRecordingDTO: UploadedRecordingDTO
+        signedUrlDTO: SignedUrlDTO
     ) {
         withContext(Dispatchers.Unconfined) {
-            val serializedForm = serializeRecordSessionForm(uploadedRecordingDTO)
+            val serializedForm = serializeRecordSessionForm(signedUrlDTO)
 
             val studyUUID = UUID.fromString(state.value.studyDetails?.id)
             TiktokScreenRecording.identifier.set(studyUUID)
@@ -552,12 +552,12 @@ class ReportFormScreenViewModel @Inject constructor(
     }
 
     private fun serializeRecordSessionForm(
-        recordingInfo: UploadedRecordingDTO
+        recordingUrl: SignedUrlDTO
     ): String {
         val jsonAdapter = moshi.adapter(GleanRecordSessionFormRequest::class.java)
         return jsonAdapter.toJson(
             GleanRecordSessionFormRequest(
-                recordingInfo = recordingInfo, comments = state.value.recordSessionComments
+                recordingUrl = recordingUrl, comments = state.value.recordSessionComments
             )
         )
     }
@@ -566,7 +566,7 @@ class ReportFormScreenViewModel @Inject constructor(
         val jsonAdapter = moshi.adapter(GleanRecordSessionFormRequest::class.java)
         return jsonAdapter.toJson(
             GleanRecordSessionFormRequest(
-                recordingInfo = null, comments = state.value.recordSessionComments
+                recordingUrl = null, comments = state.value.recordSessionComments
             )
         )
     }
