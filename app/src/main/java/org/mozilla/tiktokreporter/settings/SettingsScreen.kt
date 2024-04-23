@@ -115,7 +115,7 @@ private fun SettingsScreenContent(
                         SettingsScreenViewModel.SettingsEntry.About -> {
                             SettingEntry(
                                 modifier = Modifier.fillParentMaxWidth(),
-                                title = stringResource(id = R.string.about).uppercase(),
+                                title = "${stringResource(id = R.string.about)} ${stringResource(id = R.string.app_name)}".uppercase(),
                                 onClick = onGoToAppPurpose
                             )
                         }

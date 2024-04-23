@@ -37,7 +37,7 @@ class DataHandlingScreenViewModel @Inject constructor(
                 Pings.downloadData.submit()
                 _uiAction.send(UiAction.ShowDataDownloaded)
             } else {
-                _uiAction.send(UiAction.ShowNoEmailProvidedWarning)
+                _uiAction.send(UiAction.ShowEmailRequestForm)
             }
         }
     }
@@ -57,7 +57,7 @@ class DataHandlingScreenViewModel @Inject constructor(
 
     sealed class UiAction {
         data object NavigateBack : UiAction()
-        data object ShowNoEmailProvidedWarning : UiAction()
+        data object ShowEmailRequestForm : UiAction()
         data object ShowDataDeleted : UiAction()
         data object ShowDataDownloaded : UiAction()
     }

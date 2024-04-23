@@ -44,7 +44,7 @@ fun SplashScreen() {
                 .padding(MozillaDimension.XL.times(2))
                 .align(Alignment.Center),
             painter = painterResource(
-                id = R.drawable.tiktok_reporter_logo_02_white
+                id = R.drawable.tt_reporter_logo_02_white
             ),
             contentDescription = null
         )

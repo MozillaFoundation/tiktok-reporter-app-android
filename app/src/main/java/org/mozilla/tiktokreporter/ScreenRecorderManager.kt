@@ -51,6 +51,7 @@ class ScreenRecorderManager @Inject constructor(
         mediaRecorder = onSdkVersionAndUp(Build.VERSION_CODES.S) {
             MediaRecorder(context)
         } ?: MediaRecorder()
+
         mediaRecorder?.apply {
             setVideoSource(MediaRecorder.VideoSource.SURFACE)
             setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
@@ -140,7 +141,8 @@ class ScreenRecorderManager @Inject constructor(
         val configuration = context.resources.configuration
         val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
 
-        val camcorderProfile = CamcorderProfile.get(CamcorderProfile.QUALITY_HIGH)  // TODO: check warning
+        val quality = if (CamcorderProfile.hasProfile(CamcorderProfile.QUALITY_480P)) CamcorderProfile.QUALITY_480P else CamcorderProfile.QUALITY_HIGH
+        val camcorderProfile = CamcorderProfile.get(quality)  // TODO: use getAll but watch for lower API levels
 
         val cameraWidth = camcorderProfile?.videoFrameWidth ?: -1
         val cameraHeight = camcorderProfile?.videoFrameHeight ?: -1

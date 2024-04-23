@@ -13,7 +13,9 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import dev.jeziellago.compose.markdowntext.MarkdownText
 import org.mozilla.tiktokreporter.R
 import org.mozilla.tiktokreporter.ui.components.MozillaScaffold
 import org.mozilla.tiktokreporter.ui.components.MozillaTopAppBar
@@ -64,9 +66,8 @@ fun AboutAppScreen(
                 }
 
                 item {
-                    Text(
-                        text = stringResource(R.string.about_app_content),
-                        style = MozillaTypography.Body2
+                    MarkdownText(
+                        markdown = stringResource(R.string.about_app_content), style = MozillaTypography.Body2, linkColor = Color.Blue
                     )
                 }
             }

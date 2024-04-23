@@ -1,3 +1,5 @@
+import com.android.build.gradle.internal.cxx.configure.gradleLocalProperties
+
 @Suppress("DSL_SCOPE_VIOLATION") // TODO: Remove once KTIJ-19369 is fixed
 plugins {
     alias(libs.plugins.androidApplication)
@@ -28,6 +30,20 @@ android {
 
     buildTypes {
 
+        var baseUrl = System.getenv("FYP_REPORTER_BASE_URL")
+        if (baseUrl == null) {
+            baseUrl = gradleLocalProperties(rootDir).getProperty("baseUrl") ?: "https://tiktok-reporter-app-be-tf52yqfkfq-uc.a.run.app/";
+        }
+        var storageUrl = System.getenv("FYP_REPORTER_STORAGE_URL")
+        if (storageUrl == null) {
+            storageUrl = gradleLocalProperties(rootDir).getProperty("fypReporterStorageUrl") ?: "https://storage.googleapis.com/ttreporter_recordings/";
+        }
+
+        var uploadApiKey = System.getenv("FYP_REPORTER_UPLOAD_API_KEY")
+        if (uploadApiKey == null) {
+            uploadApiKey = gradleLocalProperties(rootDir).getProperty("fypReporterUploadKey") ?: "insert upload key uuid here!";
+        }
+
         release {
             isDebuggable = false
             isMinifyEnabled = true
@@ -36,18 +52,18 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
             )
 
-            buildConfigField("String", "BASE_URL", "\"https://tiktok-reporter-app-be-jbrlktowcq-ew.a.run.app/\"")
-            buildConfigField("String", "STORAGE_URL", "\"https://storage.googleapis.com/regrets_reporter_recording_docs/\"")
-            buildConfigField("String", "UPLOAD_RECORDING_API_KEY", "\"f0bfa33e-333b-4704-b57e-bbe6e766ba65\"")
+            buildConfigField("String", "BASE_URL", "\"$baseUrl\"")
+            buildConfigField("String", "STORAGE_URL", "\"$storageUrl\"")
+            buildConfigField("String", "UPLOAD_RECORDING_API_KEY", "\"$uploadApiKey\"")
         }
 
         debug {
             isDebuggable = true
             isMinifyEnabled = false
 
-            buildConfigField("String", "BASE_URL", "\"https://tiktok-reporter-app-be-jbrlktowcq-ew.a.run.app/\"")
-            buildConfigField("String", "STORAGE_URL", "\"https://storage.googleapis.com/regrets_reporter_recording_docs/\"")
-            buildConfigField("String", "UPLOAD_RECORDING_API_KEY", "\"f0bfa33e-333b-4704-b57e-bbe6e766ba65\"")
+            buildConfigField("String", "BASE_URL", "\"$baseUrl\"")
+            buildConfigField("String", "STORAGE_URL", "\"$storageUrl\"")
+            buildConfigField("String", "UPLOAD_RECORDING_API_KEY", "\"$uploadApiKey\"")
         }
     }
     compileOptions {
