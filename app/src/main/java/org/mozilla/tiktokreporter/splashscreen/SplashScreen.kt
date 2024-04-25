@@ -44,7 +44,7 @@ fun SplashScreen() {
                 .padding(MozillaDimension.XL.times(2))
                 .align(Alignment.Center),
             painter = painterResource(
-                id = R.drawable.tt_reporter_logo_02_white
+                id = R.drawable.fyp_reporter_logo_fyp_reporter_secondary_white
             ),
             contentDescription = null
         )

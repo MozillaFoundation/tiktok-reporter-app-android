@@ -137,10 +137,10 @@ class ScreenRecorderService : Service() {
     )
 
     private fun createNotification() =
-        NotificationCompat.Builder(this, "screen_recording_channel").setSmallIcon(R.drawable.ic_launcher_foreground)
-            .setContentTitle("Screen recording...").setContentText("TikTokRecorder started screen recording.").setOngoing(true)
+        NotificationCompat.Builder(this, "screen_recording_channel").setSmallIcon(R.drawable.fyp_reporter_logo)
+            .setContentTitle("Screen recording...").setContentText("FYP Reporter started screen recording.").setOngoing(true)
             .setDeleteIntent(getDeleteIntent()).addAction(
-                R.drawable.ic_launcher_foreground, "Stop recording", getStopRecordingIntent()
+                R.drawable.fyp_reporter_logo, "Stop recording", getStopRecordingIntent()
             ).build()
 
     override fun onDestroy() {
