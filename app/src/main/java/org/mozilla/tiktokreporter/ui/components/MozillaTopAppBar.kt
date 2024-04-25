@@ -37,7 +37,7 @@ fun MozillaTopAppBar(
                 Image(
                     modifier = Modifier.width(maxWidth.div(2)),
                     painter = painterResource(
-                        id = R.drawable.tt_reporter_logo_01_black
+                        id = R.drawable.fyp_reporter_logo_fyp_reporter_primary_outlined_black
                     ),
                     contentDescription = null
                 )

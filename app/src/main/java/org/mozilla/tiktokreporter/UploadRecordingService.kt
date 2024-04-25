@@ -98,7 +98,7 @@ class UploadRecordingService : Service() {
     )
 
     private fun createNotification() = NotificationCompat.Builder(this, "uploading_file_channel")
-        .setSmallIcon(R.drawable.ic_launcher_foreground)
+        .setSmallIcon(R.drawable.fyp_reporter_logo)
         .setContentTitle("Uploading recording...")
         .setOngoing(true)
         .setDeleteIntent(getDeleteIntent())
