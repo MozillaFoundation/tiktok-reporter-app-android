@@ -13,15 +13,21 @@ fun MozillaScaffold(
     topBar: (@Composable () -> Unit)? = null,
     content: @Composable (PaddingValues) -> Unit,
 ) {
-    Scaffold(
-        modifier = modifier,
-        topBar = topBar ?: {
-            MozillaTopAppBar(
-                modifier = Modifier.fillMaxWidth()
-            )
-        },
-        containerColor = MozillaColor.Background,
-        contentColor = MozillaColor.TextColor,
-        content = content
-    )
+    if (topBar != null) {
+        Scaffold(
+            modifier = modifier,
+            topBar = topBar,
+            containerColor = MozillaColor.Background,
+            contentColor = MozillaColor.TextColor,
+            content = content
+        )
+    } else {
+        Scaffold(
+            modifier = modifier,
+            containerColor = MozillaColor.Background,
+            contentColor = MozillaColor.TextColor,
+            content = content
+        )
+    }
+
 }
