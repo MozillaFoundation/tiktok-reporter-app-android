@@ -1,17 +1,14 @@
 package org.mozilla.tiktokreporter.ui.components
 
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.width
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
-import org.mozilla.tiktokreporter.R
 import org.mozilla.tiktokreporter.ui.theme.MozillaColor
 import org.mozilla.tiktokreporter.ui.theme.TikTokReporterTheme
 
@@ -29,18 +26,12 @@ fun MozillaTopAppBar(
         titleContentColor = MozillaColor.TextColor,
         actionIconContentColor = MozillaColor.TextColor
     )
-    BoxWithConstraints(
+    Box(
         modifier = modifier
     ) {
         TopAppBar(
             title = {
-                Image(
-                    modifier = Modifier.width(maxWidth.div(2)),
-                    painter = painterResource(
-                        id = R.drawable.fyp_reporter_logo_fyp_reporter_primary_outlined_black
-                    ),
-                    contentDescription = null
-                )
+                Text(text="")
             },
             modifier = Modifier.fillMaxWidth(),
             navigationIcon = navItem,

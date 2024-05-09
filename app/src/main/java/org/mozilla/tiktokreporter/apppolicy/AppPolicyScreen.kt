@@ -141,19 +141,7 @@ private fun AppPolicyScreenContent(
         }
     }
 
-    MozillaScaffold(modifier = modifier, topBar = if (isForOnboarding) null else {
-        {
-            MozillaTopAppBar(modifier = Modifier.fillMaxWidth(), navItem = {
-                IconButton(
-                    onClick = onNavigateBack
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.ArrowBack, contentDescription = "", tint = MozillaColor.TextColor
-                    )
-                }
-            })
-        }
-    }) { innerPadding ->
+    MozillaScaffold(modifier = modifier) { innerPadding ->
 
         Column(
             modifier = Modifier
