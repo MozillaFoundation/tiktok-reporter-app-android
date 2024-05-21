@@ -3,6 +3,7 @@
 # https://issuetracker.google.com/issues/277166577
 agp = "8.0.2"
 
+coil-gif = "2.6.0"
 kotlin = "1.9.10"
 ksp = "1.9.10-1.0.13"
 core-ktx = "1.12.0"
@@ -30,6 +31,7 @@ compose-markdown = "0.4.1"
 
 
 [libraries]
+coil-gif = { module = "io.coil-kt:coil-gif", version.ref = "coil-gif" }
 core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "core-ktx" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-test-ext-junit = { group = "androidx.test.ext", name = "junit", version.ref = "androidx-test-ext-junit" }

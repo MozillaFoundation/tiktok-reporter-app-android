@@ -2,33 +2,41 @@ package org.mozilla.tiktokreporter.studyonboarding
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
+import coil.compose.AsyncImagePainter
+import coil.decode.GifDecoder
 import coil.request.ImageRequest
 import kotlinx.coroutines.launch
 import org.mozilla.tiktokreporter.R
 import org.mozilla.tiktokreporter.TikTokReporterError
 import org.mozilla.tiktokreporter.data.model.OnboardingStep
 import org.mozilla.tiktokreporter.ui.components.LoadingScreen
+import org.mozilla.tiktokreporter.ui.components.MozillaProgressIndicator
 import org.mozilla.tiktokreporter.ui.components.MozillaScaffold
 import org.mozilla.tiktokreporter.ui.components.PrimaryButton
 import org.mozilla.tiktokreporter.ui.components.SecondaryButton
@@ -235,6 +243,8 @@ private fun OnboardingStepInfo(
     imageUrl: String? = null,
     details: String? = null
 ) {
+    var imageLoaded by remember { mutableStateOf(false) }
+
     LazyColumn(
         modifier = modifier,
         contentPadding = contentPadding,
@@ -271,16 +281,40 @@ private fun OnboardingStepInfo(
         }
         imageUrl?.let {
             item {
-                AsyncImage(
-                    modifier = Modifier
-                        .fillParentMaxWidth(.45f)
-                        .padding(top = MozillaDimension.S),
-                    model = ImageRequest.Builder(LocalContext.current)
-                        .data(it)
-                        .build(),
-                    contentDescription = "",
-                    contentScale = ContentScale.Crop,
-                )
+                if (it.endsWith(".gif")) {
+                    Box(
+                        contentAlignment = Alignment.Center,
+                        modifier = Modifier.defaultMinSize(minWidth = 120.dp, minHeight = 240.dp)
+                    ) {
+                        if (!imageLoaded) {
+                            MozillaProgressIndicator(
+                                modifier = Modifier.size(80.dp)
+                            )
+                        }
+                        AsyncImage(
+                            model = ImageRequest.Builder(LocalContext.current)
+                                .data(it)
+                                .decoderFactory(GifDecoder.Factory())
+                                .build(),
+                            contentDescription = null,
+                            onState = { state ->
+                                if (state is AsyncImagePainter.State.Success) {
+                                    imageLoaded = true
+                                }
+                            }
+                        )
+                    }
+                } else {
+                    AsyncImage(
+                        modifier = Modifier
+                            .fillParentMaxWidth(.45f)
+                            .padding(top = MozillaDimension.S),
+                        model = ImageRequest.Builder(LocalContext.current)
+                            .data(it)
+                            .build(),
+                        contentDescription = null,
+                    )
+                }
             }
         }
         details?.let {
