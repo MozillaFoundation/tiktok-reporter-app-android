@@ -22,6 +22,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -312,7 +313,8 @@ private fun OnboardingStepInfo(
                         model = ImageRequest.Builder(LocalContext.current)
                             .data(it)
                             .build(),
-                        contentDescription = null,
+                        contentDescription = "",
+                        contentScale = ContentScale.Crop,
                     )
                 }
             }
