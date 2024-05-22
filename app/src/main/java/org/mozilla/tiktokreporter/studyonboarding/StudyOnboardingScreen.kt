@@ -51,7 +51,7 @@ import org.mozilla.tiktokreporter.ui.theme.MozillaTypography
 import org.mozilla.tiktokreporter.util.CollectWithLifecycle
 import org.mozilla.tiktokreporter.util.UiText
 
-const val SCREEN_HEIGHT_BREAKPOINT = 800;
+const val SCREEN_HEIGHT_BREAKPOINT = 800
 
 @Composable
 fun StudyOnboardingScreen(
