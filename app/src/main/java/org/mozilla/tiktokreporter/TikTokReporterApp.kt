@@ -4,6 +4,7 @@ import android.app.Application
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
+import com.facebook.drawee.backends.pipeline.Fresco
 import dagger.hilt.android.HiltAndroidApp
 import mozilla.telemetry.glean.Glean
 import org.mozilla.tiktokreporter.GleanMetrics.GleanBuildInfo
@@ -38,5 +39,7 @@ class TikTokReporterApp: Application() {
             uploadEnabled = true,
             buildInfo = GleanBuildInfo.buildInfo
         )
+
+        Fresco.initialize(this);
     }
 }

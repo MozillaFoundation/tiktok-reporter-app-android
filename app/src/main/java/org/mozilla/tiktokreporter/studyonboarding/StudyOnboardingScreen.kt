@@ -1,5 +1,7 @@
 package org.mozilla.tiktokreporter.studyonboarding
 
+import android.net.Uri
+import android.os.Build.VERSION.SDK_INT
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -31,10 +33,19 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import coil.ImageLoader
 import coil.compose.AsyncImage
 import coil.compose.AsyncImagePainter
 import coil.decode.GifDecoder
+import coil.decode.ImageDecoderDecoder
 import coil.request.ImageRequest
+import com.facebook.drawee.backends.pipeline.Fresco
+import com.facebook.imagepipeline.request.ImageRequestBuilder
+import com.facebook.imagepipeline.request.ImageRequestBuilder.newBuilderWithSource
+import com.skydoves.landscapist.ImageOptions
+import com.skydoves.landscapist.coil.CoilImage
+import com.skydoves.landscapist.fresco.FrescoImage
+import com.skydoves.landscapist.fresco.websupport.FrescoWebImage
 import kotlinx.coroutines.launch
 import org.mozilla.tiktokreporter.R
 import org.mozilla.tiktokreporter.TikTokReporterError
@@ -311,24 +322,46 @@ private fun OnboardingStepInfo(
                             .defaultMinSize(minWidth = 120.dp, minHeight = (screenHeight / 3).dp)
                             .fillMaxHeight()
                     ) {
-                        if (!imageLoaded) {
-                            MozillaProgressIndicator(
-                                modifier = Modifier.size(80.dp)
-                            )
-                        }
-                        AsyncImage(
+//                        if (!imageLoaded) {
+//                            MozillaProgressIndicator(
+//                                modifier = Modifier.size(80.dp)
+//                            )
+//                        }
+//                        val context = LocalContext.current
+//                        val imageLoader = ImageLoader.Builder(context)
+//                            .components {
+//                                if (SDK_INT >= 28) {
+//                                    add(ImageDecoderDecoder.Factory())
+//                                } else {
+//                                    add(GifDecoder.Factory())
+//                                }
+//                            }
+//                            .build()
+
+
+                        FrescoImage(
+                            imageUrl = "https://storage.googleapis.com/ttreporter_onboarding/How-to-copy-link.gif",
+                            imageRequest = {
+                                newBuilderWithSource(Uri.parse("https://storage.googleapis.com/ttreporter_onboarding/How-to-copy-link.gif"))
+                                    .setProgressiveRenderingEnabled(true)
+                            },
                             modifier = Modifier.fillParentMaxHeight(.65f),
-                            model = ImageRequest.Builder(LocalContext.current)
-                                .data(it)
-                                .decoderFactory(GifDecoder.Factory())
-                                .build(),
-                            contentDescription = null,
-                            onState = { state ->
-                                if (state is AsyncImagePainter.State.Success) {
-                                    imageLoaded = true
-                                }
-                            }
                         )
+//                        FrescoWebImage(
+//                            controllerBuilder = {
+//
+//                                Fresco.newDraweeControllerBuilder()
+//                                    .setImageRequest(request)
+//                                    .setUri("https://storage.googleapis.com/ttreporter_onboarding/How-to-copy-link.gif")
+//                                    .setAutoPlayAnimations(true)
+//                            },
+//                            modifier = Modifier.fillParentMaxHeight(.65f),
+//                        )
+//                        CoilImage(
+//                            imageModel = { it },
+//                            imageLoader = { imageLoader },
+//                            modifier = Modifier.fillParentMaxHeight(.65f),
+//                        )
                     }
                 } else {
                     AsyncImage(

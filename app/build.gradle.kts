@@ -121,6 +121,12 @@ dependencies {
     implementation(libs.okhttp)
     implementation(libs.okhttp.logging.interceptor)
 
+    implementation(libs.fresco)
+    implementation(libs.fresco.gif)
+    implementation(libs.landscapist.coil)
+    implementation(libs.landscapist.fresco)
+    implementation(libs.landscapist.fresco.websupport)
+
     implementation(libs.datastore.preferences)
     implementation(libs.datastore.preferences.core)
 
