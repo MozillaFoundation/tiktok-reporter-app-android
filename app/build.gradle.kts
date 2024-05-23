@@ -126,6 +126,8 @@ dependencies {
     implementation(libs.landscapist.coil)
     implementation(libs.landscapist.fresco)
     implementation(libs.landscapist.fresco.websupport)
+    implementation(libs.glide)
+    implementation(libs.landscapist.glide)
 
     implementation(libs.datastore.preferences)
     implementation(libs.datastore.preferences.core)

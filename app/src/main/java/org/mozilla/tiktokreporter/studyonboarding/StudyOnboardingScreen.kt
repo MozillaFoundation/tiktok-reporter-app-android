@@ -46,6 +46,7 @@ import com.skydoves.landscapist.ImageOptions
 import com.skydoves.landscapist.coil.CoilImage
 import com.skydoves.landscapist.fresco.FrescoImage
 import com.skydoves.landscapist.fresco.websupport.FrescoWebImage
+import com.skydoves.landscapist.glide.GlideImage
 import kotlinx.coroutines.launch
 import org.mozilla.tiktokreporter.R
 import org.mozilla.tiktokreporter.TikTokReporterError
@@ -63,7 +64,13 @@ import org.mozilla.tiktokreporter.ui.theme.MozillaTypography
 import org.mozilla.tiktokreporter.util.CollectWithLifecycle
 import org.mozilla.tiktokreporter.util.UiText
 
+import com.bumptech.glide.annotation.GlideModule
+import com.bumptech.glide.module.AppGlideModule
+
 const val SCREEN_HEIGHT_BREAKPOINT = 800
+
+@GlideModule
+class AppGlideModule : AppGlideModule()
 
 @Composable
 fun StudyOnboardingScreen(
@@ -338,15 +345,23 @@ private fun OnboardingStepInfo(
 //                            }
 //                            .build()
 
-
-                        FrescoImage(
-                            imageUrl = "https://storage.googleapis.com/ttreporter_onboarding/How-to-copy-link.gif",
-                            imageRequest = {
-                                newBuilderWithSource(Uri.parse("https://storage.googleapis.com/ttreporter_onboarding/How-to-copy-link.gif"))
-                                    .setProgressiveRenderingEnabled(true)
-                            },
+                        GlideImage(
+                            imageModel = { it },
                             modifier = Modifier.fillParentMaxHeight(.65f),
+//                            loading = {
+//                                MozillaProgressIndicator(
+//                                    modifier = Modifier.size(80.dp)
+//                                )
+//                            },
                         )
+//                        FrescoImage(
+//                            imageUrl = "https://storage.googleapis.com/ttreporter_onboarding/How-to-copy-link.gif",
+//                            imageRequest = {
+//                                newBuilderWithSource(Uri.parse("https://storage.googleapis.com/ttreporter_onboarding/How-to-copy-link.gif"))
+//                                    .setProgressiveRenderingEnabled(true)
+//                            },
+//                            modifier = Modifier.fillParentMaxHeight(.65f),
+//                        )
 //                        FrescoWebImage(
 //                            controllerBuilder = {
 //
