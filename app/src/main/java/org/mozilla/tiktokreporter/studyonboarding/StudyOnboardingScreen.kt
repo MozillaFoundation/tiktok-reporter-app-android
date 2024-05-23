@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -184,6 +185,7 @@ private fun StudyOnboardingScreenContent(
                         )
                     }
                 },
+                hasBackButton = pagerState.canScrollBackward,
                 skipButton = {
                     if (pagerState.canScrollForward) {
                         SecondaryButton(
@@ -205,6 +207,7 @@ private fun OnboardingStepContent(
     nextButton: (@Composable () -> Unit)? = null,
     backButton: (@Composable () -> Unit)? = null,
     skipButton: (@Composable () -> Unit)? = null,
+    hasBackButton: Boolean = false,
 ) {
     Column(
         modifier = modifier
@@ -233,7 +236,8 @@ private fun OnboardingStepContent(
                 ),
             nextButton = nextButton,
             backButton = backButton,
-            skipButton = skipButton
+            skipButton = skipButton,
+            hasBackButton = hasBackButton,
         )
     }
 }
@@ -358,12 +362,30 @@ private fun OnboardingStepButtons(
     nextButton: (@Composable () -> Unit)? = null,
     backButton: (@Composable () -> Unit)? = null,
     skipButton: (@Composable () -> Unit)? = null,
+    hasBackButton: Boolean = false,
 ) {
     Column(
         modifier = modifier
     ) {
-        nextButton?.let { it() }
-        backButton?.let { it() }
+        if (hasBackButton) {
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(MozillaDimension.S),
+            ) {
+                backButton?.let {
+                    Box(modifier = Modifier.weight(1f)) {
+                        it()
+                    }
+                }
+                nextButton?.let {
+                    Box(modifier = Modifier.weight(1f)) {
+                        it()
+                    }
+                }
+            }
+        } else {
+            nextButton?.let { it() }
+            backButton?.let { it() }
+        }
         skipButton?.let { it() }
     }
 }
