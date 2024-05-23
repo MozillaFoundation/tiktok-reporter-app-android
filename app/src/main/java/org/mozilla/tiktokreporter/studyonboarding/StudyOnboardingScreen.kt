@@ -154,6 +154,7 @@ private fun StudyOnboardingScreenContent(
 
             OnboardingStepContent(
                 onboardingStep = stepInfo,
+                page = page,
                 modifier = Modifier.fillMaxSize(),
                 nextButton = {
                     PrimaryButton(
@@ -208,6 +209,7 @@ private fun OnboardingStepContent(
     backButton: (@Composable () -> Unit)? = null,
     skipButton: (@Composable () -> Unit)? = null,
     hasBackButton: Boolean = false,
+    page: Int = 0,
 ) {
     Column(
         modifier = modifier
@@ -238,6 +240,7 @@ private fun OnboardingStepContent(
             backButton = backButton,
             skipButton = skipButton,
             hasBackButton = hasBackButton,
+            page = page,
         )
     }
 }
@@ -363,6 +366,7 @@ private fun OnboardingStepButtons(
     backButton: (@Composable () -> Unit)? = null,
     skipButton: (@Composable () -> Unit)? = null,
     hasBackButton: Boolean = false,
+    page: Int = 0,
 ) {
     Column(
         modifier = modifier
@@ -386,6 +390,8 @@ private fun OnboardingStepButtons(
             nextButton?.let { it() }
             backButton?.let { it() }
         }
-        skipButton?.let { it() }
+        if (page == 0) {
+            skipButton?.let { it() }
+        }
     }
 }
