@@ -5,7 +5,9 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -23,6 +25,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -48,6 +51,8 @@ import org.mozilla.tiktokreporter.ui.theme.MozillaDimension
 import org.mozilla.tiktokreporter.ui.theme.MozillaTypography
 import org.mozilla.tiktokreporter.util.CollectWithLifecycle
 import org.mozilla.tiktokreporter.util.UiText
+
+const val SCREEN_HEIGHT_BREAKPOINT = 800
 
 @Composable
 fun StudyOnboardingScreen(
@@ -149,6 +154,7 @@ private fun StudyOnboardingScreenContent(
 
             OnboardingStepContent(
                 onboardingStep = stepInfo,
+                page = page,
                 modifier = Modifier.fillMaxSize(),
                 nextButton = {
                     PrimaryButton(
@@ -180,6 +186,7 @@ private fun StudyOnboardingScreenContent(
                         )
                     }
                 },
+                hasBackButton = pagerState.canScrollBackward,
                 skipButton = {
                     if (pagerState.canScrollForward) {
                         SecondaryButton(
@@ -201,6 +208,8 @@ private fun OnboardingStepContent(
     nextButton: (@Composable () -> Unit)? = null,
     backButton: (@Composable () -> Unit)? = null,
     skipButton: (@Composable () -> Unit)? = null,
+    hasBackButton: Boolean = false,
+    page: Int = 0,
 ) {
     Column(
         modifier = modifier
@@ -229,7 +238,9 @@ private fun OnboardingStepContent(
                 ),
             nextButton = nextButton,
             backButton = backButton,
-            skipButton = skipButton
+            skipButton = skipButton,
+            hasBackButton = hasBackButton,
+            page = page,
         )
     }
 }
@@ -245,6 +256,20 @@ private fun OnboardingStepInfo(
     details: String? = null
 ) {
     var imageLoaded by remember { mutableStateOf(false) }
+    val configuration = LocalConfiguration.current
+    val screenHeight = configuration.screenHeightDp
+    val titleStyle = when {
+        screenHeight < SCREEN_HEIGHT_BREAKPOINT -> MozillaTypography.H5
+        else -> MozillaTypography.H3
+    }
+    val subtitleStyle = when {
+        screenHeight < SCREEN_HEIGHT_BREAKPOINT -> MozillaTypography.H6
+        else -> MozillaTypography.H5
+    }
+    val bodyStyle = when {
+        screenHeight < SCREEN_HEIGHT_BREAKPOINT -> MozillaTypography.Body2
+        else -> MozillaTypography.Body1
+    }
 
     LazyColumn(
         modifier = modifier,
@@ -257,7 +282,7 @@ private fun OnboardingStepInfo(
                 Text(
                     modifier = Modifier.fillMaxWidth(),
                     text = it,
-                    style = MozillaTypography.H3
+                    style = titleStyle
                 )
             }
         }
@@ -266,7 +291,7 @@ private fun OnboardingStepInfo(
                 Text(
                     modifier = Modifier.fillMaxWidth(),
                     text = it,
-                    style = MozillaTypography.H5,
+                    style = subtitleStyle,
                     color = MozillaColor.Red
                 )
             }
@@ -276,7 +301,7 @@ private fun OnboardingStepInfo(
                 Text(
                     modifier = Modifier.fillMaxWidth(),
                     text = it,
-                    style = MozillaTypography.Body1
+                    style = bodyStyle
                 )
             }
         }
@@ -285,7 +310,9 @@ private fun OnboardingStepInfo(
                 if (it.endsWith(".gif")) {
                     Box(
                         contentAlignment = Alignment.Center,
-                        modifier = Modifier.defaultMinSize(minWidth = 120.dp, minHeight = 240.dp)
+                        modifier = Modifier
+                            .defaultMinSize(minWidth = 120.dp, minHeight = (screenHeight / 3).dp)
+                            .fillMaxHeight()
                     ) {
                         if (!imageLoaded) {
                             MozillaProgressIndicator(
@@ -293,6 +320,7 @@ private fun OnboardingStepInfo(
                             )
                         }
                         AsyncImage(
+                            modifier = Modifier.fillParentMaxHeight(.65f),
                             model = ImageRequest.Builder(LocalContext.current)
                                 .data(it)
                                 .decoderFactory(GifDecoder.Factory())
@@ -337,12 +365,33 @@ private fun OnboardingStepButtons(
     nextButton: (@Composable () -> Unit)? = null,
     backButton: (@Composable () -> Unit)? = null,
     skipButton: (@Composable () -> Unit)? = null,
+    hasBackButton: Boolean = false,
+    page: Int = 0,
 ) {
     Column(
         modifier = modifier
     ) {
-        nextButton?.let { it() }
-        backButton?.let { it() }
-        skipButton?.let { it() }
+        if (hasBackButton) {
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(MozillaDimension.S),
+            ) {
+                backButton?.let {
+                    Box(modifier = Modifier.weight(1f)) {
+                        it()
+                    }
+                }
+                nextButton?.let {
+                    Box(modifier = Modifier.weight(1f)) {
+                        it()
+                    }
+                }
+            }
+        } else {
+            nextButton?.let { it() }
+            backButton?.let { it() }
+        }
+        if (page == 0) {
+            skipButton?.let { it() }
+        }
     }
 }
