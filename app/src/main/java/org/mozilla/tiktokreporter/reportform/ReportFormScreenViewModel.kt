@@ -212,7 +212,7 @@ class ReportFormScreenViewModel @Inject constructor(
                 if (recordingUploaded == 1 && signedUrl != null) {
                     submitRecordedSessionForm(signedUrl)
                 } else if (recordingUploaded == -1) {
-                    submitRecordedSessionFormNoRecording()
+                    shownFormErrorNoRecording()
                 }
                 context.dataStore.edit {
                     it.remove(Common.DATASTORE_KEY_RECORDING_UPLOADED)
@@ -420,18 +420,13 @@ class ReportFormScreenViewModel @Inject constructor(
         _isLoading.update { false }
     }
 
-    private suspend fun submitRecordedSessionFormNoRecording() {
-        withContext(Dispatchers.Unconfined) {
-            val serializedForm = serializeRecordSessionFormNoRecording()
-
-            val studyUUID = UUID.fromString(state.value.studyDetails?.id)
-            TiktokScreenRecording.identifier.set(studyUUID)
-            TiktokScreenRecording.data.set(serializedForm)
-            Pings.screenRecording.submit()
+    private suspend fun shownFormErrorNoRecording() {
+        _state.update { state ->
+            state.copy(
+                showUploadError = true
+            )
         }
-
-        onCancelReport()
-        _uiAction.send(UiAction.StopUploadRecordingService)
+        _uiAction.send(UiAction.StopUploadRecordingServiceWithError)
         _isLoading.update { false }
     }
 
@@ -493,7 +488,7 @@ class ReportFormScreenViewModel @Inject constructor(
 
             _state.update {
                 it.copy(
-                    formFields = initialFormFields, video = null, showSubmitNoVideoError = false, recordSessionComments = ""
+                    formFields = initialFormFields, video = null, showSubmitNoVideoError = false, showUploadError = false, recordSessionComments = ""
                 )
             }
         }
@@ -586,7 +581,8 @@ class ReportFormScreenViewModel @Inject constructor(
         val isRecording: Boolean = false,
         val recordSessionComments: String = "",
         val video: VideoModel? = null,
-        val showSubmitNoVideoError: Boolean = false
+        val showSubmitNoVideoError: Boolean = false,
+        val showUploadError: Boolean = false
     )
 
     data class VideoModel(
@@ -602,6 +598,7 @@ class ReportFormScreenViewModel @Inject constructor(
         ) : UiAction()
 
         data object StopUploadRecordingService : UiAction()
+        data object StopUploadRecordingServiceWithError : UiAction()
         data class ShowError(
             val error: TikTokReporterError
         ) : UiAction()

@@ -164,6 +164,14 @@ fun ReportFormScreen(
                     onGoToReportSubmittedScreen()
                 }
 
+                ReportFormScreenViewModel.UiAction.StopUploadRecordingServiceWithError -> {
+                    Intent(context.applicationContext, UploadRecordingService::class.java).also {
+                        it.action = UploadRecordingService.Actions.STOP.toString()
+
+                        context.startService(it)
+                    }
+                }
+
                 is ReportFormScreenViewModel.UiAction.ShowStudyNotActive -> {
                     dialogState.value = DialogState.MessageDialog(title = UiText.StringResource(R.string.dialog_title_inactive_study),
                         message = UiText.StringResource(R.string.dialog_message_inactive_study),
@@ -392,6 +400,7 @@ private fun ReportFormScreenContent(
                             recordSessionItems(
                                 isRecording = state.isRecording,
                                 showSubmitNoVideoError = state.showSubmitNoVideoError,
+                                showUploadError = state.showUploadError,
                                 video = state.video,
                                 comments = state.recordSessionComments,
                                 onCommentsChanged = onRecordSessionCommentsChanged,
@@ -442,6 +451,7 @@ private fun ReportFormScreenContent(
 private fun recordSessionItems(
     isRecording: Boolean,
     showSubmitNoVideoError: Boolean,
+    showUploadError: Boolean,
     video: ReportFormScreenViewModel.VideoModel?,
     comments: String,
     onCommentsChanged: (String) -> Unit,
@@ -490,6 +500,14 @@ private fun recordSessionItems(
     if (showSubmitNoVideoError) {
         Text(
             text = stringResource(id = R.string.error_message_no_recording_available),
+            style = MozillaTypography.Body2,
+            color = MozillaColor.Error
+        )
+    }
+
+    if (showUploadError) {
+        Text(
+            text = stringResource(id = R.string.error_message_upload_failed),
             style = MozillaTypography.Body2,
             color = MozillaColor.Error
         )

@@ -74,6 +74,7 @@
     <string name="error_title_no_studies_available">No studies available</string>
     <string name="error_message_no_studies_available">We are sorry to announce that there are no studies available for your location.\n\nCome back at a later date to check if any new study has been opened.</string>
     <string name="error_message_no_recording_available">Create a recording in order to submit the report.</string>
+    <string name="error_message_upload_failed">Could not upload the video. Please try again later.</string>
     <string name="error_message_empty_field">This field cannot be empty.</string>
     <string name="error_message_empty_category">Please suggest a category.</string>
     <string name="error_message_tik_tok_link">Please paste a TikTok link</string>
