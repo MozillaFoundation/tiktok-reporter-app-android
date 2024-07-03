@@ -108,7 +108,8 @@ class ReportFormScreenViewModel @Inject constructor(
 
                 tikTokReporterRepository.tikTokUrl.onSubscription { emit(null) }.map {
                     val fields = study.form?.fields.orEmpty().toUiComponents(it)
-                    initialFormFields = fields
+                    // Initial data must be all blank values, so cancel/submit resets properly
+                    initialFormFields = study.form?.fields.orEmpty().toUiComponents()
 
                     Pair(study, fields)
                 }
