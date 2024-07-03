@@ -580,7 +580,9 @@ private fun FormButtons(
                     onCancelReport?.let {
                         var fieldsEdited = false
                         fields.forEach {
-                            if (it.edited == true) {
+                            // When sharing a tikTokUrl, the URL field has a value but it's readonly
+                            // Allow to reset the state for this case, too.
+                            if (it.edited == true || (it.readOnly && it.value.toString() != "")) {
                                 fieldsEdited = true
                             }
                         }
