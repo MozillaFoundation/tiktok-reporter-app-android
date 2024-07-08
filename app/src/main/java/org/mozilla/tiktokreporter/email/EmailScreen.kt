@@ -29,6 +29,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.jeziellago.compose.markdowntext.MarkdownText
 import org.mozilla.tiktokreporter.R
 import org.mozilla.tiktokreporter.TikTokReporterError
+import org.mozilla.tiktokreporter.common.FormFieldUiComponent
 import org.mozilla.tiktokreporter.common.formcomponents.formComponentsItems
 import org.mozilla.tiktokreporter.ui.components.LoadingScreen
 import org.mozilla.tiktokreporter.ui.components.MozillaScaffold
@@ -157,6 +158,7 @@ private fun EmailScreenContent(
             headingText = stringResource(R.string.email_for_data_download)
             formFields = state.dataFormFields
         }
+        val emailField = formFields.firstOrNull { it is FormFieldUiComponent.TextField }
         val keyboardController = LocalSoftwareKeyboardController.current
 
         Column(
@@ -208,7 +210,10 @@ private fun EmailScreenContent(
                 OnboardingFormButtons(modifier = Modifier.fillMaxWidth(), nextButton = {
                     if (mode != EmailScreenMode.SETTINGS_UPDATES) {
                         PrimaryButton(
-                            modifier = Modifier.fillMaxWidth(), text = stringResource(id = R.string.save), onClick = onSaveEmail
+                            enabled = emailField == null || emailField.isValidEmail(),
+                            modifier = Modifier.fillMaxWidth(),
+                            text = stringResource(id = R.string.save),
+                            onClick = onSaveEmail
                         )
                     } else if (state.userEmail.isNotEmpty()) {
                         MarkdownText(
@@ -226,13 +231,18 @@ private fun EmailScreenContent(
                         )
                     }
                 }, skipButton = {
-                    if (mode != EmailScreenMode.SETTINGS_DATA_HANDLING) {
+                    if (mode == EmailScreenMode.ONBOARDING) {
                         SecondaryButton(
                             modifier = Modifier.fillMaxWidth(),
-                            text = if (mode == EmailScreenMode.ONBOARDING) stringResource(id = R.string.skip) else stringResource(
-                                id = R.string.save
-                            ),
-                            onClick = if (mode == EmailScreenMode.ONBOARDING) onNextScreen else onSaveEmail
+                            text = stringResource(id = R.string.skip),
+                            onClick = onNextScreen,
+                        )
+                    } else if (mode == EmailScreenMode.SETTINGS_UPDATES) {
+                        PrimaryButton(
+                            enabled = emailField == null || emailField.isValidEmail(),
+                            modifier = Modifier.fillMaxWidth(),
+                            text = stringResource(id = R.string.save),
+                            onClick = onSaveEmail
                         )
                     }
                 })
