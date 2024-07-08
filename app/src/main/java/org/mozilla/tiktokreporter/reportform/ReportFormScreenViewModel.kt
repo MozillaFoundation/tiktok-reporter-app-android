@@ -443,7 +443,7 @@ class ReportFormScreenViewModel @Inject constructor(
                     if (!field.id.contains(OTHER_CATEGORY_TEXT_FIELD_ID) && field.isRequired && field.value.isEmpty()) {
                         return@mapIndexedNotNull index to FormFieldError.Empty
                     }
-                    if (field.isTikTokLink == true && !field.value.contains("tiktok.com")) {
+                    if (field.isTikTokLink == true && !field.value.matches("https://.*tiktok.com/.+".toRegex())) {
                         return@mapIndexedNotNull index to FormFieldError.NoTikTokLink
                     }
 
