@@ -61,6 +61,10 @@ sealed class FormFieldUiComponent<T>(
         val leftLabel: String,
         val rightLabel: String,
     ) : FormFieldUiComponent<Int>(id, value, isVisible, isRequired, readOnly, description, label)
+
+    fun isValidEmail(): Boolean {
+        return android.util.Patterns.EMAIL_ADDRESS.matcher(value.toString()).matches()
+    }
 }
 
 data class OptionComponent(
@@ -71,6 +75,7 @@ sealed class FormFieldError {
     data object Empty : FormFieldError()
     data object EmptyCategory : FormFieldError()
     data object NoTikTokLink : FormFieldError()
+    data object EmailInvalid : FormFieldError()
 }
 
 fun FormField.toFormFieldComponent(): List<FormFieldUiComponent<*>>? {
