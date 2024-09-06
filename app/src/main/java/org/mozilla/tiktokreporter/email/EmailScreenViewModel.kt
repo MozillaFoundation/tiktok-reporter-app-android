@@ -17,6 +17,7 @@ import org.mozilla.tiktokreporter.GleanMetrics.Email
 import org.mozilla.tiktokreporter.GleanMetrics.Pings
 import org.mozilla.tiktokreporter.TikTokReporterError
 import org.mozilla.tiktokreporter.TikTokReporterRepository
+import org.mozilla.tiktokreporter.common.FormFieldError
 import org.mozilla.tiktokreporter.common.FormFieldUiComponent
 import org.mozilla.tiktokreporter.common.toUiComponents
 import org.mozilla.tiktokreporter.data.model.Form
@@ -112,7 +113,10 @@ class EmailScreenViewModel @Inject constructor(
             val newField = when (val field = formFields[fieldIndex]) {
                 is FormFieldUiComponent.TextField -> {
                     field.copy(
-                        value = value as String
+                        value = value as String,
+                        // This is a crude way to determine that the field is an email address
+                        // TODO: send a special value from the backend
+                        error = if (value.isNotEmpty() && field.label.contains("email") && !field.isValidEmail()) FormFieldError.EmailInvalid else null
                     )
                 }
                 is FormFieldUiComponent.Slider -> {
@@ -174,6 +178,11 @@ class EmailScreenViewModel @Inject constructor(
     fun onSaveEmail() {
         viewModelScope.launch {
             val emailField = state.value.formFields.firstOrNull { it is FormFieldUiComponent.TextField }
+
+            if (emailField != null && !emailField.isValidEmail()) {
+                return@launch
+            }
+
             val email = emailField?.value as String
 
             tikTokReporterRepository.saveUserEmail(email)

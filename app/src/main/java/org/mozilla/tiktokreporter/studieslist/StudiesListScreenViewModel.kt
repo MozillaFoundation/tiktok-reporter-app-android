@@ -87,6 +87,10 @@ class StudiesListScreenViewModel @Inject constructor(
                     _uiAction.send(UiAction.ShowChangeStudyWarning)
                 }
 
+                // Go to the report form even if study hasn't changed
+                // Not taking any action is confusing to the user.
+                _uiAction.send(UiAction.OnGoToReportForm)
+
                 return@launch
             }
 

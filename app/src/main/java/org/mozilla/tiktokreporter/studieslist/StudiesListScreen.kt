@@ -35,7 +35,7 @@ import org.mozilla.tiktokreporter.ui.components.LoadingScreen
 import org.mozilla.tiktokreporter.ui.components.MozillaRadioButton
 import org.mozilla.tiktokreporter.ui.components.MozillaScaffold
 import org.mozilla.tiktokreporter.ui.components.MozillaTopAppBar
-import org.mozilla.tiktokreporter.ui.components.SecondaryButton
+import org.mozilla.tiktokreporter.ui.components.PrimaryButton
 import org.mozilla.tiktokreporter.ui.components.dialog.DialogContainer
 import org.mozilla.tiktokreporter.ui.components.dialog.DialogState
 import org.mozilla.tiktokreporter.ui.theme.MozillaColor
@@ -229,7 +229,7 @@ private fun StudiesListScreenContent(
             }
 
             if (!showEmptyStudiesListContent) {
-                SecondaryButton(
+                PrimaryButton(
                     modifier = Modifier.fillMaxWidth(),
                     text = stringResource(id = R.string.next),
                     onClick = onSave

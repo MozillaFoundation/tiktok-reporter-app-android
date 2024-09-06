@@ -79,6 +79,11 @@ fun DataHandlingScreen(
                             )
                         ), verticalArrangement = Arrangement.spacedBy(MozillaDimension.S)
                 ) {
+                    Text(
+                        text = stringResource(id = R.string.data_handling),
+                        style = MozillaTypography.H3,
+                        modifier = Modifier.padding(bottom = MozillaDimension.L)
+                    )
                     SecondaryButton(
                         modifier = Modifier.fillMaxWidth(),
                         text = stringResource(R.string.button_download_my_data),

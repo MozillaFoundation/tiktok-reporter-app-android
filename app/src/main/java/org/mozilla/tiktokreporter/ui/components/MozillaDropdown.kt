@@ -22,6 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import org.mozilla.tiktokreporter.ui.theme.MozillaColor
 import org.mozilla.tiktokreporter.ui.theme.MozillaTypography
@@ -74,6 +75,7 @@ fun MozillaDropdown(
                         Text(
                             text = elem,
                             style = MozillaTypography.Body1,
+                            fontWeight = if (text == elem) FontWeight.Bold else null,
                         )
                     },
                     onClick = {

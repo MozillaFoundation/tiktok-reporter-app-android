@@ -77,7 +77,8 @@
     <string name="error_message_upload_failed">Could not upload the video. Please try again later.</string>
     <string name="error_message_empty_field">This field cannot be empty.</string>
     <string name="error_message_empty_category">Please suggest a category.</string>
-    <string name="error_message_tik_tok_link">Please paste a TikTok link</string>
+    <string name="error_message_tik_tok_link">Please paste a TikTok link.</string>
+    <string name="error_message_invalid_email">"Please enter a valid email address.</string>
     <string name="save">Save</string>
     <string name="button_trim_recording">Trim Recording</string>
     <string name="done_editing">I\'m done editing</string>

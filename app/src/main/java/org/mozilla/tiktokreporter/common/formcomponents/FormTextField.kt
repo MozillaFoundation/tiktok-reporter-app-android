@@ -49,6 +49,7 @@ fun FormTextField(
                         FormFieldError.Empty -> stringResource(id = R.string.error_message_empty_field)
                         FormFieldError.EmptyCategory -> stringResource(id = R.string.error_message_empty_category)
                         FormFieldError.NoTikTokLink -> stringResource(id = R.string.error_message_tik_tok_link)
+                        FormFieldError.EmailInvalid -> stringResource(id = R.string.error_message_invalid_email)
                     }
                 })
         }
